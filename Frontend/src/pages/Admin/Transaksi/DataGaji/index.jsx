@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
-import DataGajiPegawai from '../../../../utils/DataGajiPegawai';
+import DataGajiPegawai from '../../../../Utils/DataGajiPegawai';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
 import { FaRegEdit } from 'react-icons/fa'

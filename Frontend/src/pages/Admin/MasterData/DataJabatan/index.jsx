@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
-import DataJabatanPeople from '../../../../utils/DataJabatanPeople';
+import DataJabatanPeople from '../../../../Utils/DataJabatanPeople';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
 import { FaRegEdit, FaPlus } from 'react-icons/fa'

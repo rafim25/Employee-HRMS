@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DefaultLayoutPegawai from '../../../layout/DefaultLayoutPegawai';
-import DataGajiPegawaiPeople from '../../../utils/DataGajiPegawaiPeople';
+import DataGajiPegawaiPeople from '../../../Utils/DataGajiPegawaiPeople';
 import { BreadcrumbPegawai } from '../../../components';
 import { TfiPrinter } from 'react-icons/tfi'
 
