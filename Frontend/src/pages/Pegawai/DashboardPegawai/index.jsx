@@ -1,7 +1,7 @@
 import React from 'react';
 import DefaultLayoutPegawai from '../../../layout/DefaultLayoutPegawai';
 import { BreadcrumbPegawai } from '../../../components';
-import PegawaiPeople from '../../../assets/images/user/gilbert.png'
+import PegawaiPeople from '../../../Assets/images/user/gilbert.png';
 
 const DashboardPegawai = () => {
     return (

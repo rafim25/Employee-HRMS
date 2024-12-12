@@ -1,7 +1,7 @@
 import React from 'react';
-import Logo from '../../../assets/images/logo/logo.svg'
-import LogoDark from '../../../assets/images/logo/logo-dark.svg'
-import LoginImg from '../../../assets/images/LoginImg/login.svg'
+import Logo from '../../../Assets/images/logo/logo.svg'
+import LogoDark from '../../../Assets/images/logo/logo-dark.svg'
+import LoginImg from '../../../Assets/images/LoginImg/login.svg'
 import { FiUser } from 'react-icons/fi'
 import { TfiLock } from 'react-icons/tfi'
 import { Link } from 'react-router-dom'
