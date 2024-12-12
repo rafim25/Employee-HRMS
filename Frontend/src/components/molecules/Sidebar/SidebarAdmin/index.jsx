@@ -237,7 +237,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
               </SidebarLinkGroup>
               {/* <!-- Transaksi Admin --> */}
 
-              {/* <!-- Laporan Admin --> */}
+              {/* <!-- Report Admin --> */}
               <SidebarLinkGroup
                 activeCondition={
                   pathname === '/laporan' || pathname.includes('laporan')
@@ -260,7 +260,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                         }}
                       >
                         <TfiPrinter />
-                        Laporan
+                        Report
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
@@ -278,7 +278,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Laporan Salary 
+                              Report Salary 
                             </NavLink>
                           </li>
                           <li>
@@ -289,7 +289,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Laporan Absensi
+                              Report Absensi
                             </NavLink>
                           </li>
                           <li>
@@ -310,9 +310,9 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                   )
                 }}
               </SidebarLinkGroup>
-              {/* <!-- Laporan Admin --> */}
+              {/* <!-- Report Admin --> */}
 
-              {/* <!-- Pengaturan Admin --> */}
+              {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
                 activeCondition={
                   pathname === '/pengaturan' || pathname.includes('pengaturan')
@@ -335,7 +335,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                         }}
                       >
                         <FiSettings />
-                        Pengaturan
+                        Settings
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
@@ -374,7 +374,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                   )
                 }}
               </SidebarLinkGroup>
-              {/* <!-- Pengaturan Admin --> */}
+              {/* <!-- Settings Admin --> */}
             </ul>
           </div>
         </nav>

@@ -41,12 +41,12 @@ const DataAbsensi = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Absensi Employee' />
+            <BreadcrumbAdmin pageName='Employee Attendance Data' />
 
             <div className='rounded-sm border border-stroke bg-white px-5 pt-2 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-10 mt-6'>
                 <div className='border-b border-stroke py-2 dark:border-strokedark'>
                     <h3 className='font-medium text-black dark:text-white'>
-                        Filter Data Absensi Employee
+                        Filter Employee Attendance Data
                     </h3>
                 </div>
 

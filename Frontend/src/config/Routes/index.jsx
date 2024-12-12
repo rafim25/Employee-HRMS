@@ -29,11 +29,11 @@ const AppRoutes = () => {
       <Route path='/admin/transaksi/setting-potongan-gaji' element={<SettingPotonganGaji />} />
       <Route path='/admin/transaksi/setting-potongan-gaji/form-setting-potongan-gaji' element={<FormSettingPotonganGaji />} />
       <Route path='/admin/transaksi/data-gaji' element={<DataGaji />} />
-      {/* Laporan Admin */}
+      {/* Report Admin */}
       <Route path='/admin/laporan/laporan-gaji' element={<LaporanGaji />} />
       <Route path='/admin/laporan/laporan-absensi' element={<LaporanAbsensi />} />
       <Route path='/admin/laporan/slip-gaji' element={<SlipGaji />} />
-      {/* Pengaturan Admin */}
+      {/* Settings Admin */}
       <Route path='/admin/pengaturan/ubah-password' element={<UbahPasswordAdmin />} />
 
       {/* Route Employee */}

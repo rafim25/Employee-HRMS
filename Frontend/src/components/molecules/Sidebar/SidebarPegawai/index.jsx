@@ -110,7 +110,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               </li>
               {/* <!-- Data Salary  Employee --> */}
 
-              {/* <!-- Pengaturan Admin --> */}
+              {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
                 activeCondition={
                   pathname === '/pengaturan' || pathname.includes('pengaturan')
@@ -133,7 +133,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                         }}
                       >
                         <FiSettings />
-                        Pengaturan
+                        Settings
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
@@ -172,7 +172,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   )
                 }}
               </SidebarLinkGroup>
-              {/* <!-- Pengaturan Admin --> */}
+              {/* <!-- Settings Admin --> */}
             </ul>
           </div>
         </nav>
