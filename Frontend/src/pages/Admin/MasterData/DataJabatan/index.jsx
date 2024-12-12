@@ -40,10 +40,10 @@ const DataJabatan = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Position' />
+            <BreadcrumbAdmin pageName='Position Data ' />
             <Link to="/admin/master-data/data-jabatan/form-data-jabatan" >
                 <ButtonOne  >
-                    <span>Tambah Position</span>
+                    <span>Add Position</span>
                     <span>
                         <FaPlus />
                     </span>
@@ -71,7 +71,7 @@ const DataJabatan = () => {
                                     Position
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Salary  Pokok
+                                    Basic Salary
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Tansportation Allowance
@@ -126,7 +126,7 @@ const DataJabatan = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataJabatanPeople.length} Data Position
+                            Showing {startIndex}-{endIndex} of {DataJabatanPeople.length} Position Data 
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

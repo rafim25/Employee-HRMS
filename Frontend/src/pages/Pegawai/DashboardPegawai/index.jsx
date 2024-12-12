@@ -24,16 +24,16 @@ const DashboardPegawai = () => {
                 <div className="md:w-2/3 px-4 md:px-20 py-4 md:py-20">
                     <div className="w-full md:text-lg">
                         <h2 className="font-medium mb-4 block text-black dark:text-white">
-                            <span className="inline-block w-32 md:w-40">Employee Nama </span><span className="inline-block w-7">:</span> Gilbert Hutapea
+                            <span className="inline-block w-32 md:w-40">Employee Name </span><span className="inline-block w-7">:</span> Gilbert Hutapea
                         </h2>
                         <h2 className="font-medium mb-4 block text-black dark:text-white">
                             <span className="inline-block w-32 md:w-40">Position</span><span className="inline-block w-7">:</span> <span className="pl-[-10] md:pl-0">FullStack Developer</span>
                         </h2>
                         <h2 className="font-medium mb-4 block text-black dark:text-white">
-                            <span className="inline-block w-32 md:w-40">Date of Entry</span><span className="inline-block w-7">:</span> 15-01-2023
+                            <span className="inline-block w-32 md:w-40">Date of Joining</span><span className="inline-block w-7">:</span> 15-01-2023
                         </h2>
                         <h2 className="font-medium mb-4 block text-black dark:text-white">
-                            <span className="inline-block w-32 md:w-40">Status</span><span className="inline-block w-7">:</span><span className="pl-[-8] md:pl-0"> Karyawan Tetap</span>
+                            <span className="inline-block w-32 md:w-40">Status</span><span className="inline-block w-7">:</span><span className="pl-[-8] md:pl-0"> Permanent Employee</span>
                         </h2>
                     </div>
                 </div>

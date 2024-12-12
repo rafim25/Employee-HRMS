@@ -76,8 +76,8 @@ const FormDataPegawai = () => {
                     <div className='relative z-20 bg-transparent dark:bg-form-input'>
                       <select className='relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'>
                         <option value=''>Silahkan pilih</option>
-                        <option value=''>Laki-Laki</option>
-                        <option value=''>Perempuan</option>
+                        <option value=''>Male</option>
+                        <option value=''>Female</option>
                       </select>
                       <span className='absolute top-1/2 right-4 z-30 -translate-y-1/2 text-2xl'>
                         <MdOutlineKeyboardArrowDown />
@@ -106,7 +106,7 @@ const FormDataPegawai = () => {
                 <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                   <div className='w-full xl:w-1/2'>
                     <label className='mb-2.5 block text-black dark:text-white'>
-                      Date of Entry <span className='text-meta-1'>*</span>
+                      Date of Joining <span className='text-meta-1'>*</span>
                     </label>
                     <input
                       type='date'
@@ -120,8 +120,8 @@ const FormDataPegawai = () => {
                     <div className='relative z-20 bg-transparent dark:bg-form-input'>
                       <select className='relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'>
                         <option value=''>Silahkan Pilih</option>
-                        <option value=''>Karyawan Tetap</option>
-                        <option value=''>Karyawan Tidak Tetap</option>
+                        <option value=''>Permanent Employee</option>
+                        <option value=''>Contract Employee</option>
                       </select>
                       <span className='absolute top-1/2 right-4 z-30 -translate-y-1/2 text-2xl'>
                         <MdOutlineKeyboardArrowDown />

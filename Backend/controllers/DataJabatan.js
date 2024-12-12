@@ -82,7 +82,7 @@ export const createDataJabatan = async (req, res) => {
         }
       );
     }
-    res.status(201).json({ msg: "Data Position Created Successfuly" });
+    res.status(201).json({ msg: "Position Data  Created Successfuly" });
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -132,7 +132,7 @@ export const updateDataJabatan = async (req, res) => {
         }
       );
     }
-    res.status(200).json({ msg: "Data Position updated successfully" });
+    res.status(200).json({ msg: "Position Data  updated successfully" });
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -165,7 +165,7 @@ export const deleteDataJabatan = async (req, res) => {
         },
       });
     }
-    res.status(200).json({ msg: "Data Position deleted successfully" });
+    res.status(200).json({ msg: "Position Data  deleted successfully" });
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }

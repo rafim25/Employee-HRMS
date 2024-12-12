@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import SidebarLinkGroup from '../SidebarLinkGroup'
-import Logo from '../../../../Assets/images/logo/logo.svg'
+import Logo from '../../../../Assets/images/logo/logo-dark.png'
 import { AiOutlineArrowLeft } from 'react-icons/ai'
 import { RxDashboard } from 'react-icons/rx'
 import { FiDatabase, FiSettings } from 'react-icons/fi'
@@ -139,7 +139,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Data Employee
+                              Employee Data 
                             </NavLink>
                           </li>
                           <li>
@@ -150,7 +150,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Data Position
+                              Position Data 
                             </NavLink>
                           </li>
                         </ul>
@@ -225,7 +225,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Data Salary 
+                              Salary Data 
                             </NavLink>
                           </li>
                         </ul>
@@ -278,7 +278,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Report Salary 
+                              Salary Report  
                             </NavLink>
                           </li>
                           <li>
@@ -289,7 +289,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Report Attendance
+                              Attendance Report 
                             </NavLink>
                           </li>
                           <li>
@@ -300,7 +300,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Slip Salary 
+                              Salary Slip 
                             </NavLink>
                           </li>
                         </ul>
@@ -353,7 +353,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Ubah Password
+                              Change Password
                             </NavLink>
                           </li>
                           <li>

@@ -41,7 +41,7 @@ const AppRoutes = () => {
       <Route exact path='/pegawai/login' element={<LoginPegawai />} />
       {/* Dashboard Employee */}
       <Route exact path='/pegawai/dashboard' element={<DashboardPegawai />} />
-      {/* Dashboard Data Salary  Employee */}
+      {/* Dashboard Salary Data  Employee */}
       <Route exact path='/pegawai/data-gaji' element={<DataGajiPegawai />} />
       <Route exact path='/pegawai/pengaturan/ubah-password' element={<UbahPasswordPegawai />} />
       {/* Route Not Found/404 */}

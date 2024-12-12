@@ -176,7 +176,7 @@ const DataAbsensi = () => {
                                             <p className='text-black dark:text-white'>{dataAbsensi.namaPegawai}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                            <p className='text-black dark:text-white'>{dataAbsensi.jenisKelamin}</p>
+                                            <p className='text-black dark:text-white'>{dataAbsensi.Gender}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                             <p className='text-black dark:text-white'>{dataAbsensi.titleJabatan}</p>

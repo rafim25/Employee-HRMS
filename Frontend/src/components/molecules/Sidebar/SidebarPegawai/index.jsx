@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import SidebarLinkGroup from '../SidebarLinkGroup'
-import Logo from '../../../../Assets/images/logo/logo.svg'
+import Logo from '../../../../Assets/images/logo/logo-dark.png'
 import { AiOutlineArrowLeft } from 'react-icons/ai'
 import { RxDashboard } from 'react-icons/rx'
 import { FaRegMoneyBillAlt } from 'react-icons/fa'
@@ -96,7 +96,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               </NavLink>
               {/* <!-- Dashboard Admin --> */}
 
-              {/* <!-- Data Salary  Employee--> */}
+              {/* <!-- Salary Data  Employee--> */}
               <li>
                 <NavLink
                   to='/pegawai/data-gaji'
@@ -105,10 +105,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     }`}
                 >
                   <FaRegMoneyBillAlt />
-                  Data Salary 
+                  Salary Data 
                 </NavLink>
               </li>
-              {/* <!-- Data Salary  Employee --> */}
+              {/* <!-- Salary Data  Employee --> */}
 
               {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
@@ -151,7 +151,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Ubah Password
+                              Change Password
                             </NavLink>
                           </li>
                           <li>

@@ -73,8 +73,8 @@ CREATE TABLE `data_kehadiran` (
 --
 
 INSERT INTO `data_kehadiran` (`id`, `bulan`, `nik`, `nama_pegawai`, `jenis_kelamin`, `nama_jabatan`, `hadir`, `sakit`, `alpha`, `createdAt`, `updatedAt`) VALUES
-(1, 'April', '223344', 'Aldi', 'Laki-Laki', 'HRD', 2, 0, 1, '2023-05-21 13:56:47', '2023-05-21 13:56:47'),
-(2, 'April', '3344556', 'Budi', 'Laki-Laki', 'Operator Produksi', 2, 1, 1, '2023-05-21 14:06:00', '2023-05-21 14:06:00');
+(1, 'April', '223344', 'Aldi', 'Male', 'HRD', 2, 0, 1, '2023-05-21 13:56:47', '2023-05-21 13:56:47'),
+(2, 'April', '3344556', 'Budi', 'Male', 'Operator Produksi', 2, 1, 1, '2023-05-21 14:06:00', '2023-05-21 14:06:00');
 
 -- --------------------------------------------------------
 
@@ -105,8 +105,8 @@ CREATE TABLE `data_pegawai` (
 --
 
 INSERT INTO `data_pegawai` (`id`, `id_pegawai`, `nik`, `nama_pegawai`, `username`, `password`, `jenis_kelamin`, `jabatan`, `tanggal_masuk`, `status`, `photo`, `url`, `hak_akses`, `createdAt`, `updatedAt`) VALUES
-(1, 'fa2b8473-ddcd-4c5a-b985-391a6dc87920', '223344', 'Aldi', 'aldi', '$argon2id$v=19$m=65536,t=3,p=4$N9YlzB9yQo1n5rHsZUSkIA$afLOo5e7vkn1gPfpF3fCr9Skjv5cVD+KKAHvWwHbBBI', 'Laki-Laki', 'HRD', '01-02-23', 'karyawan tetap', '87e74cc6606ab4802b48d59acbbcff71.jpg', 'http://localhost:5000/images/87e74cc6606ab4802b48d59acbbcff71.jpg', 'admin', '2023-05-21 13:08:09', '2023-05-21 13:08:09'),
-(2, 'f6001a36-d9a2-437f-b0e7-103f817c1c61', '334455', 'Budi', 'budi', '$argon2id$v=19$m=65536,t=3,p=4$1ScBJEZZgvxMIbYNRxhZDg$OAtL4BB+hufFV6MsYDKkb1TJ2BfABK74kweZrntw/dQ', 'Laki-Laki', 'Operator Produksi', '01-02-23', 'karyawan tetap', '87e74cc6606ab4802b48d59acbbcff71.jpg', 'http://localhost:5000/images/87e74cc6606ab4802b48d59acbbcff71.jpg', 'pegawai', '2023-05-21 14:04:35', '2023-05-21 14:04:35');
+(1, 'fa2b8473-ddcd-4c5a-b985-391a6dc87920', '223344', 'Aldi', 'aldi', '$argon2id$v=19$m=65536,t=3,p=4$N9YlzB9yQo1n5rHsZUSkIA$afLOo5e7vkn1gPfpF3fCr9Skjv5cVD+KKAHvWwHbBBI', 'Male', 'HRD', '01-02-23', 'karyawan tetap', '87e74cc6606ab4802b48d59acbbcff71.jpg', 'http://localhost:5000/images/87e74cc6606ab4802b48d59acbbcff71.jpg', 'admin', '2023-05-21 13:08:09', '2023-05-21 13:08:09'),
+(2, 'f6001a36-d9a2-437f-b0e7-103f817c1c61', '334455', 'Budi', 'budi', '$argon2id$v=19$m=65536,t=3,p=4$1ScBJEZZgvxMIbYNRxhZDg$OAtL4BB+hufFV6MsYDKkb1TJ2BfABK74kweZrntw/dQ', 'Male', 'Operator Produksi', '01-02-23', 'karyawan tetap', '87e74cc6606ab4802b48d59acbbcff71.jpg', 'http://localhost:5000/images/87e74cc6606ab4802b48d59acbbcff71.jpg', 'pegawai', '2023-05-21 14:04:35', '2023-05-21 14:04:35');
 
 -- --------------------------------------------------------
 

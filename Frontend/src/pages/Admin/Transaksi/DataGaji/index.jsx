@@ -41,7 +41,7 @@ const DataGaji = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Salary  Employee' />
+            <BreadcrumbAdmin pageName='Salary Data  Employee' />
 
             <div className='rounded-sm border border-stroke bg-white px-5 pt-2 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-10 mt-6'>
                 <div className='border-b border-stroke py-2 dark:border-strokedark'>
@@ -52,34 +52,34 @@ const DataGaji = () => {
 
                 <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
                     <div className="relative w-full md:w-1/4 md:mr-2 mb-4 md:mb-0">
-                        <div className='relative'><span className='px-4'> Bulan</span>
+                        <div className='relative'><span className='px-4'> Month</span>
                             <span className='absolute top-1/2 left-55 z-30 -translate-y-1/2 text-xl'>
                                 <MdOutlineKeyboardArrowDown />
                             </span>
                             <select className='relative appearance-none rounded border border-stroke bg-transparent py-2 px-12 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input'>
-                                <option value=''>Pilih Bulan</option>
-                                <option value=''>Januari</option>
-                                <option value=''>Februari</option>
-                                <option value=''>Maret</option>
+                            <option value=''>Select Month</option>
+                                <option value=''>January</option>
+                                <option value=''>February</option>
+                                <option value=''>March</option>
                                 <option value=''>April</option>
-                                <option value=''>Mei</option>
-                                <option value=''>Juni</option>
-                                <option value=''>Juli</option>
-                                <option value=''>Agustus</option>
+                                <option value=''>May</option>
+                                <option value=''>June</option>
+                                <option value=''>July</option>
+                                <option value=''>August</option>
                                 <option value=''>September</option>
-                                <option value=''>Oktober</option>
+                                <option value=''>October</option>
                                 <option value=''>November</option>
-                                <option value=''>Desember</option>
+                                <option value=''>December</option>
                             </select>
                         </div>
                     </div>
                     <div className="relative w-full md:w-1/4 md:mr-2 mb-4 md:mb-0">
-                        <div className='relative'><span className='px-4'>Tahun</span>
+                        <div className='relative'><span className='px-4'>Year</span>
                             <span className='absolute top-1/2 left-55 z-30 -translate-y-1/2 text-xl'>
                                 <MdOutlineKeyboardArrowDown />
                             </span>
                             <select className='relative appearance-none rounded border border-stroke bg-transparent py-2 px-12 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input'>
-                                <option value=''>Pilih Tahun</option>
+                                <option value=''>Select Year</option>
                                 <option value=''>2020</option>
                                 <option value=''>2021</option>
                                 <option value=''>2022</option>
@@ -95,7 +95,7 @@ const DataGaji = () => {
                         <div className="relative w-full md:w-1/2 mb-4 md:mb-0 ">
                             <Link to="/admin/transaksi/data-gaji">
                                 <ButtonOne className="bg-primary">
-                                    <span>Tampilkan Data</span>
+                                <span>Show Data</span>
                                     <span>
                                         <TfiEye />
                                     </span>
@@ -105,7 +105,7 @@ const DataGaji = () => {
                         <div className="relative w-full md:w-1/2  mb-4 md:mb-0">
                             <Link to="/admin/transaksi/data-gaji">
                                 <ButtonOne>
-                                    <span>Cetak Daftar Salary </span>
+                                    <span>Print Salary List</span>
                                     <span>
                                         <TfiPrinter />
                                     </span>
@@ -116,8 +116,8 @@ const DataGaji = () => {
                 </div>
 
                 <div className="bg-gray-2 text-left dark:bg-meta-4 mt-6">
-                    <h2 className="px-4 py-2 text-black dark:text-white">Menampilkan Data Salary  Employee Bulan:
-                        <span className="font-medium"> April</span> Tahun:<span className="font-medium"> 2023</span></h2>
+                    <h2 className="px-4 py-2 text-black dark:text-white">Displaying Employee Salary Data for Month:
+                        <span className="font-medium"> April</span> Year:<span className="font-medium"> 2023</span></h2>
                 </div>
             </div>
 
@@ -146,22 +146,22 @@ const DataGaji = () => {
                                     Nama <br /> Employee
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Jenis <br /> Kelamin
+                                   Gender
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
                                     Position
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Salary  <br /> Pokok
+                                    Basic Salary
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Tunjangan <br />Transport
+                                    Transport <br /> Allowence
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Uang <br /> Makan
+                                    Meal <br /> Allowance  
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Salary
+                                    Salary <br/> Deduction
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
                                     Total <br /> Salary 
@@ -182,7 +182,7 @@ const DataGaji = () => {
                                             <p className='text-black dark:text-white'>{dataGaji.namaPegawai}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 text-center dark:border-strokedark'>
-                                            <p className='text-black dark:text-white'>{dataGaji.jenisKelamin}</p>
+                                            <p className='text-black dark:text-white'>{dataGaji.Gender}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 text-center dark:border-strokedark'>
                                             <p className='text-black dark:text-white'>{dataGaji.titleJabatan}</p>
@@ -222,7 +222,7 @@ const DataGaji = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataGajiPegawai.length} Data Salary  Employee
+                            Showing {startIndex}-{endIndex} of {DataGajiPegawai.length} Salary Data  Employee
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

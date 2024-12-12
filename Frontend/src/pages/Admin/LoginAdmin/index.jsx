@@ -1,6 +1,6 @@
 import React from 'react';
 import Logo from '../../../Assets/images/logo/logo.svg'
-import LogoDark from '../../../Assets/images/logo/logo-dark.svg'
+import LogoDark from '../../../Assets/images/logo/logo-dark.png'
 import LoginImg from '../../../Assets/images/LoginImg/login.svg'
 import { FiUser } from 'react-icons/fi'
 import { TfiLock } from 'react-icons/tfi'
@@ -13,8 +13,8 @@ const LoginAdmin = () => {
                 <div className='hidden w-full xl:block xl:w-1/2 '>
                     <div className='py-18.5 px-26 text-center'>
                         <span className="'mb-5.5 inline-block ">
-                            <img className='hidden dark:block' src={Logo} alt='Logo PT. Humpus Karbometil Selulosa' />
-                            <img className='dark:hidden' src={LogoDark} alt='Logo PT. Humpus Karbometil Selulosa' />
+                            <img className='hidden dark:block' src={Logo} alt='Snipe Tech Pvt Ltd' />
+                            <img className='dark:hidden' width={400} height={100}  src={LogoDark} alt='Snipe Tech Pvt Ltd' />
                         </span>
                         <p className='2xl:px-20'>
                             Login in to continue your activity!

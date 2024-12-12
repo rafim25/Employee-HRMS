@@ -7,7 +7,7 @@ import DataJabatan from "../models/DataJabatanModel.js";
 2. Tambah Salary : No, Salary Deduction , Attendance
 3. Action: Simpan, Reset, Kembali */
 
-// method untuk menampilkan semua Data Kehadiran
+// method untuk menampilkan semua Attendance Data
 export const viewDataKehadiran = async (req, res) => {
   try {
     const dataKehadiran = await DataKehadiran.findAll({
@@ -90,7 +90,7 @@ export const createDataKehadiran = async (req, res) => {
         sakit: sakit,
         alpha: alpha,
       });
-      res.json({ msg: "Tambah Data Kehadiran Berhasil" });
+      res.json({ msg: "Tambah Attendance Data Berhasil" });
     } else {
       res.status(400).json({ msg: "Data nama sudah ada" });
     }

@@ -1,7 +1,7 @@
-### Get All Data Position
+### Get All Position Data 
 GET  http://localhost:5000/data_jabatan
 
-### Create Data Position
+### Create Position Data 
 POST  http://localhost:5000/data_jabatan
 Content-Type: application/json
 
@@ -12,7 +12,7 @@ Content-Type: application/json
     "uang_makan" : 1000
 }
 
-### UPDATE Data Position
+### UPDATE Position Data 
 PATCH   http://localhost:5000/data_jabatan/1
 Content-Type: application/json
 
@@ -23,5 +23,5 @@ Content-Type: application/json
     "uang_makan" : 1000
 }
 
-### DELETE Data Position
+### DELETE Position Data 
 DELETE    http://localhost:5000/data_jabatan/2

@@ -4,7 +4,7 @@ import DataKehadiran from "./DataKehadiranModel.js";
 
 /*  TODO: Setting Salary Deduction  (table : potongan_gaji)
     Berisi semua operasi matematika terhadap POTONGAN_GAJI, DATA_KEHADIRAN,
-    DATA_GAJI_PEGAWAI ( Data Employee + Data Position ).
+    DATA_GAJI_PEGAWAI ( Data Employee + Position Data  ).
 */
 
 /* Method untuk mengambil Data Employee */
@@ -35,7 +35,7 @@ async function getDataPegawai() {
   }
 }
 
-/* Method untuk mengambil Data Kehadiran */
+/* Method untuk mengambil Attendance Data */
 
 async function getDataKehadiran() {
   try {

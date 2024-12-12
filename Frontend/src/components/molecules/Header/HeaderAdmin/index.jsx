@@ -52,7 +52,7 @@ const HeaderAdmin = (
           {/* <!-- Hamburger Toggle BTN --> */}
 
           <Link className='block flex-shrink-0 lg:hidden' to='/admin/dashboard'>
-            <img src={LogoIcon} alt='Logo PT. Humpus Karbometil Selulosa' />
+            <img src={LogoIcon} alt='Snipe Tech Pvt Ltd' />
           </Link>
         </div>
 

@@ -36,7 +36,7 @@ const DataGajiPegawai = () => {
 
     return (
         <DefaultLayoutPegawai>
-            <BreadcrumbPegawai pageName='Data Salary ' />
+            <BreadcrumbPegawai pageName='Salary Data ' />
 
             <div className='rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1 mt-6'>
                 <div className='max-w-full overflow-x-auto py-4'>
@@ -47,7 +47,7 @@ const DataGajiPegawai = () => {
                                     Bulan/Tahun
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Salary  Pokok
+                                    Basic Salary
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Tansportation Allowanceasi
@@ -105,7 +105,7 @@ const DataGajiPegawai = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataGajiPegawaiPeople.length} Data Salary 
+                            Showing {startIndex}-{endIndex} of {DataGajiPegawaiPeople.length} Salary Data 
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

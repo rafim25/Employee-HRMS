@@ -41,10 +41,10 @@ const DataPegawai = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Employee' />
+            <BreadcrumbAdmin pageName='Employee Data ' />
             <Link to="/admin/master-data/data-pegawai/form-data-pegawai" >
                 <ButtonOne  >
-                    <span>Tambah Employee</span>
+                    <span>Add Employee</span>
                     <span>
                         <FaPlus />
                     </span>
@@ -58,9 +58,9 @@ const DataPegawai = () => {
                                 <MdOutlineKeyboardArrowDown />
                             </span>
                             <select className='relative  appearance-none rounded border border-stroke bg-transparent py-3 px-8 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input'>
-                                <option value=''>Status</option>
-                                <option value=''>Karyawan Tetap</option>
-                                <option value=''>Karyawan Tidak Tetap</option>
+                            <option value=''>Status</option>
+                                <option value=''>Permanent Employee</option>
+                                <option value=''>Contract Employee</option>
                             </select>
                         </div>
                     </div>
@@ -87,13 +87,13 @@ const DataPegawai = () => {
                                     NIK
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Nama Employee
+                                     Employee Name
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Gender
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Date of Entry
+                                    Date of Joining
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Status
@@ -122,7 +122,7 @@ const DataPegawai = () => {
                                             <p className='text-black dark:text-white'>{dataPegawai.namaPegawai}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                            <p className='text-black dark:text-white'>{dataPegawai.jenisKelamin}</p>
+                                            <p className='text-black dark:text-white'>{dataPegawai.Gender}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                             <p className='text-black dark:text-white'>{dataPegawai.tanggalMasuk}</p>
