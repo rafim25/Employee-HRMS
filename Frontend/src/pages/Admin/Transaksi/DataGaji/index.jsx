@@ -149,7 +149,7 @@ const DataGaji = () => {
                                     Jenis <br /> Kelamin
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Jabatan
+                                    Position
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
                                     Salary  <br /> Pokok
@@ -161,7 +161,7 @@ const DataGaji = () => {
                                     Uang <br /> Makan
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Potongan
+                                    Salary
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
                                     Total <br /> Salary 
@@ -191,7 +191,7 @@ const DataGaji = () => {
                                             <p className='text-black dark:text-white'>{dataGaji.gajiPokok}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 text-center dark:border-strokedark'>
-                                            <p className='text-black dark:text-white'>{dataGaji.tunjanganTransport}</p>
+                                            <p className='text-black dark:text-white'>{dataGaji.ransportationAllowance}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 text-center dark:border-strokedark'>
                                             <p className='text-black dark:text-white'>{dataGaji.uangMakan}</p>

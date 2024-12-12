@@ -1,7 +1,7 @@
-### Get All Data Jabatan
+### Get All Data Position
 GET  http://localhost:5000/data_jabatan
 
-### Create Data Jabatan
+### Create Data Position
 POST  http://localhost:5000/data_jabatan
 Content-Type: application/json
 
@@ -12,7 +12,7 @@ Content-Type: application/json
     "uang_makan" : 1000
 }
 
-### UPDATE Data Jabatan
+### UPDATE Data Position
 PATCH   http://localhost:5000/data_jabatan/1
 Content-Type: application/json
 
@@ -23,5 +23,5 @@ Content-Type: application/json
     "uang_makan" : 1000
 }
 
-### DELETE Data Jabatan
+### DELETE Data Position
 DELETE    http://localhost:5000/data_jabatan/2

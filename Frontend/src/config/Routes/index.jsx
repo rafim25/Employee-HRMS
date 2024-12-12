@@ -24,7 +24,7 @@ const AppRoutes = () => {
       <Route path='/admin/master-data/data-pegawai/form-data-pegawai' element={<FormDataPegawai />} />
       <Route path='/admin/master-data/data-jabatan' element={<DataJabatan />} />
       <Route path='/admin/master-data/data-jabatan/form-data-jabatan' element={<FormDataJabatan />} />
-      {/* Transaksi Admin */}
+      {/* Transaction Admin */}
       <Route path='/admin/transaksi/data-absensi' element={<DataAbsensi />} />
       <Route path='/admin/transaksi/setting-potongan-gaji' element={<SettingPotonganGaji />} />
       <Route path='/admin/transaksi/setting-potongan-gaji/form-setting-potongan-gaji' element={<FormSettingPotonganGaji />} />

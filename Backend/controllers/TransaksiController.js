@@ -3,8 +3,8 @@ import DataPegawai from "../models/DataPegawaiModel.js";
 import DataJabatan from "../models/DataJabatanModel.js";
 
 /* TODO: POTONGAN_GAJI ()
-1. View : NO, Potongan Salary , Jumlah Potongan
-2. Tambah Potongan : No, Potongan Salary , Jumlah Potongan
+1. View : NO, Salary Deduction , Attendance
+2. Tambah Salary : No, Salary Deduction , Attendance
 3. Action: Simpan, Reset, Kembali */
 
 // method untuk menampilkan semua Data Kehadiran

@@ -13,7 +13,7 @@ const CardThree = () => {
           <h4 className='text-title-md font-bold text-black dark:text-white'>
             5
           </h4>
-          <span className='text-sm font-medium'>Data Jabatan</span>
+          <span className='text-sm font-medium'>Data Position</span>
         </div>
       </div>
     </div>

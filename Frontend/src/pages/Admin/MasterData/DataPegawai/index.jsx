@@ -90,16 +90,16 @@ const DataPegawai = () => {
                                     Nama Employee
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Jenis Kelamin
+                                    Gender
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Tanggal Masuk
+                                    Date of Entry
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Status
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Hak Akses
+                                    Access Permissions
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Actions

@@ -150,7 +150,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Data Jabatan
+                              Data Position
                             </NavLink>
                           </li>
                         </ul>
@@ -162,7 +162,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
               </SidebarLinkGroup>
               {/* <!-- Master Data Admin --> */}
 
-              {/* <!-- Transaksi Admin --> */}
+              {/* <!-- Transaction Admin --> */}
               <SidebarLinkGroup
                 activeCondition={
                   pathname === '/transaksi' || pathname.includes('transaksi')
@@ -185,7 +185,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                         }}
                       >
                         <FaRegMoneyBillAlt />
-                        Transaksi
+                        Transaction
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
@@ -203,7 +203,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Data Absensi
+                              Data Attendance
                             </NavLink>
                           </li>
                           <li>
@@ -214,7 +214,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Setting Potongan Salary 
+                              Setting Salary Deduction 
                             </NavLink>
                           </li>
                           <li>
@@ -235,7 +235,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                   )
                 }}
               </SidebarLinkGroup>
-              {/* <!-- Transaksi Admin --> */}
+              {/* <!-- Transaction Admin --> */}
 
               {/* <!-- Report Admin --> */}
               <SidebarLinkGroup
@@ -289,7 +289,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Report Absensi
+                              Report Attendance
                             </NavLink>
                           </li>
                           <li>

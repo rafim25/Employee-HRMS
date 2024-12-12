@@ -40,10 +40,10 @@ const SettingPotonganGaji = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Setting Potongan Salary ' />
+            <BreadcrumbAdmin pageName='Setting Salary Deduction ' />
             <Link to="/admin/transaksi/setting-potongan-gaji/form-setting-potongan-gaji" >
                 <ButtonOne  >
-                    <span>Tambah Potongan</span>
+                    <span>Add Salary</span>
                     <span>
                         <FaPlus />
                     </span>
@@ -68,10 +68,10 @@ const SettingPotonganGaji = () => {
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Potongan Salary 
+                                    Salary Deduction 
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Jumlah Potongan
+                                    Attendance
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Actions
@@ -108,7 +108,7 @@ const SettingPotonganGaji = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataSettingPotonganGaji.length} Setting Potongan Salary 
+                            Showing {startIndex}-{endIndex} of {DataSettingPotonganGaji.length} Setting Salary Deduction 
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

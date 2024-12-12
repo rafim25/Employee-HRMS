@@ -6,15 +6,15 @@ import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
 const FormSettingPotonganGaji = () => {
   return (
     <DefaultLayoutAdmin>
-      <BreadcrumbAdmin pageName='Form Setting Potongan Salary ' />
+      <BreadcrumbAdmin pageName='Form Setting Salary Deduction ' />
 
       <div className='sm:grid-cols-2'>
         <div className='flex flex-col gap-9'>
-          {/* <!-- Form Setting Potongan Salary  --> */}
+          {/* <!-- Form Setting Salary Deduction  --> */}
           <div className='rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark'>
             <div className='border-b border-stroke py-4 px-6.5 dark:border-strokedark'>
               <h3 className='font-medium text-black dark:text-white'>
-                Form Setting Potongan Salary 
+                Form Setting Salary Deduction 
               </h3>
             </div>
             <form action='#'>
@@ -22,7 +22,7 @@ const FormSettingPotonganGaji = () => {
                 <div className='mb-4.5 '>
                   <div className='w-full mb-4'>
                     <label className='mb-4 block text-black dark:text-white'>
-                      Potongan <span className='text-meta-1'>*</span>
+                      Salary <span className='text-meta-1'>*</span>
                     </label>
                     <input
                       type='text'
@@ -33,7 +33,7 @@ const FormSettingPotonganGaji = () => {
 
                   <div className='w-full mb-4'>
                     <label className='mb-4 block text-black dark:text-white'>
-                      Jumlah Potongan <span className='text-meta-1'>*</span>
+                      Attendance <span className='text-meta-1'>*</span>
                     </label>
                     <input
                       type='number'

@@ -40,10 +40,10 @@ const DataJabatan = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Jabatan' />
+            <BreadcrumbAdmin pageName='Data Position' />
             <Link to="/admin/master-data/data-jabatan/form-data-jabatan" >
                 <ButtonOne  >
-                    <span>Tambah Jabatan</span>
+                    <span>Tambah Position</span>
                     <span>
                         <FaPlus />
                     </span>
@@ -68,16 +68,16 @@ const DataJabatan = () => {
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Jabatan
+                                    Position
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Salary  Pokok
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Tunjangan Transport
+                                    Tansportation Allowance
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Uang Makan
+                                    Meal Money
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Total
@@ -98,7 +98,7 @@ const DataJabatan = () => {
                                             <p className='text-black dark:text-white'>{dataJabatan.gajiPokok}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                            <p className='text-black dark:text-white'>{dataJabatan.tunjanganTransport}</p>
+                                            <p className='text-black dark:text-white'>{dataJabatan.ransportationAllowance}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                             <p className='text-black dark:text-white'>{dataJabatan.uangMakan}</p>
@@ -126,7 +126,7 @@ const DataJabatan = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataJabatanPeople.length} Data Jabatan
+                            Showing {startIndex}-{endIndex} of {DataJabatanPeople.length} Data Position
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

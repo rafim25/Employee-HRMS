@@ -2,9 +2,9 @@ import DataPegawai from "./DataPegawaiModel.js";
 import DataJabatan from "./DataJabatanModel.js";
 import DataKehadiran from "./DataKehadiranModel.js";
 
-/*  TODO: Setting Potongan Salary  (table : potongan_gaji)
+/*  TODO: Setting Salary Deduction  (table : potongan_gaji)
     Berisi semua operasi matematika terhadap POTONGAN_GAJI, DATA_KEHADIRAN,
-    DATA_GAJI_PEGAWAI ( Data Employee + Data Jabatan ).
+    DATA_GAJI_PEGAWAI ( Data Employee + Data Position ).
 */
 
 /* Method untuk mengambil Data Employee */
