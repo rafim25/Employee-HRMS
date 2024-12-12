@@ -41,12 +41,12 @@ const DataGaji = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Gaji Pegawai' />
+            <BreadcrumbAdmin pageName='Data Salary  Employee' />
 
             <div className='rounded-sm border border-stroke bg-white px-5 pt-2 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-10 mt-6'>
                 <div className='border-b border-stroke py-2 dark:border-strokedark'>
                     <h3 className='font-medium text-black dark:text-white'>
-                        Filter Data Gaji Pegawai
+                    Filter Employee Salary Data
                     </h3>
                 </div>
 
@@ -105,7 +105,7 @@ const DataGaji = () => {
                         <div className="relative w-full md:w-1/2  mb-4 md:mb-0">
                             <Link to="/admin/transaksi/data-gaji">
                                 <ButtonOne>
-                                    <span>Cetak Daftar Gaji</span>
+                                    <span>Cetak Daftar Salary </span>
                                     <span>
                                         <TfiPrinter />
                                     </span>
@@ -116,7 +116,7 @@ const DataGaji = () => {
                 </div>
 
                 <div className="bg-gray-2 text-left dark:bg-meta-4 mt-6">
-                    <h2 className="px-4 py-2 text-black dark:text-white">Menampilkan Data Gaji Pegawai Bulan:
+                    <h2 className="px-4 py-2 text-black dark:text-white">Menampilkan Data Salary  Employee Bulan:
                         <span className="font-medium"> April</span> Tahun:<span className="font-medium"> 2023</span></h2>
                 </div>
             </div>
@@ -143,7 +143,7 @@ const DataGaji = () => {
                                     NIK
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Nama <br /> Pegawai
+                                    Nama <br /> Employee
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
                                     Jenis <br /> Kelamin
@@ -152,7 +152,7 @@ const DataGaji = () => {
                                     Jabatan
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Gaji <br /> Pokok
+                                    Salary  <br /> Pokok
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
                                     Tunjangan <br />Transport
@@ -164,7 +164,7 @@ const DataGaji = () => {
                                     Potongan
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
-                                    Total <br /> Gaji
+                                    Total <br /> Salary 
                                 </th>
                                 <th className='py-2 px-2 font-medium text-black dark:text-white'>
                                     Actions
@@ -222,7 +222,7 @@ const DataGaji = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataGajiPegawai.length} Data Gaji Pegawai
+                            Showing {startIndex}-{endIndex} of {DataGajiPegawai.length} Data Salary  Employee
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

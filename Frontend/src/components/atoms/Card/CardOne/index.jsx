@@ -13,7 +13,7 @@ const CardOne = () => {
           <h4 className='text-title-md font-bold text-black dark:text-white'>
             10
           </h4>
-          <span className='text-sm font-medium'>Data Pegawai</span>
+          <span className='text-sm font-medium'>Data Employee</span>
         </div>
       </div>
     </div>

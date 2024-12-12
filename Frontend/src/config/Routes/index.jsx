@@ -36,12 +36,12 @@ const AppRoutes = () => {
       {/* Pengaturan Admin */}
       <Route path='/admin/pengaturan/ubah-password' element={<UbahPasswordAdmin />} />
 
-      {/* Route Pegawai */}
-      {/* Login Pegawai */}
+      {/* Route Employee */}
+      {/* Login Employee */}
       <Route exact path='/pegawai/login' element={<LoginPegawai />} />
-      {/* Dashboard Pegawai */}
+      {/* Dashboard Employee */}
       <Route exact path='/pegawai/dashboard' element={<DashboardPegawai />} />
-      {/* Dashboard Data Gaji Pegawai */}
+      {/* Dashboard Data Salary  Employee */}
       <Route exact path='/pegawai/data-gaji' element={<DataGajiPegawai />} />
       <Route exact path='/pegawai/pengaturan/ubah-password' element={<UbahPasswordPegawai />} />
       {/* Route Not Found/404 */}

@@ -139,7 +139,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Data Pegawai
+                              Data Employee
                             </NavLink>
                           </li>
                           <li>
@@ -214,7 +214,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Setting Potongan Gaji
+                              Setting Potongan Salary 
                             </NavLink>
                           </li>
                           <li>
@@ -225,7 +225,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Data Gaji
+                              Data Salary 
                             </NavLink>
                           </li>
                         </ul>
@@ -278,7 +278,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Laporan Gaji
+                              Laporan Salary 
                             </NavLink>
                           </li>
                           <li>
@@ -300,7 +300,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Slip Gaji
+                              Slip Salary 
                             </NavLink>
                           </li>
                         </ul>

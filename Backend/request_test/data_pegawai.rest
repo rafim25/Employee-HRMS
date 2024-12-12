@@ -1,18 +1,18 @@
 ######################
-#### Data Pegawai ####
+#### Data Employee ####
 ######################
 
-### get All Data Pegawai
+### get All Data Employee
 GET http://localhost:5000/data_pegawai
 
 
 
-### get Single Data Pegawai
+### get Single Data Employee
 GET http://localhost:5000/data_pegawai/1
 
 
 
-### Create Data Pegawai
+### Create Data Employee
 POST http://localhost:5000/data_pegawai
 Content-Type: application/json
 
@@ -32,7 +32,7 @@ Content-Type: application/json
 
 
 
-### Update Data Pegawai
+### Update Data Employee
 PATCH  http://localhost:5000/data_pegawai/1
 Content-Type: application/json
 
@@ -52,7 +52,7 @@ Content-Type: application/json
 
 
 
-### Delete Data Pegawai
+### Delete Data Employee
 DELETE   http://localhost:5000/data_pegawai/1
 
 

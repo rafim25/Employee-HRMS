@@ -71,7 +71,7 @@ const DataJabatan = () => {
                                     Jabatan
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Gaji Pokok
+                                    Salary  Pokok
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Tunjangan Transport

@@ -41,10 +41,10 @@ const DataPegawai = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Pegawai' />
+            <BreadcrumbAdmin pageName='Data Employee' />
             <Link to="/admin/master-data/data-pegawai/form-data-pegawai" >
                 <ButtonOne  >
-                    <span>Tambah Pegawai</span>
+                    <span>Tambah Employee</span>
                     <span>
                         <FaPlus />
                     </span>
@@ -87,7 +87,7 @@ const DataPegawai = () => {
                                     NIK
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Nama Pegawai
+                                    Nama Employee
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Jenis Kelamin
@@ -153,7 +153,7 @@ const DataPegawai = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataPegawaiPeople.length} Data Pegawai
+                            Showing {startIndex}-{endIndex} of {DataPegawaiPeople.length} Data Employee
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

@@ -7,15 +7,15 @@ import { MdOutlineKeyboardArrowDown } from 'react-icons/md'
 const FormDataPegawai = () => {
   return (
     <DefaultLayoutAdmin>
-      <BreadcrumbAdmin pageName='Form Pegawai' />
+      <BreadcrumbAdmin pageName='Form Employee' />
 
       <div className='sm:grid-cols-2'>
         <div className='flex flex-col gap-9'>
-          {/* <!-- Form Data Pegawai --> */}
+          {/* <!-- Form Data Employee --> */}
           <div className='rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark'>
             <div className='border-b border-stroke py-4 px-6.5 dark:border-strokedark'>
               <h3 className='font-medium text-black dark:text-white'>
-                Form Data Pegawai
+                Form Data Employee
               </h3>
             </div>
             <form action='#'>
@@ -139,7 +139,7 @@ const FormDataPegawai = () => {
                       <select className='relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'>
                         <option value=''>Silahkan pilih</option>
                         <option value=''>Admin</option>
-                        <option value=''>Pegawai</option>
+                        <option value=''>Employee</option>
                       </select>
                       <span className='absolute top-1/2 right-4 z-30 -translate-y-1/2 text-2xl'>
                         <MdOutlineKeyboardArrowDown />
@@ -157,7 +157,7 @@ const FormDataPegawai = () => {
                     />
                   </div>
                 </div>
-                {/* <!-- Form Data Pegawai --> */}
+                {/* <!-- Form Data Employee --> */}
 
                 <div className='flex flex-col md:flex-row w-full gap-3 text-center'>
                   <Link to="/" >

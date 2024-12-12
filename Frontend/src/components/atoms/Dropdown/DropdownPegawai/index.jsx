@@ -50,11 +50,11 @@ const DropdownPegawai = () => {
                     <span className='block text-sm font-medium text-black dark:text-white'>
                         Gilbert Hutapea
                     </span>
-                    <span className='block text-xs'>Pegawai</span>
+                    <span className='block text-xs'>Employee</span>
                 </span>
 
                 <span className='h-12 w-12'>
-                    <img className='rounded-full' src={PegawaiPhoto} alt='Pegawai' />
+                    <img className='rounded-full' src={PegawaiPhoto} alt='Employee' />
                 </span>
 
                 <MdKeyboardArrowDown className="text-xl" />

@@ -96,7 +96,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               </NavLink>
               {/* <!-- Dashboard Admin --> */}
 
-              {/* <!-- Data Gaji Pegawai--> */}
+              {/* <!-- Data Salary  Employee--> */}
               <li>
                 <NavLink
                   to='/pegawai/data-gaji'
@@ -105,10 +105,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     }`}
                 >
                   <FaRegMoneyBillAlt />
-                  Data Gaji
+                  Data Salary 
                 </NavLink>
               </li>
-              {/* <!-- Data Gaji Pegawai --> */}
+              {/* <!-- Data Salary  Employee --> */}
 
               {/* <!-- Pengaturan Admin --> */}
               <SidebarLinkGroup

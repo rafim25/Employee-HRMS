@@ -8,14 +8,14 @@ import { TfiPrinter } from 'react-icons/tfi'
 const SlipGaji = () => {
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Slip Gaji Pegawai' />
+            <BreadcrumbAdmin pageName='Slip Salary  Employee' />
 
             <div className='sm:grid-cols-2'>
                 <div className='flex flex-col gap-9'>
                     <div className='rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark'>
                         <div className='border-b border-stroke py-4 px-6.5 dark:border-strokedark'>
                             <h3 className='font-medium text-black dark:text-white'>
-                                Filter Slip Gaji Pegawai
+                                Filter Slip Salary  Employee
                             </h3>
                         </div>
                         <form action='#'>
@@ -71,11 +71,11 @@ const SlipGaji = () => {
 
                                     <div className='w-full mb-4'>
                                         <label className='mb-2.5 block text-black dark:text-white'>
-                                            Nama Pegawai <span className='text-meta-1'>*</span>
+                                            Nama Employee <span className='text-meta-1'>*</span>
                                         </label>
                                         <div className='relative z-20 bg-transparent dark:bg-form-input'>
                                             <select className='relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'>
-                                                <option value=''>Pilih Pegawai</option>
+                                                <option value=''>Pilih Employee</option>
                                                 <option value=''>Gilbert Hutapea</option>
                                                 <option value=''>Aldi Ramdani</option>
                                                 <option value=''>Dadang Darsono</option>
@@ -90,7 +90,7 @@ const SlipGaji = () => {
                                 <div className='flex flex-col md:flex-row w-full gap-3 text-center'>
                                     <Link to="" >
                                         <ButtonOne  >
-                                            <span>Cetak Slip Gaji</span>
+                                            <span>Cetak Slip Salary </span>
                                             <span>
                                                 <TfiPrinter />
                                             </span>

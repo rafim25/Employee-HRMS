@@ -6,15 +6,15 @@ import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
 const FormSettingPotonganGaji = () => {
   return (
     <DefaultLayoutAdmin>
-      <BreadcrumbAdmin pageName='Form Setting Potongan Gaji' />
+      <BreadcrumbAdmin pageName='Form Setting Potongan Salary ' />
 
       <div className='sm:grid-cols-2'>
         <div className='flex flex-col gap-9'>
-          {/* <!-- Form Setting Potongan Gaji --> */}
+          {/* <!-- Form Setting Potongan Salary  --> */}
           <div className='rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark'>
             <div className='border-b border-stroke py-4 px-6.5 dark:border-strokedark'>
               <h3 className='font-medium text-black dark:text-white'>
-                Form Setting Potongan Gaji
+                Form Setting Potongan Salary 
               </h3>
             </div>
             <form action='#'>
@@ -42,7 +42,7 @@ const FormSettingPotonganGaji = () => {
                     />
                   </div>
                 </div>
-                {/* <!-- Form SettingPotongan Gaji --> */}
+                {/* <!-- Form SettingPotongan Salary  --> */}
 
                 <div className='flex flex-col md:flex-row w-full gap-3 text-center'>
                   <Link to="" >

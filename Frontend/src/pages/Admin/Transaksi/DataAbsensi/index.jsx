@@ -41,12 +41,12 @@ const DataAbsensi = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Data Absensi Pegawai' />
+            <BreadcrumbAdmin pageName='Data Absensi Employee' />
 
             <div className='rounded-sm border border-stroke bg-white px-5 pt-2 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-10 mt-6'>
                 <div className='border-b border-stroke py-2 dark:border-strokedark'>
                     <h3 className='font-medium text-black dark:text-white'>
-                        Filter Data Absensi Pegawai
+                        Filter Data Absensi Employee
                     </h3>
                 </div>
 
@@ -116,7 +116,7 @@ const DataAbsensi = () => {
                 </div>
 
                 <div className="bg-gray-2 text-left dark:bg-meta-4 mt-6">
-                    <h2 className="px-4 py-2 text-black dark:text-white">Menampilkan Data Kehadiran Pegawai Bulan:
+                    <h2 className="px-4 py-2 text-black dark:text-white">Menampilkan Data Kehadiran Employee Bulan:
                         <span className="font-medium"> April</span> Tahun:<span className="font-medium"> 2023</span></h2>
                 </div>
             </div>
@@ -143,7 +143,7 @@ const DataAbsensi = () => {
                                     NIK
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Nama Pegawai
+                                    Nama Employee
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Jenis Kelamin

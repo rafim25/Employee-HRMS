@@ -32,7 +32,7 @@ const FormDataJabatan = () => {
                                     </div>
                                     <div className='w-full xl:w-1/2'>
                                         <label className='mb-2.5 block text-black dark:text-white'>
-                                            Gaji Pokok <span className='text-meta-1'>*</span>
+                                            Salary  Pokok <span className='text-meta-1'>*</span>
                                         </label>
                                         <input
                                             type='number'
