@@ -1,18 +1,18 @@
 ######################
-#### Data Employee ####
+#### Data Pegawai ####
 ######################
 
-### get All Data Employee
+### get All Data Pegawai
 GET http://localhost:5000/data_pegawai
 
 
 
-### get Single Data Employee
+### get Single Data Pegawai
 GET http://localhost:5000/data_pegawai/1
 
 
 
-### Create Data Employee
+### Create Data Pegawai
 POST http://localhost:5000/data_pegawai
 Content-Type: application/json
 
@@ -22,17 +22,17 @@ Content-Type: application/json
     "username": "budi",
     "password": "12345",
     "confPassword": "12345",
-    "jenis_kelamin": "Male",
+    "jenis_kelamin": "Laki-Laki",
     "jabatan": "Operator Produksi",
     "tanggal_masuk": "11-02-2023",
-    "status": "Permanent Employee",
+    "status": "Karyawan Tetap",
     "photo": ,
     "hak_akses": "pegawai"
 }
 
 
 
-### Update Data Employee
+### Update Data Pegawai
 PATCH  http://localhost:5000/data_pegawai/1
 Content-Type: application/json
 
@@ -42,17 +42,17 @@ Content-Type: application/json
     "username": "aldi",
     "password": "12345",
     "confPassword": "12345",
-    "jenis_kelamin": "Male",
+    "jenis_kelamin": "Laki-Laki",
     "jabatan": "HRD",
     "tanggal_masuk": "11-02-2023",
-    "status": "Permanent Employee",
+    "status": "Karyawan Tetap",
     "photo": ,
     "hak_akses": "admin"
 }
 
 
 
-### Delete Data Employee
+### Delete Data Pegawai
 DELETE   http://localhost:5000/data_pegawai/1
 
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Routes } from './config';
+import { AuthProvider } from './context/AuthContext';
+
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -19,8 +21,9 @@ function App() {
   return (
     !loading && (
       // <Provider store={store}>
-      <Routes />
-      // </Provider>
+      <AuthProvider>
+        <Routes />
+      </AuthProvider>
     )
   )
 }

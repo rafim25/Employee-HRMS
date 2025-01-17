@@ -6,7 +6,8 @@ import FormDataJabatan from '../../components/molecules/Form/FormDataJabatan'
 import FormSettingPotonganGaji from '../../components/molecules/Form/FormSettingPotonganGaji'
 import {
   LoginAdmin, DashboardAdmin, DataPegawai, DataJabatan, DataAbsensi, SettingPotonganGaji, DataGaji, LaporanGaji,
-  LaporanAbsensi, SlipGaji, UbahPasswordAdmin, LoginPegawai, DashboardPegawai, DataGajiPegawai, UbahPasswordPegawai
+  LaporanAbsensi, SlipGaji, UbahPasswordAdmin, LoginPegawai, DashboardPegawai, DataGajiPegawai, UbahPasswordPegawai,
+  Lending
 } from '../../pages'
 
 const AppRoutes = () => {
@@ -46,6 +47,11 @@ const AppRoutes = () => {
       <Route exact path='/pegawai/pengaturan/ubah-password' element={<UbahPasswordPegawai />} />
       {/* Route Not Found/404 */}
       <Route exact path="*" element={<NotFound />} />
+          {/* Loan Management Routes */}
+      <Route path='/admin/lending/:loanId' element={<Lending />} />
+      <Route path='/admin/master-data/lending/add-lending' element={<FormDataJabatan />} />
+      <Route path='/admin/master-data/lending/edit/:loanId' element={<FormDataJabatan />} />
+    
     </Routes>
   )
 }

@@ -1,10 +1,8 @@
-import { Sequelize } from 'sequelize';
-import mysql2 from 'mysql2';
+import { Sequelize } from "sequelize";
 
-const db = new Sequelize('db_penggajian3', 'root', '', {
-    host: "localhost",
-    dialect: "mysql",
-    dialectModule: mysql2,
+const db = new Sequelize("db_penggajian3", "root", "Pas5word@1$3", {
+  host: "localhost",
+  dialect: "mysql",
 });
 
 export default db;

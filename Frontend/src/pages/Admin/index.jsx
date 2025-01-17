@@ -9,8 +9,9 @@ import UbahPasswordAdmin from './PengaturanAdmin/UbahPasswordAdmin';
 import DataAbsensi from './Transaksi/DataAbsensi';
 import DataGaji from './Transaksi/DataGaji';
 import SettingPotonganGaji from './Transaksi/SettingPotonganGaji';
+import Lending from './LoanDetails';
 
 export {
     DashboardAdmin, LaporanAbsensi, LaporanGaji, SlipGaji, LoginAdmin, DataJabatan, DataPegawai,
-    UbahPasswordAdmin, DataAbsensi, DataGaji, SettingPotonganGaji
+    UbahPasswordAdmin, DataAbsensi, DataGaji, SettingPotonganGaji, Lending
 };

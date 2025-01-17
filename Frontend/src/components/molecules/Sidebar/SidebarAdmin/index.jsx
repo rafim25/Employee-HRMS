@@ -121,7 +121,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                         }}
                       >
                         <FiDatabase />
-                        Master Data
+                        Customer Data
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
@@ -139,7 +139,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Employee Data 
+                             Customer Details
                             </NavLink>
                           </li>
                           <li>
@@ -150,7 +150,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Position Data 
+                              Loan Details 
                             </NavLink>
                           </li>
                         </ul>

@@ -59,7 +59,7 @@ class ChartTwo extends Component {
         <div className='mb-3 justify-between gap-4 sm:flex'>
           <div>
             <h5 className='text-xl font-semibold text-black dark:text-white'>
-              Employee Status
+              Customer Status
             </h5>
           </div>
           <div>
@@ -111,7 +111,7 @@ class ChartTwo extends Component {
             <div className='flex w-full items-center'>
               <span className='mr-2 block h-3 w-full max-w-3 rounded-full bg-primary'></span>
               <p className='flex w-full justify-between text-sm font-medium text-black dark:text-white'>
-                <span> Permanent Employee </span>
+                <span> Active Customer </span>
                 <span> 6 </span>
               </p>
             </div>
@@ -120,7 +120,7 @@ class ChartTwo extends Component {
             <div className='flex w-full items-center'>
               <span className='mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]'></span>
               <p className='flex w-full justify-between text-sm font-medium text-black dark:text-white'>
-                <span> Contract Employee </span>
+                <span> New Customer </span>
                 <span> 4 </span>
               </p>
             </div>
