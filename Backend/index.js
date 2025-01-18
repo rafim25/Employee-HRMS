@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import session from "express-session";
 import dotenv from "dotenv";
-import db from "./config/Database.js";
+import db, { testConnection } from "./config/Database.js";
 
 import SequelizeStore from "connect-session-sequelize";
 import FileUpload from "express-fileupload";
@@ -21,64 +21,92 @@ import AuthV2Route from "./routes/AuthV2Route.js";
 const app = express();
 dotenv.config();
 
-const sessionStore = SequelizeStore(session.Store);
-const store = new sessionStore({
-  db: db,
-});
+// Test database connection before starting the server
+const startServer = async () => {
+  try {
+    // Test database connection
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      console.error(
+        "❌ Failed to start server due to database connection issues"
+      );
+      process.exit(1);
+    }
 
-// CORS Middleware
-app.use(
-  cors({
-    origin: ["http://localhost:3002", "http://localhost:5173"], // Add all your frontend URLs
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true, // Allow credentials (cookies)
-    allowedHeaders: ["Content-Type", "Authorization"],
-    exposedHeaders: ["Authorization"], // Expose custom headers if needed
-  })
-);
+    // Initialize session store
+    const sessionStore = SequelizeStore(session.Store);
+    const store = new sessionStore({
+      db: db,
+    });
 
-// Middleware for parsing JSON and handling sessions
-app.use(express.json());
-app.use(
-  session({
-    secret: process.env.SESS_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    store: store,
-    cookie: {
-      secure: false, // Set to true in production with HTTPS
-      httpOnly: true, // Prevent JavaScript access to cookies
-    },
-  })
-);
+    // Sync the session store
+    await store.sync();
+    console.log("✅ Session store synchronized");
 
-// File upload and static files
-app.use(FileUpload());
-app.use(express.static("public"));
+    // CORS Middleware
+    app.use(
+      cors({
+        origin: ["http://localhost:3002", "http://localhost:5173"], // Add all your frontend URLs
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        credentials: true, // Allow credentials (cookies)
+        allowedHeaders: ["Content-Type", "Authorization"],
+        exposedHeaders: ["Authorization"], // Expose custom headers if needed
+      })
+    );
 
-// Routes
-app.use(UserRoute);
+    // Middleware for parsing JSON and handling sessions
+    app.use(express.json());
+    app.use(
+      session({
+        secret: process.env.SESS_SECRET,
+        resave: false,
+        saveUninitialized: true,
+        store: store,
+        cookie: {
+          secure: false, // Set to true in production with HTTPS
+          httpOnly: true, // Prevent JavaScript access to cookies
+        },
+      })
+    );
 
-app.use(AuthV2Route);
+    // File upload and static files
+    app.use(FileUpload());
+    app.use(express.static("public"));
 
-// Add this to your routes section
-app.use(LoanRoute);
-app.use(DashBoardRoute);
+    // Routes
+    app.use(UserRoute);
 
-// Add this to your routes section
-app.use(TransactionRoute);
-app.use(DataJabatanRoute);
-app.use(AuthRoute);
-app.use(DataKehadiranRoute);
+    app.use(AuthV2Route);
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({ error: "Route not found", path: req.path });
-});
+    // Add this to your routes section
+    app.use(LoanRoute);
+    app.use(DashBoardRoute);
 
-console.log("process.env.APP_POR------->T", process.env);
+    // Add this to your routes section
+    app.use(TransactionRoute);
+    app.use(DataJabatanRoute);
+    app.use(AuthRoute);
+    app.use(DataKehadiranRoute);
+
+    // 404 Handler
+    app.use((req, res) => {
+      res.status(404).json({ error: "Route not found", path: req.path });
+    });
+
+    console.log("process.env.APP_POR------->T", process.env);
+
+    // Start the server
+    const PORT = process.env.APP_PORT || 3002;
+    app.listen(PORT, () => {
+      console.log(`✅ Server is running on port ${PORT}`);
+      console.log(`📝 Environment: ${process.env.NODE_ENV}`);
+      console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN}`);
+    });
+  } catch (error) {
+    console.error("❌ Server startup error:", error);
+    process.exit(1);
+  }
+};
 
 // Start the server
-app.listen(process.env.APP_PORT, () => {
-  console.log(`Server running on port... ${process.env.APP_PORT}`);
-});
+startServer().catch(console.error);
