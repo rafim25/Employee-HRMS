@@ -5,7 +5,7 @@ import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import { useAuth } from '../../../../context/AuthContext';
-import { api } from '../../../../utils/axios';
+import { api } from '../../../../services/api';
 import { USER_ENDPOINTS } from '../../../../constants/apiEndpoints';
 
 const UserDataForm = () => {

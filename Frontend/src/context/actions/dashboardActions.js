@@ -1,4 +1,4 @@
-import { api } from "../../utils/axios";
+import { api } from "../../services/api";
 import { DASHBOARD_ENDPOINTS } from "../../constants/apiEndpoints";
 import {
   SET_USER_COUNT,
