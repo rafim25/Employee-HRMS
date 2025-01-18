@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import DefaultLayoutAdmin from '@layout/DefaultLayoutAdmin';
-import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '@components';
-import { useAuth } from '@context/AuthContext';
-import { api } from '@utils/axios';
-import { LOAN_ENDPOINTS } from '@constants/apiEndpoints';
+import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
+import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
+import { useAuth } from '../../../../context/AuthContext';
+import { api } from '../../../../utils/axios';
+import { LOAN_ENDPOINTS } from '../../../../constants/apiEndpoints';
 
 const FormLoan = () => {
     const navigate = useNavigate();

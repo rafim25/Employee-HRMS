@@ -6,16 +6,6 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     plugins: [react()],
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "src"),
-        "@components": path.resolve(__dirname, "src/components"),
-        "@context": path.resolve(__dirname, "src/context"),
-        "@utils": path.resolve(__dirname, "src/utils"),
-        "@constants": path.resolve(__dirname, "src/constants"),
-        "@layout": path.resolve(__dirname, "src/layout"),
-      },
-    },
     server: {
       host: true,
       port: 5173,
@@ -32,13 +22,6 @@ export default defineConfig(({ command, mode }) => {
       sourcemap: false,
       minify: "terser",
       chunkSizeWarningLimit: 1600,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            vendor: ["react", "react-dom"],
-          },
-        },
-      },
     },
     define: {
       "process.env.NODE_ENV": JSON.stringify(env.VITE_NODE_ENV),

@@ -1,4 +1,4 @@
-import { api } from "@utils/axios";
+import { api } from "../../utils/axios";
 import {
   SET_USER,
   CLEAR_USER,

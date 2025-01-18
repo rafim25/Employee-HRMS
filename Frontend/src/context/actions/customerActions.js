@@ -1,4 +1,4 @@
-import { api } from "@utils/axios";
+import { api } from "../../utils/axios";
 import { USER_ENDPOINTS } from "../../constants/apiEndpoints";
 import {
   SET_CUSTOMER_LIST,

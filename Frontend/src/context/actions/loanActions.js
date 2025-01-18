@@ -1,4 +1,4 @@
-import { api } from "@utils/axios";
+import { api } from "../../utils/axios";
 import { LOAN_ENDPOINTS } from "../../constants/apiEndpoints";
 import toast from "react-hot-toast";
 import {
