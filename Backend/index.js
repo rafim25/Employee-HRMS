@@ -46,11 +46,14 @@ const startServer = async () => {
     // CORS Middleware
     app.use(
       cors({
-        origin: ["http://localhost:3002", "http://localhost:5173"], // Add all your frontend URLs
+        origin:
+          process.env.NODE_ENV === "production"
+            ? ["https://your-production-frontend-url.com"]
+            : ["http://localhost:5173", "http://localhost:3002"],
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        credentials: true, // Allow credentials (cookies)
+        credentials: true,
         allowedHeaders: ["Content-Type", "Authorization"],
-        exposedHeaders: ["Authorization"], // Expose custom headers if needed
+        exposedHeaders: ["Authorization"],
       })
     );
 
