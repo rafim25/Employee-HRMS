@@ -48,10 +48,20 @@ const startServer = async () => {
       cors({
         origin:
           process.env.NODE_ENV === "production"
-            ? ["https://your-production-frontend-url.com"]
-            : ["http://localhost:5173", "http://localhost:3002","http://172.105.59.206:3002"],
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            ? [
+                "http://172.105.59.206:5173",
+                "http://172.105.59.206:3002",
+                "http://localhost:5173",
+                "http://localhost:3002",
+              ]
+            : [
+                "http://172.105.59.206:5173",
+                "http://172.105.59.206:3002",
+                "http://localhost:5173",
+                "http://localhost:3002",
+              ],
         credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
         exposedHeaders: ["Authorization"],
       })
