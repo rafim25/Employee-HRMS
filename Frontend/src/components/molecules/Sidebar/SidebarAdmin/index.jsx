@@ -8,6 +8,10 @@ import { FiDatabase, FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
 import { FaRegMoneyBillAlt } from 'react-icons/fa'
 import { TfiPrinter } from 'react-icons/tfi'
+import { AiOutlineTransaction } from 'react-icons/ai'
+import { BsArrowLeftShort } from 'react-icons/bs'
+import { FaMoneyBillWave } from 'react-icons/fa'
+import { TbReport } from 'react-icons/tb'
 
 const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -162,155 +166,47 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
               </SidebarLinkGroup>
               {/* <!-- Master Data Admin --> */}
 
-              {/* <!-- Transaction Admin --> */}
-              <SidebarLinkGroup
-                activeCondition={
-                  pathname === '/transaksi' || pathname.includes('transaksi')
-                }
-              >
+              {/* <!-- Transactions - Commented out --> */}
+              {/* <SidebarLinkGroup>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
-                      <NavLink
-                        to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${(pathname === '/transaksi' ||
-                          pathname.includes('transaksi')) &&
-                          'bg-graydark dark:bg-meta-4'
-                          }`}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          sidebarExpanded
-                            ? handleClick()
-                            : setSidebarExpanded(true)
-                        }}
-                      >
-                        <FaRegMoneyBillAlt />
-                        Transaction
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
-                          }`} />
-                      </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
-                      <div
-                        className={`translate transform overflow-hidden ${!open && 'hidden'
-                          }`}
-                      >
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
-                          <li>
-                            <NavLink
-                              to='/admin/transaksi/data-absensi'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              Data Attendance
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to='/admin/transaksi/setting-potongan-gaji'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              Setting Salary Deduction 
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to='/admin/transaksi/data-gaji'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              Salary Data 
-                            </NavLink>
-                          </li>
-                        </ul>
+                      <div className="nav-group-button" onClick={() => handleClick()}>
+                        <AiOutlineTransaction className="text-xl" />
+                        <span>Transactions</span>
+                        <BsArrowLeftShort className={`${open ? 'rotate-90' : ''}`} />
                       </div>
-                      {/* <!-- Dropdown Menu End --> */}
+                      <div className={`nav-group-items ${open ? '' : 'hidden'}`}>
+                        <NavLink to="/admin/transactions/loans" className="nav-item">
+                          <FaMoneyBillWave />
+                          <span>Loans</span>
+                        </NavLink>
+                      </div>
                     </React.Fragment>
                   )
                 }}
-              </SidebarLinkGroup>
-              {/* <!-- Transaction Admin --> */}
+              </SidebarLinkGroup> */}
 
-              {/* <!-- Report Admin --> */}
-              <SidebarLinkGroup
-                activeCondition={
-                  pathname === '/laporan' || pathname.includes('laporan')
-                }
-              >
+              {/* <!-- Reports - Commented out --> */}
+              {/* <SidebarLinkGroup>
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
-                      <NavLink
-                        to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${(pathname === '/laporan' ||
-                          pathname.includes('laporan')) &&
-                          'bg-graydark dark:bg-meta-4'
-                          }`}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          sidebarExpanded
-                            ? handleClick()
-                            : setSidebarExpanded(true)
-                        }}
-                      >
-                        <TfiPrinter />
-                        Report
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
-                          }`} />
-                      </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
-                      <div
-                        className={`translate transform overflow-hidden ${!open && 'hidden'
-                          }`}
-                      >
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
-                          <li>
-                            <NavLink
-                              to='/admin/laporan/laporan-gaji'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              Salary Report  
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to='/admin/laporan/laporan-absensi'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              Attendance Report 
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to='/admin/laporan/slip-gaji'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              Salary Slip 
-                            </NavLink>
-                          </li>
-                        </ul>
+                      <div className="nav-group-button" onClick={() => handleClick()}>
+                        <TbReport className="text-xl" />
+                        <span>Reports</span>
+                        <BsArrowLeftShort className={`${open ? 'rotate-90' : ''}`} />
                       </div>
-                      {/* <!-- Dropdown Menu End --> */}
+                      <div className={`nav-group-items ${open ? '' : 'hidden'}`}>
+                        <NavLink to="/admin/reports/loan-report" className="nav-item">
+                          <FaMoneyBillWave />
+                          <span>Loan Report</span>
+                        </NavLink>
+                      </div>
                     </React.Fragment>
                   )
                 }}
-              </SidebarLinkGroup>
-              {/* <!-- Report Admin --> */}
+              </SidebarLinkGroup> */}
 
               {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
