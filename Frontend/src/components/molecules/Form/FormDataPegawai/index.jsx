@@ -4,9 +4,9 @@ import toast from 'react-hot-toast';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
-import { useAuth } from '../../../../context/AuthContext';
-import { api } from '../../../../utils/axios';
-import { USER_ENDPOINTS } from '../../../../constants/apiEndpoints';
+import { useAuth } from '@context/AuthContext';
+import { api } from '@utils/axios';
+import { USER_ENDPOINTS } from '@constants/apiEndpoints';
 
 const UserDataForm = () => {
   const navigate = useNavigate();
