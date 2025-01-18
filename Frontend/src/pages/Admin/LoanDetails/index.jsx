@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import DefaultLayoutAdmin from "../../../layout/DefaultLayoutAdmin";
 import { BreadcrumbAdmin, ButtonOne } from "../../../components";
 import { useAuth } from '../../../context/AuthContext';
-import { api } from '../../../utils/axios';
+import { api } from '../../../services/api';
 import { LOAN_ENDPOINTS } from '../../../constants/apiEndpoints';
 import toast from 'react-hot-toast';
 
