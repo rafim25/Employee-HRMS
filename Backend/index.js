@@ -49,7 +49,7 @@ const startServer = async () => {
         origin:
           process.env.NODE_ENV === "production"
             ? ["https://your-production-frontend-url.com"]
-            : ["http://localhost:5173", "http://localhost:3002"],
+            : ["http://localhost:5173", "http://localhost:3002","http://172.105.59.206:3002"],
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         credentials: true,
         allowedHeaders: ["Content-Type", "Authorization"],
