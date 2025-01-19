@@ -1,24 +1,32 @@
 import express from "express";
 import {
-    getTransactions,
-    getTransactionById,
-    createTransaction,
-    updateTransaction,
-    deleteTransaction,
-    getTransactionsByLoan
+  getTransactions,
+  getTransactionById,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
+  getTransactionsByLoan,
 } from "../controllers/TransactionController.js";
-import { verify_User as verifyUser, admin_Only as adminOnly } from "../middleware/AuthUser.js";
+import {
+  verify_User as verifyUser,
+  admin_Only as adminOnly,
+} from "../middleware/AuthUser.js";
 
 const router = express.Router();
 
 // Basic CRUD routes
-router.get('/transactions', verifyUser, getTransactions);
-router.get('/transactions/:id', verifyUser, getTransactionById);
-router.post('/transactions', verifyUser, adminOnly, createTransaction);
-router.patch('/transactions/:id', verifyUser, adminOnly, updateTransaction);
-router.delete('/transactions/:id', verifyUser, adminOnly, deleteTransaction);
+router.get("/api/transactions", verifyUser, getTransactions);
+router.get("/api/transactions/:id", verifyUser, getTransactionDetails);
+router.post("/api/transactions", verifyUser, adminOnly, createTransaction);
+router.patch("/api/transactions/:id", verifyUser, adminOnly, updateTransaction);
+router.delete(
+  "/api/transactions/:id",
+  verifyUser,
+  adminOnly,
+  deleteTransaction
+);
 
 // Additional routes
-router.get('/loan-transactions/:loanId', verifyUser, getTransactionsByLoan);
+router.get("/api/loan-transactions/:id", verifyUser, getLoanTransactions);
 
 export default router;

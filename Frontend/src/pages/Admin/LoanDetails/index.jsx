@@ -4,7 +4,7 @@ import DefaultLayoutAdmin from "../../../layout/DefaultLayoutAdmin";
 import { BreadcrumbAdmin, ButtonOne } from "../../../components";
 import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../services/api';
-import { LOAN_ENDPOINTS, USER_ENDPOINTS } from '../../../constants/apiEndpoints';
+import { LOAN_ENDPOINTS, USER_ENDPOINTS, TRANSACTION_ENDPOINTS } from '../../../constants/apiEndpoints';
 import toast from 'react-hot-toast';
 
 const LoanDetails = () => {
@@ -119,8 +119,7 @@ const LoanDetails = () => {
   };
 
   // Handle add transaction
-  // Handle add transaction
-  const handleAddTransaction = async (e) => {
+  const handleTransaction = async (e) => {
     e.preventDefault();
     const loadingToast = toast.loading('Adding transaction...');
 
@@ -140,8 +139,8 @@ const LoanDetails = () => {
         formData.append('receipt', transaction.image);
       }
 
-      // Make API call
-      await api.post('/transactions', formData, {
+      // Make API call using constant endpoint
+      await api.post(TRANSACTION_ENDPOINTS.CREATE, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -311,7 +310,7 @@ const LoanDetails = () => {
       {/* Add Transaction Form */}
       <div className="mt-6 rounded-lg bg-white p-6 shadow-default dark:bg-boxdark">
         <h2 className="mb-4 text-xl font-semibold">Add Transaction</h2>
-        <form onSubmit={handleAddTransaction} id="transactionForm">
+        <form onSubmit={handleTransaction} id="transactionForm">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">Amount</label>

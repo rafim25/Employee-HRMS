@@ -7,7 +7,10 @@ import {
   SET_LENDING_DETAILS,
 } from "../types";
 
-import { AUTH_ENDPOINTS_V2 } from "../../constants/apiEndpoints";
+import {
+  AUTH_ENDPOINTS_V2,
+  TRANSACTION_ENDPOINTS,
+} from "../../constants/apiEndpoints";
 
 export const loginUser = async (dispatch, credentials) => {
   try {
@@ -42,7 +45,7 @@ export const logoutUser = async (dispatch) => {
 
 export const getTransactions = async (dispatch, userId) => {
   try {
-    const response = await api.get(`/transactions/${userId}`);
+    const response = await api.get(TRANSACTION_ENDPOINTS.GET_BY_USER(userId));
     dispatch({
       type: SET_TRANSACTIONS,
       payload: response.data,
@@ -57,7 +60,9 @@ export const getTransactions = async (dispatch, userId) => {
 
 export const getLendingDetails = async (dispatch, userId) => {
   try {
-    const response = await api.get(`/lending-details/${userId}`);
+    const response = await api.get(
+      TRANSACTION_ENDPOINTS.GET_LENDING_DETAILS(userId)
+    );
     dispatch({
       type: SET_LENDING_DETAILS,
       payload: response.data,

@@ -26,20 +26,25 @@ import {
 
 const router = express.Router();
 
-router.get("/data_pegawai", verifyUser, adminOnly, getDataPegawai);
-router.get("/data_pegawai/:id", verifyUser, adminOnly, getDataPegawaiByID);
-router.post("/data_pegawai", createDataPegawai);
-router.patch("/data_pegawai/:id", verifyUser, adminOnly, updateDataPegawai);
-router.delete("/data_pegawai/:id", verifyUser, adminOnly, deleteDataPegawai);
+router.get("/api/data_pegawai", verifyUser, adminOnly, getDataPegawai);
+router.get("/api/data_pegawai/:id", verifyUser, adminOnly, getDataPegawaiByID);
+router.post("/api/data_pegawai", createDataPegawai);
+router.patch("/api/data_pegawai/:id", verifyUser, adminOnly, updateDataPegawai);
+router.delete(
+  "/api/data_pegawai/:id",
+  verifyUser,
+  adminOnly,
+  deleteDataPegawai
+);
 
-router.get("/users/filter", verifyUser, getUsersByRole); // New endpoint for filtering users
+router.get("/api/users/filter", verifyUser, getUsersByRole);
 
-router.get("/users", verify_User, getUsers);
-router.get("/users/:id", verify_User, getUserById);
-router.post("/users", verify_User, admin_Only, createUser);
-router.patch("/users/:id", verify_User, admin_Only, updateUser);
-router.delete("/users/:id", verify_User, admin_Only, deleteUser);
+router.get("/api/users", verify_User, getUsers);
+router.get("/api/users/:id", verify_User, getUserById);
+router.post("/api/users", verify_User, admin_Only, createUser);
+router.patch("/api/users/:id", verify_User, admin_Only, updateUser);
+router.delete("/api/users/:id", verify_User, admin_Only, deleteUser);
 
-router.patch("/users/:id/password", verifyUser, updatePassword);
+router.patch("/api/users/:id/password", verifyUser, updatePassword);
 
 export default router;

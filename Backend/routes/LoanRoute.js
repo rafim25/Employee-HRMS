@@ -15,11 +15,11 @@ import {
 const router = express.Router();
 
 // Basic CRUD routes
-router.get("/loans", verifyUser, getLoans);
-router.get("/loans/:id", verifyUser, getLoanById);
-router.post("/loans", verifyUser, adminOnly, createLoan);
-router.patch("/loans/:id", verifyUser, adminOnly, updateLoan);
-router.delete("/loans/:id", verifyUser, adminOnly, deleteLoan);
+router.get("/api/loans", verifyUser, getLoans);
+router.get("/api/loans/:id", verifyUser, getLoanById);
+router.post("/api/loans", verifyUser, adminOnly, createLoan);
+router.put("/api/loans/:id", verifyUser, adminOnly, updateLoan);
+router.delete("/api/loans/:id", verifyUser, adminOnly, deleteLoan);
 
 // Additional routes
 router.get("/customer-loans/:customerId", verifyUser, getLoansByCustomer);
