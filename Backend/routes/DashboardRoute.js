@@ -1,6 +1,6 @@
 import express from "express";
 import { getDashboardStats } from "../controllers/DashboardController.js";
-import { verifyUser } from "../middlewares/AuthMiddleware.js";
+import { verifyUser } from "../middleware/AuthUser.js";
 
 const router = express.Router();
 

@@ -16,7 +16,7 @@ const router = express.Router();
 
 // Basic CRUD routes
 router.get("/api/transactions", verifyUser, getTransactions);
-router.get("/api/transactions/:id", verifyUser, getTransactionDetails);
+router.get("/api/transactions/:id", verifyUser, getTransactionById);
 router.post("/api/transactions", verifyUser, adminOnly, createTransaction);
 router.patch("/api/transactions/:id", verifyUser, adminOnly, updateTransaction);
 router.delete(
@@ -27,6 +27,6 @@ router.delete(
 );
 
 // Additional routes
-router.get("/api/loan-transactions/:id", verifyUser, getLoanTransactions);
+router.get("/api/loan-transactions/:id", verifyUser, getTransactionsByLoan);
 
 export default router;
