@@ -5,7 +5,7 @@ import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
 import { useAuth } from '../../../../context/AuthContext';
 import { api } from '../../../../services/api';
-import { LOAN_ENDPOINTS } from '../../../../constants/apiEndpoints';
+import { USER_ENDPOINTS, LOAN_ENDPOINTS } from '../../../../constants/apiEndpoints';
 
 const FormLoan = () => {
     const navigate = useNavigate();
@@ -33,7 +33,7 @@ const FormLoan = () => {
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
-                const response = await api.get('/users');
+                const response = await api.get(USER_ENDPOINTS.LIST);
                 setCustomers(response.data);
             } catch (error) {
                 toast.error('Failed to fetch customers');

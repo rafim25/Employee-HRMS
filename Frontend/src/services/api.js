@@ -18,4 +18,4 @@ export const api = {
   patch: (url, data, config = {}) => axiosInstance.patch(url, data, config),
 };
 
-export default axiosInstance; 
+export default axiosInstance;
