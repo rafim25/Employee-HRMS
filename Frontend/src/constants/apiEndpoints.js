@@ -14,10 +14,10 @@ export const AUTH_ENDPOINTS_V2 = {
 // User/Customer endpoints
 export const USER_ENDPOINTS = {
   LIST: "/users",
-  DETAILS: (userId) => `/users/${userId}`,
+  DETAILS: (id) => `/users/${id}`,
   CREATE: "/users",
-  UPDATE: (userId) => `/users/${userId}`,
-  DELETE: (userId) => `/users/${userId}`,
+  UPDATE: (id) => `/users/${id}`,
+  DELETE: (id) => `/users/${id}`,
   FILTER_BY_ROLE: (role) => `/users/filter?role=${role}`,
 };
 

@@ -4,7 +4,7 @@ import DefaultLayoutAdmin from "../../../layout/DefaultLayoutAdmin";
 import { BreadcrumbAdmin, ButtonOne } from "../../../components";
 import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../services/api';
-import { LOAN_ENDPOINTS } from '../../../constants/apiEndpoints';
+import { LOAN_ENDPOINTS, USER_ENDPOINTS } from '../../../constants/apiEndpoints';
 import toast from 'react-hot-toast';
 
 const LoanDetails = () => {
@@ -37,8 +37,8 @@ const LoanDetails = () => {
         const loanResponse = await api.get(LOAN_ENDPOINTS.DETAILS(loanId));
         setLoanDetails(loanResponse.data);
 
-        // Fetch customer details
-        const customerResponse = await api.get(`/users/${loanResponse.data.customer_id}`);
+        // Fetch customer details using constant endpoint
+        const customerResponse = await api.get(USER_ENDPOINTS.DETAILS(loanResponse.data.customer_id));
         setCustomerDetails(customerResponse.data);
 
         // Fetch transactions
