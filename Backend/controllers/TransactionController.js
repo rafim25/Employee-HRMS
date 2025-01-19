@@ -65,9 +65,9 @@ export const createTransaction = async (req, res) => {
   const t = await db.transaction();
 
   try {
-    const { loan_id, customer_id, amount, transaction_type } = req.body;
+    const { loan_id, amount, transaction_type } = req.body;
 
-    // Verify if loan exists and is active
+    // First get the loan to get the customer_id
     const loan = await Loan.findOne({
       where: {
         loan_id: loan_id,
@@ -79,11 +79,11 @@ export const createTransaction = async (req, res) => {
       return res.status(404).json({ msg: "Active loan not found" });
     }
 
-    // Create transaction
+    // Create transaction using the loan's customer_id
     const transaction = await Transaction.create(
       {
         loan_id,
-        customer_id,
+        customer_id: loan.customer_id, // Get customer_id from loan
         admin_id: req.userId, // from auth middleware
         amount,
         transaction_type,
@@ -122,6 +122,7 @@ export const createTransaction = async (req, res) => {
     });
   } catch (error) {
     await t.rollback();
+    console.error("Transaction error:", error);
     res.status(400).json({ msg: error.message });
   }
 };

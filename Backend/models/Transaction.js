@@ -1,61 +1,64 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-import Loan from "./Loan.js";
 import User from "./User.js";
+import Loan from "./Loan.js";
 
-const { DataTypes } = Sequelize;
-
-const Transaction = db.define('transactions', {
+const Transaction = db.define(
+  "transactions",
+  {
     transaction_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
     loan_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: Loan,
-            key: 'loan_id'
-        }
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: Loan,
+        key: "loan_id",
+      },
     },
     customer_id: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        references: {
-            model: User,
-            key: 'user_id'
-        }
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: User,
+        key: "user_id",
+      },
     },
     admin_id: {
-        type: DataTypes.STRING,
-        references: {
-            model: User,
-            key: 'user_id'
-        }
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: User,
+        key: "user_id",
+      },
     },
     amount: {
-        type: DataTypes.DECIMAL(12,2),
-        allowNull: false
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false,
     },
     transaction_type: {
-        type: DataTypes.ENUM('debit', 'credit'),
-        allowNull: false
+      type: Sequelize.ENUM("credit", "debit"),
+      allowNull: false,
     },
     created_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.NOW
-    }
-}, {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+  },
+  {
     freezeTableName: true,
     timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: false
-});
+    createdAt: "created_at",
+    updatedAt: false,
+  }
+);
 
 // Define relationships
-Transaction.belongsTo(Loan, { foreignKey: 'loan_id' });
-Transaction.belongsTo(User, { as: 'customer', foreignKey: 'customer_id' });
-Transaction.belongsTo(User, { as: 'admin', foreignKey: 'admin_id' });
+Transaction.belongsTo(User, { foreignKey: "customer_id", as: "customer" });
+Transaction.belongsTo(User, { foreignKey: "admin_id", as: "admin" });
+Transaction.belongsTo(Loan, { foreignKey: "loan_id" });
 
 export default Transaction;
