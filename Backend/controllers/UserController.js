@@ -135,7 +135,14 @@ export const createUser = async (req, res) => {
     file.mv(`./public/images/${fileName}`, async (err) => {
       if (err) return res.status(500).json({ msg: err.message });
     });
-    url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
+
+    // Use production URL in production environment
+    const baseUrl =
+      process.env.NODE_ENV === "production"
+        ? "http://172.105.59.206:3002"
+        : `${req.protocol}://${req.get("host")}`;
+
+    url = `${baseUrl}/images/${fileName}`;
   }
 
   try {
