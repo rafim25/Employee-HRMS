@@ -22,6 +22,15 @@ export default defineConfig(({ command, mode }) => {
       sourcemap: false,
       minify: "terser",
       chunkSizeWarningLimit: 1600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              return "vendor";
+            }
+          },
+        },
+      },
     },
     define: {
       "process.env.NODE_ENV": JSON.stringify(env.VITE_NODE_ENV),
