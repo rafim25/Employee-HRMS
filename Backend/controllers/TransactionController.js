@@ -257,13 +257,25 @@ export const deleteTransaction = async (req, res) => {
 // Additional utility functions
 export const getTransactionsByLoan = async (req, res) => {
   try {
-    const { id } = req.params; // Changed from loanId to id to match route param
+    const { id } = req.params;
 
     const transactions = await Transaction.findAll({
       where: {
-        loan_id: id, // Using the correct parameter name
+        loan_id: id,
       },
-      order: [["createdAt", "DESC"]],
+      order: [["created_at", "DESC"]],
+      include: [
+        {
+          model: User,
+          as: "customer",
+          attributes: ["username", "email"],
+        },
+        {
+          model: User,
+          as: "admin",
+          attributes: ["username"],
+        },
+      ],
     });
 
     if (!transactions) {
