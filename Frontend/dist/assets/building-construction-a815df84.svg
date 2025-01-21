@@ -1,0 +1,110 @@
+<svg
+    width='350'
+    height='350'
+    viewBox='0 0 350 350'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+>
+    {/* Building Base */}
+    <path
+        d='M50 300 L300 300 L300 100 L175 20 L50 100 Z'
+        fill='#E6E6E6'
+        stroke='#CCCCCC'
+        strokeWidth='2'
+    />
+    
+    {/* Windows */}
+    <path
+        d='M100 150 H140 V190 H100 Z'
+        fill='white'
+        stroke='#3056D3'
+        strokeWidth='2'
+    />
+    <path
+        d='M210 150 H250 V190 H210 Z'
+        fill='white'
+        stroke='#3056D3'
+        strokeWidth='2'
+    />
+    <path
+        d='M100 220 H140 V260 H100 Z'
+        fill='white'
+        stroke='#3056D3'
+        strokeWidth='2'
+    />
+    <path
+        d='M210 220 H250 V260 H210 Z'
+        fill='white'
+        stroke='#3056D3'
+        strokeWidth='2'
+    />
+
+    {/* Door */}
+    <path
+        d='M155 230 H195 V300 H155 Z'
+        fill='#3056D3'
+    />
+    
+    {/* Crane */}
+    <path
+        d='M320 50 V200 H330 V50 Z'
+        fill='#1C2434'
+    />
+    <path
+        d='M280 50 H370'
+        stroke='#1C2434'
+        strokeWidth='10'
+    />
+    <path
+        d='M320 50 L370 90'
+        stroke='#1C2434'
+        strokeWidth='5'
+    />
+    <path
+        d='M370 50 L320 90'
+        stroke='#3056D3'
+        strokeWidth='3'
+    />
+
+    {/* Construction Elements */}
+    <circle
+        cx='330'
+        cy='40'
+        r='5'
+        fill='#3056D3'
+    />
+    
+    {/* Scaffolding */}
+    <path
+        d='M40 120 V300 M60 120 V300'
+        stroke='#CCCCCC'
+        strokeWidth='2'
+        strokeDasharray='5,5'
+    />
+    <path
+        d='M40 150 H60 M40 200 H60 M40 250 H60'
+        stroke='#CCCCCC'
+        strokeWidth='2'
+    />
+
+    {/* Ground */}
+    <path
+        d='M30 300 H320'
+        stroke='#1C2434'
+        strokeWidth='3'
+    />
+
+    {/* Small decorative elements */}
+    <circle cx='175' cy='50' r='8' fill='#3056D3' />
+    <rect x='170' y='70' width='10' height='20' fill='#1C2434' />
+    
+    {/* Progress Bars */}
+    <rect x='50' y='320' width='60' height='10' fill='#E6E6E6' rx='5' />
+    <rect x='50' y='320' width='45' height='10' fill='#3056D3' rx='5' />
+    
+    <rect x='150' y='320' width='60' height='10' fill='#E6E6E6' rx='5' />
+    <rect x='150' y='320' width='30' height='10' fill='#3056D3' rx='5' />
+    
+    <rect x='250' y='320' width='60' height='10' fill='#E6E6E6' rx='5' />
+    <rect x='250' y='320' width='50' height='10' fill='#3056D3' rx='5' />
+</svg> 

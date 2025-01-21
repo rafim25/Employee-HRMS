@@ -1,25 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Logo from '../../../Assets/images/logo/logo.svg'
 import LogoDark from '../../../Assets/images/logo/logo-dark.png'
 import LoginImg from '../../../Assets/images/LoginImg/login.svg'
 import { FiUser } from 'react-icons/fi'
 import { TfiLock } from 'react-icons/tfi'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { loginUser } from '../../../context/actions/authActions';
+import { useAuth } from '../../../context/AuthContext';
+import Testimonials from '../../../components/molecules/Testimonial';
 
 const LoginPegawai = () => {
+    const navigate = useNavigate();
+    const auth = useAuth();
+
+    const handleLogin = (e) => {
+        e.preventDefault();
+        // Implement login logic here
+    };
+
     return (
-        <div className=' min-h-screen rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark '>
-            <div className='flex flex-wrap items-center min-h-screen '>
-                <div className='hidden w-full xl:block xl:w-1/2 '>
+        <div className='min-h-screen bg-white dark:bg-boxdark'>
+            <div className='flex flex-wrap items-center min-h-screen'>
+                <div className='hidden w-full xl:block xl:w-1/2'>
                     <div className='py-18.5 px-26 text-center'>
-                        <span className="'mb-5.5 inline-block ">
-                            <img className='hidden dark:block' src={Logo} alt='Snipe Tech Pvt Ltd' />
-                            <img className='dark:hidden' width={400} height={100}  src={LogoDark} alt='Snipe Tech Pvt Ltd' />
+                        <span className="mb-5.5 inline-block">
+                            <img className='hidden dark:block' src={Logo} alt='Logo' />
+                            <img className='dark:hidden' src={LogoDark} alt='Logo' />
                         </span>
                         <p className='2xl:px-20'>
-                            Login in to continue your activity!
+                            Welcome back! Please login to continue.
                         </p>
-                        <img className="mt-15 inline-block " src={LoginImg} alt='Logo' />
+                        <img className="mt-15 inline-block" src={LoginImg} alt='Login' />
                     </div>
                 </div>
 
@@ -29,7 +40,7 @@ const LoginPegawai = () => {
                         Employee to  Login 
                         </h2>
 
-                        <form>
+                        <form onSubmit={handleLogin}>
                             <div className='mb-4'>
                                 <label className='mb-2.5 block font-medium text-black dark:text-white'>
                                     Username
@@ -71,8 +82,20 @@ const LoginPegawai = () => {
                     </div>
                 </div>
             </div>
+
+            <div className='border-t border-stroke dark:border-strokedark'>
+                <div className='container mx-auto'>
+                    <Testimonials type="staff" />
+                </div>
+            </div>
+
+            <footer className="bg-white dark:bg-boxdark py-4 border-t border-stroke dark:border-strokedark">
+                <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-400">
+                    <p>&copy; 2024 Loan Management System. All rights reserved.</p>
+                </div>
+            </footer>
         </div>
-    )
-}
+    );
+};
 
 export default LoginPegawai;
