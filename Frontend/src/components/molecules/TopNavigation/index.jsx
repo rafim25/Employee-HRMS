@@ -13,24 +13,24 @@ const TopNavigation = ({ onLoginClick }) => {
     <>
       <nav className="bg-gradient-to-r from-blue-50 via-white to-blue-50 dark:from-boxdark dark:to-boxdark shadow-sm border-b border-blue-100/50">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             {/* Logo/Brand */}
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <span className="font-serif text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-primary transition-all duration-300">
+              <Link to="/" className="flex items-center space-x-3">
+                <span className="font-serif text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-primary transition-all duration-300">
                   Raghav
                 </span>
-                <span className="font-serif text-xl font-light text-gray-700 dark:text-gray-200">
+                <span className="font-serif text-3xl font-light text-gray-700 dark:text-gray-200">
                   Elite
                 </span>
-                <span className="font-serif text-xl font-bold text-primary dark:text-gray-200 group-hover:text-blue-600 transition-colors duration-300">
+                <span className="font-serif text-3xl font-bold text-primary dark:text-gray-200 group-hover:text-blue-600 transition-colors duration-300">
                   Projects
                 </span>
               </Link>
             </div>
             
             {/* Navigation Links */}
-            <div className="hidden md:flex space-x-2">
+            <div className="hidden md:flex space-x-4">
               {[
                 { href: "#projects", label: "Upcoming Projects" },
                 { href: "#gallery", label: "Gallery" },
@@ -46,12 +46,12 @@ const TopNavigation = ({ onLoginClick }) => {
               {/* Login Button */}
               <button
                 onClick={onLoginClick}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-blue-600 
-                rounded-lg transition-all duration-300 flex items-center space-x-2 
+                className="px-6 py-2.5 text-base font-medium text-white bg-primary hover:bg-blue-600 
+                rounded-lg transition-all duration-300 flex items-center space-x-2.5 
                 hover:shadow-lg hover:shadow-blue-500/30 tracking-wide"
               >
                 <svg 
-                  className="w-4 h-4" 
+                  className="w-5 h-5" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
@@ -71,7 +71,7 @@ const TopNavigation = ({ onLoginClick }) => {
             <div className="md:hidden">
               <button className="p-2 rounded-lg text-gray-600 hover:text-primary hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-boxdark-2 transition-all duration-300">
                 <svg 
-                  className="h-6 w-6" 
+                  className="h-7 w-7" 
                   fill="none" 
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
@@ -117,7 +117,7 @@ const TopNavigation = ({ onLoginClick }) => {
 const NavLink = ({ href, children }) => (
   <a
     href={href}
-    className="relative px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-lg 
+    className="relative px-5 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 rounded-lg 
     hover:text-primary hover:bg-blue-50/80 dark:hover:bg-boxdark-2 
     transition-all duration-300 group overflow-hidden tracking-wide"
   >
