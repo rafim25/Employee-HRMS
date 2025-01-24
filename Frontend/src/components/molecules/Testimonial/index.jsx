@@ -82,25 +82,47 @@ const TestimonialCard = ({ name, profession, image, message }) => {
 
 const Testimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const itemsPerView = 3;
-  const totalSlides = testimonials.length;
+  const itemsPerView = {
+    mobile: 1,
+    tablet: 2,
+    desktop: 3
+  };
+
+  // Function to get current items per view based on screen size
+  const getCurrentItemsPerView = () => {
+    if (window.innerWidth < 768) return itemsPerView.mobile;
+    if (window.innerWidth < 1024) return itemsPerView.tablet;
+    return itemsPerView.desktop;
+  };
+
+  const [visibleItems, setVisibleItems] = useState(getCurrentItemsPerView());
+
+  // Update visible items on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setVisibleItems(getCurrentItemsPerView());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Function to get visible testimonials with circular rotation
   const getVisibleTestimonials = () => {
     let visibleItems = [];
-    for (let i = 0; i < itemsPerView; i++) {
-      const index = (currentIndex + i) % totalSlides;
+    for (let i = 0; i < visibleItems; i++) {
+      const index = (currentIndex + i) % testimonials.length;
       visibleItems.push(testimonials[index]);
     }
     return visibleItems;
   };
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % totalSlides);
+    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
+    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
   // Auto scroll
@@ -120,14 +142,20 @@ const Testimonials = () => {
           {/* Navigation Buttons */}
           <button
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white dark:bg-boxdark p-2 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-boxdark-2 transition-all duration-300"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 
+            bg-white dark:bg-boxdark p-2 rounded-full shadow-lg 
+            hover:bg-gray-100 dark:hover:bg-boxdark-2 transition-all duration-300
+            md:-translate-x-6"
           >
             <FiChevronLeft className="text-2xl text-primary" />
           </button>
           
           <button
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white dark:bg-boxdark p-2 rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-boxdark-2 transition-all duration-300"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 
+            bg-white dark:bg-boxdark p-2 rounded-full shadow-lg 
+            hover:bg-gray-100 dark:hover:bg-boxdark-2 transition-all duration-300
+            md:translate-x-6"
           >
             <FiChevronRight className="text-2xl text-primary" />
           </button>
@@ -136,15 +164,15 @@ const Testimonials = () => {
           <div className="overflow-hidden">
             <div 
               className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${(currentIndex * 100) / itemsPerView}%)` }}
+              style={{ transform: `translateX(-${(currentIndex * 100) / visibleItems}%)` }}
             >
               {testimonials.map((testimonial, index) => (
                 <div 
                   key={`${testimonial.name}-${index}`} 
-                  className="w-1/3 flex-shrink-0"
-                  style={{
-                    transform: `translateX(${index < currentIndex ? totalSlides * 100 : 0}%)`
-                  }}
+                  className={`flex-shrink-0 ${
+                    visibleItems === 1 ? 'w-full' : 
+                    visibleItems === 2 ? 'w-1/2' : 'w-1/3'
+                  } px-2`}
                 >
                   <TestimonialCard {...testimonial} />
                 </div>
@@ -154,7 +182,7 @@ const Testimonials = () => {
 
           {/* Indicators */}
           <div className="flex justify-center mt-8 space-x-2">
-            {testimonials.map((_, index) => (
+            {testimonials.slice(0, testimonials.length - visibleItems + 1).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}

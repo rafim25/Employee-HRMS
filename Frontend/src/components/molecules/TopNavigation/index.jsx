@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaWhatsapp } from 'react-icons/fa';
 
 const TopNavigation = ({ onLoginClick }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const handleWhatsAppClick = () => {
     const phoneNumber = '+919876543210';
     const message = 'Hi, I would like to know more about your projects.';
@@ -29,7 +31,7 @@ const TopNavigation = ({ onLoginClick }) => {
               </Link>
             </div>
             
-            {/* Navigation Links */}
+            {/* Desktop Navigation Links */}
             <div className="hidden md:flex space-x-4">
               {[
                 { href: "#projects", label: "Upcoming Projects" },
@@ -69,7 +71,10 @@ const TopNavigation = ({ onLoginClick }) => {
 
             {/* Mobile menu button */}
             <div className="md:hidden">
-              <button className="p-2 rounded-lg text-gray-600 hover:text-primary hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-boxdark-2 transition-all duration-300">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg text-gray-600 hover:text-primary hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-boxdark-2 transition-all duration-300"
+              >
                 <svg 
                   className="h-7 w-7" 
                   fill="none" 
@@ -80,9 +85,59 @@ const TopNavigation = ({ onLoginClick }) => {
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
                     strokeWidth={2} 
-                    d="M4 6h16M4 12h16M4 18h16" 
+                    d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
                   />
                 </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation Menu */}
+          <div className={`md:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
+            <div className="py-3 space-y-2">
+              {[
+                { href: "#projects", label: "Upcoming Projects" },
+                { href: "#gallery", label: "Gallery" },
+                { href: "#completed", label: "Completed Projects" },
+                { href: "#why-us", label: "Why Choose Us" },
+                { href: "#contact", label: "Contact Us" },
+              ].map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="block px-4 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 
+                  hover:bg-blue-50 hover:text-primary dark:hover:bg-boxdark-2 rounded-lg
+                  transition-all duration-300"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
+              ))}
+              
+              {/* Mobile Login Button */}
+              <button
+                onClick={() => {
+                  onLoginClick();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-2.5 text-base font-medium text-primary 
+                hover:bg-blue-50 dark:hover:bg-boxdark-2 rounded-lg
+                transition-all duration-300 flex items-center space-x-2"
+              >
+                <svg 
+                  className="w-5 h-5" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" 
+                  />
+                </svg>
+                <span>Login</span>
               </button>
             </div>
           </div>
@@ -92,22 +147,22 @@ const TopNavigation = ({ onLoginClick }) => {
       {/* WhatsApp Button */}
       <button
         onClick={handleWhatsAppClick}
-        className="fixed left-6 bottom-6 z-[9999] flex items-center justify-center w-12 h-12 
-        bg-green-500 rounded-full shadow-lg hover:bg-green-600 
+        className="fixed right-6 bottom-6 z-[9999] flex items-center justify-center w-14 h-14 
+        bg-[#25D366] rounded-full shadow-lg hover:bg-[#20BA56] 
         transition-all duration-300 hover:scale-110 
-        animate-bounce-slow group"
+        animate-bounce-slow group hover:shadow-xl hover:shadow-green-500/20"
       >
-        <FaWhatsapp className="text-white text-2xl group-hover:scale-110 transition-transform duration-300" />
+        <FaWhatsapp className="text-white text-3xl group-hover:scale-110 transition-transform duration-300" />
         
         {/* Tooltip */}
-        <span className="absolute left-full ml-3 px-3 py-1.5 bg-white text-gray-700 
-        text-xs font-medium rounded-lg shadow-lg whitespace-nowrap 
+        <span className="absolute right-full mr-3 px-3 py-2 bg-white text-gray-700 
+        text-sm font-medium rounded-lg shadow-lg whitespace-nowrap 
         opacity-0 group-hover:opacity-100 transition-opacity duration-300
         border border-gray-100">
           Chat with us on WhatsApp
           {/* Triangle Pointer */}
-          <span className="absolute top-1/2 -left-2 -translate-y-1/2 
-          border-6 border-transparent border-r-white"></span>
+          <span className="absolute top-1/2 -right-2 -translate-y-1/2 
+          border-6 border-transparent border-l-white"></span>
         </span>
       </button>
     </>
