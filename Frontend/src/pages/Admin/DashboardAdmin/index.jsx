@@ -1,12 +1,9 @@
 import React,{useEffect, useCallback} from 'react';
-import DefaultLayoutAdmin from '../../../layout/DefaultLayoutAdmin';
 import { CardOne, CardTwo, CardThree, CardFour, ChartOne, ChartTwo, BreadcrumbAdmin } from '../../../components';
 import { useAuth } from '../../../context/AuthContext';
 import { fetchDashboardData } from '../../../context/actions/dashboardActions';
 
-
 const DashboardAdmin = () => {
-
   const { dispatch } = useAuth();
 
   const loadDashboardData = useCallback(() => {
@@ -15,13 +12,12 @@ const DashboardAdmin = () => {
 
   useEffect(() => {
     loadDashboardData();
-    // Optional: Set up refresh interval
     const interval = setInterval(loadDashboardData, 300000); // Refresh every 5 minutes
     return () => clearInterval(interval);
   }, [loadDashboardData]);
 
   return (
-    <DefaultLayoutAdmin>
+    <>
       <BreadcrumbAdmin pageName='Dashboard' />
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5'>
         <CardOne />
@@ -38,9 +34,7 @@ const DashboardAdmin = () => {
           <ChartTwo />
         </div>
       </div>
-
-
-    </DefaultLayoutAdmin>
+    </>
   )
 }
 

@@ -23,6 +23,7 @@ export const authReducer = (state, action) => {
         error: null,
       };
     case SET_DASHBOARD_STATS:
+      console.log("state.dashboard-----", action);
       return {
         ...state,
         dashboard: {

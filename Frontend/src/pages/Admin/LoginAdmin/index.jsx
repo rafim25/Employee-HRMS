@@ -1,14 +1,7 @@
-import React,{useState} from 'react';
-import Logo from '../../../Assets/images/logo/logo.svg'
-import LogoDark from '../../../Assets/images/logo/logo-dark.png'
-import LoginImg from '../../../Assets/images/LoginImg/login.svg'
-import BuildingImg from '../../../Assets/images/building-construction.svg'
-import { FiUser } from 'react-icons/fi'
-import { TfiLock } from 'react-icons/tfi'
-import { Link } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../../../context/actions/authActions';
-import { useAuth } from '../../../context/AuthContext'; // Add this import
+import { useAuth } from '../../../context/AuthContext';
 import Testimonials from '../../../components/molecules/Testimonial';
 import TopNavigation from '../../../components/molecules/TopNavigation';
 import FeatureHighlights from '../../../components/molecules/FeatureHighlights';
@@ -17,19 +10,31 @@ import Carousel from '../../../components/molecules/Carousel';
 
 const LoginAdmin = () => {
     const navigate = useNavigate();
-    const { dispatch } = useAuth();
+    const { dispatch, state } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
+    // If already authenticated, redirect to dashboard
+    React.useEffect(() => {
+        if (state.isAuthenticated) {
+            navigate('/admin/dashboard');
+        }
+    }, [state.isAuthenticated, navigate]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        
         try {
-            await loginUser(dispatch, { username, password });
-            navigate('/admin/dashboard');
+            const result = await loginUser(dispatch, { username, password });
+            if (result.success) {
+                navigate('/admin/dashboard', { replace: true });
+            }
         } catch (error) {
             setError(error.response?.data?.msg || 'Login failed');
+            setIsLoginModalOpen(true);
         }
     };
 
@@ -53,7 +58,7 @@ const LoginAdmin = () => {
 
             <footer className="bg-white dark:bg-boxdark py-2 border-t border-stroke dark:border-strokedark">
                 <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-400 text-sm">
-                    <p>&copy; 2024 Loan Management System. All rights reserved.</p>
+                    <p>&copy; 2024 Raghav Elite Projects. All rights reserved.</p>
                 </div>
             </footer>
 
@@ -68,7 +73,7 @@ const LoginAdmin = () => {
                 setPassword={setPassword}
             />
         </div>
-    )
-}
+    );
+};
 
 export default LoginAdmin;

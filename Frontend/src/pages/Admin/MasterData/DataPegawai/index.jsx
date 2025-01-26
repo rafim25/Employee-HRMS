@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
 import { FaRegEdit, FaPlus } from 'react-icons/fa'
@@ -11,7 +10,8 @@ import { fetchUsers, deleteUser } from '../../../../context/actions/userActions'
 
 const ITEMS_PER_PAGE = 4;
 
-const CustomerData = () => {
+const CustomerDetails = () => {
+    console.log('CustomerDetails');
     const { state, dispatch } = useAuth();
     const { users, loading, error } = state;
     const [currentPage, setCurrentPage] = useState(1);
@@ -48,112 +48,80 @@ const CustomerData = () => {
         }
     };
 
-    const goToPrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(prev => prev - 1);
-        }
-    };
-
-    const goToNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(prev => prev + 1);
-        }
-    };
-
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-
     return (
-        <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Customer Data' />
-            <Link to="/admin/master-data/data-pegawai/form-data-pegawai">
-                <ButtonOne>
-                    <span>Add Customer</span>
-                    <span><FaPlus /></span>
-                </ButtonOne>
-            </Link>
+        <>
+            <BreadcrumbAdmin pageName='Customer Details' />
 
-            <div className='rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1 mt-6'>
-                <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
-                    <div className="relative flex-1 md:mr-2 mb-4 md:mb-0">
-                        <div className='relative w-48'>
-                            <select 
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className='w-full relative appearance-none rounded border border-stroke bg-transparent py-3 pl-4 pr-8 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input'
-                            >
-                                <option value=''>All Status</option>
-                                <option value='active'>Active</option>
-                                <option value='inactive'>Inactive</option>
-                            </select>
-                            <span className='absolute right-4 top-1/2 -translate-y-1/2 text-xl pointer-events-none'>
-                                <MdOutlineKeyboardArrowDown />
-                            </span>
-                        </div>
-                    </div>
-                    <div className="relative flex-2 mb-4 md:mb-0">
+            <div className='rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1'>
+                <div className='flex flex-col md:flex-row justify-between items-center mb-5'>
+                    <div className='relative flex-1 md:mr-4 mb-4 md:mb-0'>
                         <input
                             type='text'
+                            placeholder='Search by name, ID, or email...'
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder='Search by name, ID or email...'
-                            className='rounded-lg border-[1.5px] border-stroke bg-transparent py-2 pl-10 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary left-0'
+                            className='w-full rounded-lg border border-stroke bg-transparent py-2 pl-10 pr-4 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                         />
-                        <span className='absolute left-2 py-3 text-xl'>
-                            <BiSearch />
-                        </span>
+                        <BiSearch className='absolute left-4 top-1/2 transform -translate-y-1/2 text-xl' />
+                    </div>
+
+                    <div className='flex items-center space-x-4'>
+                        <Link to='/admin/master-data/customers/add'>
+                            <ButtonOne>
+                                <FaPlus className="mr-2" /> Add Customer
+                            </ButtonOne>
+                        </Link>
                     </div>
                 </div>
 
-                <div className='max-w-full overflow-x-auto py-4'>
+                {/* Table */}
+                <div className='max-w-full overflow-x-auto'>
                     <table className='w-full table-auto'>
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Photo</th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>User ID</th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Username</th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Email</th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Mobile</th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Status</th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Role</th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Actions</th>
+                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
+                                    Customer ID
+                                </th>
+                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
+                                    Name
+                                </th>
+                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
+                                    Email
+                                </th>
+                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
+                                    Status
+                                </th>
+                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedUsers.map((customer) => (
-                                <tr key={customer.user_id}>
+                            {paginatedUsers.map((user) => (
+                                <tr key={user.user_id}>
                                     <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        <img 
-                                            src={customer.url || customer.photo} 
-                                            alt={customer.username}
-                                            className="w-10 h-10 rounded-full"
-                                        />
+                                        {user.user_id}
                                     </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.user_id}
+                                    <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                        {user.username}
                                     </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.username}
+                                    <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                        {user.email}
                                     </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.email}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.mobile_number}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.status}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.role}
+                                    <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                        <span className={`inline-block rounded px-2.5 py-0.5 text-sm font-medium ${
+                                            user.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                                        }`}>
+                                            {user.status}
+                                        </span>
                                     </td>
                                     <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                         <div className='flex items-center space-x-3.5'>
-                                            <Link to={`/admin/master-data/data-pegawai/edit/${customer.user_id}`}>
-                                                <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
+                                            <Link to={`/admin/master-data/customers/edit/${user.user_id}`} className='hover:text-primary'>
+                                                <FaRegEdit className="text-lg" />
                                             </Link>
-                                            <button onClick={() => handleDelete(customer.user_id)}>
-                                                <BsTrash3 className="text-danger text-xl hover:text-black dark:hover:text-white" />
+                                            <button onClick={() => handleDelete(user.user_id)} className='hover:text-red-600'>
+                                                <BsTrash3 className="text-lg" />
                                             </button>
                                         </div>
                                     </td>
@@ -163,79 +131,31 @@ const CustomerData = () => {
                     </table>
                 </div>
 
-                <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
-                    <div className='flex items-center space-x-2'>
-                        <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} Customers
-                        </span>
+                {/* Pagination */}
+                <div className='flex justify-between items-center mt-4 mb-6'>
+                    <div className='text-sm text-gray-600 dark:text-gray-400'>
+                        Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} entries
                     </div>
-                    <div className='flex space-x-2 py-4'>
+                    <div className='flex space-x-2'>
                         <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            onClick={goToPrevPage}
-                            className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
+                            className='px-3 py-1 border rounded-md disabled:opacity-50'
                         >
-                            Prev
+                            Previous
                         </button>
-                        {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                            const page = i + 1;
-                            if (page === currentPage) {
-                                return (
-                                    <div
-                                        key={i}
-                                        className="py-2 px-4 rounded-lg border border-primary bg-primary text-white font-semibold hover:bg-primary dark:text-white dark:bg-primary dark:hover:bg-primary"
-                                    >
-                                        {page}
-                                    </div>
-                                );
-                            } else if (page === 2 && currentPage > 4) {
-                                return (
-                                    <p
-                                        key={i}
-                                        className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
-                                    >
-                                        ...
-                                    </p>
-                                );
-                            } else if (page === totalPages - 1 && currentPage < totalPages - 3) {
-                                return (
-                                    <p
-                                        key={i}
-                                        className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
-                                    >
-                                        ...
-                                    </p>
-                                );
-                            } else if (
-                                page === 1 ||
-                                page === totalPages ||
-                                (page >= currentPage - 1 && page <= currentPage + 1)
-                            ) {
-                                return (
-                                    <div
-                                        key={i}
-                                        className="py-2 px-4 rounded-lg border border-gray-2 text-black dark:bg-transparent bg-gray font-medium dark:border-strokedark dark:text-white"
-                                    >
-                                        {page}
-                                    </div>
-                                );
-                            } else {
-                                return null;
-                            }
-                        })}
-
                         <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            onClick={goToNextPage}
-                            className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
+                            className='px-3 py-1 border rounded-md disabled:opacity-50'
                         >
                             Next
                         </button>
                     </div>
                 </div>
             </div>
-        </DefaultLayoutAdmin>
+        </>
     );
 };
 
-export default CustomerData;
+export default CustomerDetails;

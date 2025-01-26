@@ -17,12 +17,31 @@ export const loginUser = async (dispatch, credentials) => {
     const response = await api.post(AUTH_ENDPOINTS_V2.LOGIN, credentials);
 
     if (response.data) {
+      if (!response.data.token) {
+        throw new Error("No token received from server");
+      }
+
+      const userData = {
+        user: {
+          email: response.data.email,
+          username: response.data.username,
+          role: response.data.role,
+          permissions: response.data.permissions,
+          user_id: response.data.user_id,
+        },
+        token: response.data.token,
+      };
+
+      // Store token separately
+      localStorage.setItem("token", response.data.token);
+
       dispatch({
-        type: SET_USER,
-        payload: response.data,
+        type: "LOGIN_SUCCESS",
+        payload: userData,
       });
-      localStorage.setItem("user", JSON.stringify(response.data));
-      return response.data;
+
+      localStorage.setItem("user", JSON.stringify(userData));
+      return { success: true };
     }
   } catch (error) {
     dispatch({
@@ -36,10 +55,20 @@ export const loginUser = async (dispatch, credentials) => {
 export const logoutUser = async (dispatch) => {
   try {
     await api.post(AUTH_ENDPOINTS_V2.LOGOUT);
-    localStorage.removeItem("user");
-    dispatch({ type: CLEAR_USER });
+    // Clear all local storage items
+    localStorage.clear();
+    // Clear session storage if any
+    sessionStorage.clear();
+    // Dispatch logout action
+    dispatch({ type: "LOGOUT" });
+    return { success: true };
   } catch (error) {
     console.error("Logout error:", error);
+    // Still clear storage and dispatch logout even if API call fails
+    localStorage.clear();
+    sessionStorage.clear();
+    dispatch({ type: "LOGOUT" });
+    return { success: true };
   }
 };
 

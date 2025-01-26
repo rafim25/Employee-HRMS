@@ -10,6 +10,35 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
+// Add request interceptor to include token
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle 401 errors
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      // Clear storage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Redirect to login
+      window.location.href = "/admin/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const api = {
   get: (url, config = {}) => axiosInstance.get(url, config),
   post: (url, data, config = {}) => axiosInstance.post(url, data, config),

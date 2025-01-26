@@ -1,5 +1,6 @@
 import DataPegawai from "../models/DataPegawaiModel.js";
 import User from "../models/User.js";
+import jwt from "jsonwebtoken";
 
 export const verifyUser = async (req, res, next) => {
   if (!req.session.userId) {
@@ -40,21 +41,39 @@ export const adminOnly = async (req, res, next) => {
 };
 
 export const verify_User = async (req, res, next) => {
-  console.log("req.session.userId", req.session.userId);
-  if (!req.session.userId) {
-    return res.status(401).json({ msg: "Please login to your account!" });
-  }
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ msg: "No token provided" });
+    }
 
-  console.log("req.session.userIdreq.session.userId", req.session.userId);
-  const user = await User.findOne({
-    where: {
-      user_id: req.session.userId,
-    },
-  });
-  if (!user) return res.status(404).json({ msg: "User not found" });
-  req.userId = user.user_id;
-  req.role = user.role;
-  next();
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ msg: "No token provided" });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findOne({
+        where: {
+          user_id: decoded.userId,
+        },
+      });
+
+      if (!user) {
+        return res.status(401).json({ msg: "User not found" });
+      }
+
+      req.user = user;
+      next();
+    } catch (error) {
+      console.error("Token verification error:", error);
+      return res.status(401).json({ msg: "Invalid token" });
+    }
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    return res.status(500).json({ msg: "Server error" });
+  }
 };
 
 export const admin_Only = async (req, res, next) => {

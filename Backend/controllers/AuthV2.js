@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import argon2 from "argon2";
+import jwt from "jsonwebtoken";
 
 export const LoginV2 = async (req, res) => {
   try {
@@ -32,10 +33,20 @@ export const LoginV2 = async (req, res) => {
       return res.status(400).json({ msg: "Wrong password" });
     }
 
-    // Set session
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userId: user.user_id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    // Set session for backward compatibility
     req.session.userId = user.user_id;
 
-    // Return user data without sensitive information
+    // Return user data and token
     const { user_id, username, email, role, permissions } = user;
     res.status(200).json({
       user_id,
@@ -43,6 +54,7 @@ export const LoginV2 = async (req, res) => {
       email,
       role,
       permissions,
+      token,
       msg: "Login successful",
     });
   } catch (error) {

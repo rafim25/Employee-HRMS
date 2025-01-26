@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const CardOne = () => {
   const { state } = useAuth();
+  console.log('state.dashboard-----',state)
   const { totalCustomers = 0 } = state.dashboard || {};
 
   return (
