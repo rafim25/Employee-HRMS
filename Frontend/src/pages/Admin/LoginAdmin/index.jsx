@@ -53,7 +53,7 @@ const LoginAdmin = () => {
 
             <footer className="bg-white dark:bg-boxdark py-2 border-t border-stroke dark:border-strokedark">
                 <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-400 text-sm">
-                    <p>&copy; 2024 Loan Management System. All rights reserved.</p>
+                    <p>&copy; 2024 Raghav Elite Projects All rights reserved.</p>
                 </div>
             </footer>
 

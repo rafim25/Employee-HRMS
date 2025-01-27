@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaWhatsapp } from 'react-icons/fa';
+import logo from '../../../Assets/images/logo/logo-dark.png';
 
 const TopNavigation = ({ onLoginClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,30 +18,21 @@ const TopNavigation = ({ onLoginClick }) => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-20">
             {/* Logo/Brand */}
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="flex items-center space-x-3">
-                <span className="font-serif text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-primary transition-all duration-300">
-                  Raghav
-                </span>
-                <span className="font-serif text-3xl font-light text-gray-700 dark:text-gray-200">
-                  Elite
-                </span>
-                <span className="font-serif text-3xl font-bold text-primary dark:text-gray-200 group-hover:text-blue-600 transition-colors duration-300">
-                  Projects
-                </span>
+            <div className="flex-shrink-0 ml-4">
+              <Link to="/" className="flex items-center">
+                <img src={logo} alt="Logo" className="h-16" />
               </Link>
             </div>
             
             {/* Desktop Navigation Links */}
-            <div className="hidden md:flex space-x-4">
+            <div className="hidden md:flex items-center justify-end flex-1 space-x-6 ml-32">
               {[
-                { href: "#projects", label: "Upcoming Projects" },
-                { href: "#gallery", label: "Gallery" },
-                { href: "#completed", label: "Completed Projects" },
-                { href: "#why-us", label: "Why Choose Us" },
-                { href: "#contact", label: "Contact Us" },
+                { to: "/", label: "Home" },
+                { to: "/gallery", label: "Gallery" },
+                { to: "/why-choose-us", label: "Why Choose Us" },
+                { to: "/contact", label: "Contact Us" },
               ].map((item) => (
-                <NavLink key={item.href} href={item.href}>
+                <NavLink key={item.to} to={item.to}>
                   {item.label}
                 </NavLink>
               ))}
@@ -50,7 +42,7 @@ const TopNavigation = ({ onLoginClick }) => {
                 onClick={onLoginClick}
                 className="px-6 py-2.5 text-base font-medium text-white bg-primary hover:bg-blue-600 
                 rounded-lg transition-all duration-300 flex items-center space-x-2.5 
-                hover:shadow-lg hover:shadow-blue-500/30 tracking-wide"
+                hover:shadow-lg hover:shadow-blue-500/30 tracking-wide ml-4"
               >
                 <svg 
                   className="w-5 h-5" 
@@ -96,22 +88,21 @@ const TopNavigation = ({ onLoginClick }) => {
           <div className={`md:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
             <div className="py-3 space-y-2">
               {[
-                { href: "#projects", label: "Upcoming Projects" },
-                { href: "#gallery", label: "Gallery" },
-                { href: "#completed", label: "Completed Projects" },
-                { href: "#why-us", label: "Why Choose Us" },
-                { href: "#contact", label: "Contact Us" },
+                { to: "/", label: "Home" },
+                { to: "/gallery", label: "Gallery" },
+                { to: "/why-choose-us", label: "Why Choose Us" },
+                { to: "/contact", label: "Contact Us" },
               ].map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
+                <Link
+                  key={item.to}
+                  to={item.to}
                   className="block px-4 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 
                   hover:bg-blue-50 hover:text-primary dark:hover:bg-boxdark-2 rounded-lg
                   transition-all duration-300"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
               
               {/* Mobile Login Button */}
@@ -169,9 +160,9 @@ const TopNavigation = ({ onLoginClick }) => {
   );
 };
 
-const NavLink = ({ href, children }) => (
-  <a
-    href={href}
+const NavLink = ({ to, children }) => (
+  <Link
+    to={to}
     className="relative px-5 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 rounded-lg 
     hover:text-primary hover:bg-blue-50/80 dark:hover:bg-boxdark-2 
     transition-all duration-300 group overflow-hidden tracking-wide"
@@ -186,7 +177,7 @@ const NavLink = ({ href, children }) => (
     
     {/* Bottom border animation */}
     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-  </a>
+  </Link>
 );
 
 export default TopNavigation; 

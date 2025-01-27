@@ -9,16 +9,18 @@ import { useAuth } from '../../../../context/AuthContext';
 import { fetchLoans, deleteLoan } from '../../../../context/actions/loanActions';
 import toast from 'react-hot-toast';
 
-const ITEMS_PER_PAGE = 4;
+const ITEMS_PER_PAGE = 5;
 
 const LendingDetails = () => {
-    const navigate = useNavigate();
     const { state, dispatch } = useAuth();
-    const { loading, error, list: loans } = state.loans || { loading: false, error: null, list: [] };
-    
+    const loans = state.loans?.list || [];
+    const loading = state.loans?.loading || false;
+    const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [loanToDelete, setLoanToDelete] = useState(null);
 
     // Pagination calculations
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -26,7 +28,12 @@ const LendingDetails = () => {
 
     // Memoize the fetch function
     const loadLoans = useCallback(async () => {
-        await fetchLoans(dispatch);
+        try {
+            await fetchLoans(dispatch);
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to fetch loans';
+            toast.error(errorMessage);
+        }
     }, [dispatch]);
 
     useEffect(() => {
@@ -34,23 +41,32 @@ const LendingDetails = () => {
     }, [loadLoans]);
 
     // Filter and search logic
-    const filteredLoans = loans?.filter(loan => {
+    const filteredLoans = loans.filter(loan => {
         const matchesSearch = loan.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = !statusFilter || loan.status?.toLowerCase() === statusFilter.toLowerCase();
         return matchesSearch && matchesStatus;
-    }) || [];
+    });
 
     const totalPages = Math.ceil(filteredLoans.length / ITEMS_PER_PAGE);
     const paginatedLoans = filteredLoans.slice(startIndex, endIndex);
 
     const handleDelete = async (loanId) => {
-        if (window.confirm('Are you sure you want to delete this loan?')) {
-            try {
-                await deleteLoan(dispatch, loanId);
-                toast.success('Loan deleted successfully');
-            } catch (error) {
-                toast.error('Failed to delete loan');
+        setLoanToDelete(loanId);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            const response = await deleteLoan(dispatch, loanToDelete);
+            if (response?.status === 200) {
+                toast.success('Purchase deleted successfully');
             }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to delete purchase';
+            toast.error(errorMessage);
+        } finally {
+            setShowDeleteModal(false);
+            setLoanToDelete(null);
         }
     };
 
@@ -76,22 +92,12 @@ const LendingDetails = () => {
         );
     }
 
-    if (error) {
-        return (
-            <DefaultLayoutAdmin>
-                <div className="text-center text-red-500 p-4">
-                    Error: {error}
-                </div>
-            </DefaultLayoutAdmin>
-        );
-    }
-
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Lending Details' />
+            <BreadcrumbAdmin pageName='Purchase Details' />
             <Link to="/admin/master-data/lending/add-lending">
                 <ButtonOne>
-                    <span>Add Lending</span>
+                    <span>Add Purchase</span>
                     <span>
                         <FaPlus />
                     </span>
@@ -134,16 +140,16 @@ const LendingDetails = () => {
                                     Customer Name
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Lending Amount
+                                    Purchase Amount
+                                </th>
+                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
+                                    Advance Paid
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Balance Remaining
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Paid Amount
-                                </th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Total Interest
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Status
@@ -160,16 +166,16 @@ const LendingDetails = () => {
                                         <p className='text-black dark:text-white'>{loan.customer_name}</p>
                                     </td>
                                     <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        <p className='text-black dark:text-white'>${loan.loan_amount}</p>
+                                        <p className='text-black dark:text-white'>₹{Number(loan.loan_amount).toFixed(2)}</p>
                                     </td>
                                     <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        <p className='text-black dark:text-white'>${loan.remaining_balance}</p>
+                                        <p className='text-black dark:text-white'>₹{Number(loan.advance_amount).toFixed(2)}</p>
                                     </td>
                                     <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        <p className='text-black dark:text-white'>${loan.loan_amount - loan.remaining_balance}</p>
+                                        <p className='text-black dark:text-white'>₹{Number(loan.remaining_balance).toFixed(2)}</p>
                                     </td>
                                     <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        <p className='text-black dark:text-white'>${loan.interest_amount}</p>
+                                        <p className='text-black dark:text-white'>₹{Number(loan.loan_amount - loan.remaining_balance).toFixed(2)}</p>
                                     </td>
                                     <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                         <span className={`inline-block px-3 py-1 rounded-full ${
@@ -278,6 +284,29 @@ const LendingDetails = () => {
                     </div>
                 </div>
             </div>
+
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="rounded-sm border border-stroke bg-white p-8 shadow-default dark:border-strokedark dark:bg-boxdark">
+                        <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">Confirm Delete</h2>
+                        <p className="mb-6 text-sm">Are you sure you want to delete this Purchase? This action cannot be undone.</p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="rounded-lg border border-stroke py-2 px-6 text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="rounded-lg border border-danger bg-danger py-2 px-6 text-white hover:bg-opacity-90"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DefaultLayoutAdmin>
     );
 };

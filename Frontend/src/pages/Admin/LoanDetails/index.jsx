@@ -61,23 +61,23 @@ const LoanDetails = () => {
   // Calculate summary data
   const summaryCards = [
     {
+      title: "Advance Amount Paid",
+      amount: `₹${Number(loanDetails?.advance_amount || 0).toFixed(2)}`,
+      bgColor: "bg-primary/10",
+      textColor: "text-primary",
+    },
+    {
       title: "Total Amount Paid",
-      amount: `₹${transactions?.reduce((sum, t) => sum + parseFloat(t.amount), 0).toFixed(2)}`,
+      amount: `₹${loanDetails ? Number(loanDetails.loan_amount - loanDetails.remaining_balance).toFixed(2) : '0.00'}`,
       bgColor: "bg-success/10",
       textColor: "text-success",
     },
     {
       title: "Balance Remaining",
-      amount: `₹${loanDetails?.remaining_balance || 0}`,
+      amount: `₹${Number(loanDetails?.remaining_balance || 0).toFixed(2)}`,
       bgColor: "bg-danger/10",
       textColor: "text-danger",
-    },
-    {
-      title: "Total Interest",
-      amount: `₹${(parseFloat(loanDetails?.loan_amount || 0) * 0.1).toFixed(2)}`,
-      bgColor: "bg-warning/10",
-      textColor: "text-warning",
-    },
+    }
   ];
 
   // Reset transaction form
@@ -193,18 +193,20 @@ const LoanDetails = () => {
         <h3 className="mb-4 text-xl font-semibold">Transaction Receipt</h3>
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-medium">Transaction ID: {transaction.id}</p>
-            <p className="text-sm font-medium">Date: {transaction.date}</p>
-            <p className="text-sm font-medium">Amount: ${transaction.amount}</p>
+            <p className="text-sm font-medium">Transaction ID: {transaction.transaction_id}</p>
+            <p className="text-sm font-medium">Date: {new Date(transaction.created_at).toLocaleDateString()}</p>
+            <p className="text-sm font-medium">Amount: ₹{Number(transaction.amount).toFixed(2)}</p>
             <p className="text-sm font-medium">Comments: {transaction.comments}</p>
           </div>
-          <div className="flex justify-center">
-            <img
-              src={transaction.receipt}
-              alt="Receipt"
-              className="max-h-[500px] rounded-lg object-contain"
-            />
-          </div>
+          {transaction.receipt_url && (
+            <div className="flex justify-center">
+              <img
+                src={transaction.receipt_url}
+                alt="Receipt"
+                className="max-h-[500px] rounded-lg object-contain"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -222,7 +224,7 @@ const LoanDetails = () => {
 
   return (
     <DefaultLayoutAdmin>
-      <BreadcrumbAdmin pageName="Loan Details" />
+      <BreadcrumbAdmin pageName="Purchase Details" />
 
       {/* Summary Cards */}
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -274,7 +276,7 @@ const LoanDetails = () => {
 
         {/* Loan Details */}
         <div className="rounded-lg bg-white p-6 shadow-default dark:bg-boxdark">
-          <h2 className="mb-4 text-xl font-semibold">Loan Details</h2>
+          <h2 className="mb-4 text-xl font-semibold">Purchase Details</h2>
           <div className="space-y-4">
             <div>
               <label className="mb-1 block text-sm font-medium">Loan ID</label>
@@ -290,7 +292,7 @@ const LoanDetails = () => {
               <input
                 type="text"
                 className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
-                value={`₹${loanDetails?.loan_amount || 0}`}
+                value={`₹${Number(loanDetails?.loan_amount || 0).toFixed(2)}`}
                 disabled
               />
             </div>
@@ -378,26 +380,30 @@ const LoanDetails = () => {
             </thead>
             <tbody>
               {transactions.slice(startIndex, endIndex).map((transaction, index) => (
-                <tr key={transaction.id || index}>
+                <tr key={transaction.transaction_id || index}>
                   <td className="border-b border-[#eee] px-4 py-4 dark:border-strokedark">
-                    {transaction.id}
+                    {transaction.transaction_id}
                   </td>
                   <td className="border-b border-[#eee] px-4 py-4 dark:border-strokedark">
-                    {transaction.date}
+                    {new Date(transaction.created_at).toLocaleDateString()}
                   </td>
                   <td className="border-b border-[#eee] px-4 py-4 dark:border-strokedark">
-                  ₹{transaction.amount}
+                    ₹{Number(transaction.amount).toFixed(2)}
                   </td>
                   <td className="border-b border-[#eee] px-4 py-4 dark:border-strokedark">
-                    <button
-                      className="text-primary hover:underline"
-                      onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setShowModal(true);
-                      }}
-                    >
-                      View Receipt
-                    </button>
+                    {transaction.receipt_url ? (
+                      <button
+                        className="text-primary hover:underline"
+                        onClick={() => {
+                          setSelectedTransaction(transaction);
+                          setShowModal(true);
+                        }}
+                      >
+                        View Receipt
+                      </button>
+                    ) : (
+                      <span className="text-gray-400">No Receipt</span>
+                    )}
                   </td>
                   <td className="border-b border-[#eee] px-4 py-4 dark:border-strokedark">
                     {transaction.comments}

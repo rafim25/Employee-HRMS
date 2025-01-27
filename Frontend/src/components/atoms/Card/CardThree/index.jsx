@@ -20,7 +20,7 @@ const CardThree = () => {
           <h4 className='text-title-md font-bold text-black dark:text-white'>
             {activeLoans}
           </h4>
-          <span className='text-sm font-medium'>Total Active Loans</span>
+          <span className='text-sm font-medium'>Total Active Purchase</span>
         </div>
       </div>
     </div>

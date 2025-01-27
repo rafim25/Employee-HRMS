@@ -7,13 +7,22 @@ import FormSettingPotonganGaji from '../../components/molecules/Form/FormSetting
 import {
   LoginAdmin, DashboardAdmin, DataPegawai, DataJabatan, DataAbsensi, SettingPotonganGaji, DataGaji, LaporanGaji,
   LaporanAbsensi, SlipGaji, UbahPasswordAdmin, LoginPegawai, DashboardPegawai, DataGajiPegawai, UbahPasswordPegawai,
-  Lending
+  Lending, EditUser, EditLoan,
+  EditPurchaseDetails
 } from '../../pages'
+import Contact from '../../pages/Contact'
+import WhyChooseUs from '../../pages/WhyChooseUs'
+import Gallery from '../../pages/Gallery'
 
 const AppRoutes = () => {
 
   return (
     <Routes>
+      {/* Public Routes */}
+      <Route exact path='/contact' element={<Contact />} />
+      <Route exact path='/why-choose-us' element={<WhyChooseUs />} />
+      <Route exact path='/gallery' element={<Gallery />} />
+      
       {/* Route Admin */}
       {/* Login Admin */}
       <Route exact path='/admin/login' element={<LoginAdmin />} />
@@ -50,7 +59,10 @@ const AppRoutes = () => {
           {/* Loan Management Routes */}
       <Route path='/admin/lending/:loanId' element={<Lending />} />
       <Route path='/admin/master-data/lending/add-lending' element={<FormDataJabatan />} />
-      <Route path='/admin/master-data/lending/edit/:loanId' element={<FormDataJabatan />} />
+      <Route path='/admin/master-data/lending/edit/:loanId' element={<EditPurchaseDetails />} />
+
+      {/* <Route path="/admin/master-data/data-pegawai" element={<CustomerData />} /> */}
+      <Route path="/admin/master-data/data-pegawai/edit/:userId" element={<EditUser />} />
     
     </Routes>
   )

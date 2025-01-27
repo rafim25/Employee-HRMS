@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
-import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
+import { BreadcrumbAdmin } from '../../../../components/atoms';
+import { ButtonOne, ButtonTwo, ButtonThree } from '../../../../components/atoms';
 import { useAuth } from '../../../../context/AuthContext';
 import { api } from '../../../../services/api';
 import { USER_ENDPOINTS, LOAN_ENDPOINTS } from '../../../../constants/apiEndpoints';
 
-const FormLoan = () => {
+const EditPurchaseDetails = () => {
     const navigate = useNavigate();
-    const { state } = useAuth();
+    const { loanId } = useParams();
+    const { state, dispatch } = useAuth();
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        loan_id: generateLoanId(), // Auto-generated loan ID
+        loan_id: '',
         customer_id: '',
         customer_name: '',
         loan_amount: '',
@@ -22,28 +24,45 @@ const FormLoan = () => {
         status: 'active'
     });
 
-    // Function to generate a unique loan ID
-    function generateLoanId() {
-        const prefix = 'LN';
-        const timestamp = Date.now().toString().slice(-6);
-        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-        return `${prefix}${timestamp}${random}`;
-    }
-
-    // Fetch customers on component mount
+    // Fetch loan details and customers on component mount
     useEffect(() => {
-        const fetchCustomers = async () => {
+        const fetchData = async () => {
+            if (!loanId) {
+                toast.error('Invalid loan ID');
+                navigate('/admin/master-data/data-jabatan');
+                return;
+            }
+
+            setLoading(true);
             try {
-                const response = await api.get(USER_ENDPOINTS.LIST);
-                setCustomers(response.data);
+                const [loanResponse, customersResponse] = await Promise.all([
+                    api.get(`${LOAN_ENDPOINTS.DETAILS(loanId)}`),
+                    api.get(USER_ENDPOINTS.LIST)
+                ]);
+
+                const loanData = loanResponse.data;
+                setCustomers(customersResponse.data);
+
+                setFormData({
+                    loan_id: loanData.loan_id || '',
+                    customer_id: loanData.customer_id || '',
+                    customer_name: loanData.customer_name || '',
+                    loan_amount: loanData.loan_amount || '',
+                    advance_amount: loanData.advance_amount || '',
+                    remaining_balance: loanData.remaining_balance || '',
+                    status: loanData.status || 'active'
+                });
             } catch (error) {
-                toast.error('Failed to fetch customers');
-                console.error('Error fetching customers:', error);
+                console.error('Error fetching data:', error);
+                toast.error(error.response?.data?.message || 'Failed to fetch data');
+                navigate('/admin/master-data/data-jabatan');
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchCustomers();
-    }, []);
+        fetchData();
+    }, [loanId, navigate]);
 
     // Handle customer selection
     const handleCustomerChange = (e) => {
@@ -63,53 +82,69 @@ const FormLoan = () => {
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const loadingToast = toast.loading('Creating loan...');
+        const loadingToast = toast.loading('Updating purchase details...');
         
         try {
-            // Set remaining balance as loan amount minus advance amount
-            const loanData = {
+            const updatedData = {
                 ...formData,
-                remaining_balance: formData.loan_amount - formData.advance_amount,
-                status: 'active'
+                remaining_balance: Number(formData.loan_amount) - Number(formData.advance_amount)
             };
 
-            const response = await api.post(LOAN_ENDPOINTS.CREATE, loanData);
+            await api.put(LOAN_ENDPOINTS.UPDATE(loanId), updatedData);
             
-            toast.success('Loan created successfully', {
+            toast.success('Purchase details updated successfully', {
                 id: loadingToast,
             });
             
             navigate('/admin/master-data/data-jabatan');
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to create loan', {
+            toast.error(error.response?.data?.message || 'Failed to update purchase details', {
                 id: loadingToast,
             });
         }
     };
 
     // Handle form reset
-    const handleReset = () => {
-        setFormData({
-            loan_id: generateLoanId(), // Generate new loan ID on reset
-            customer_id: '',
-            customer_name: '',
-            loan_amount: '',
-            advance_amount: '',
-            remaining_balance: '',
-            status: 'active'
-        });
+    const handleReset = async () => {
+        if (!loanId) return;
+        
+        try {
+            const response = await api.get(`${LOAN_ENDPOINTS.DETAILS(loanId)}`);
+            const originalData = response.data;
+            setFormData({
+                loan_id: originalData.loan_id || '',
+                customer_id: originalData.customer_id || '',
+                customer_name: originalData.customer_name || '',
+                loan_amount: originalData.loan_amount || '',
+                advance_amount: originalData.advance_amount || '',
+                remaining_balance: originalData.remaining_balance || '',
+                status: originalData.status || 'active'
+            });
+        } catch (error) {
+            toast.error('Failed to reset form');
+        }
     };
+
+    if (loading) {
+        return (
+            <DefaultLayoutAdmin>
+                <div className="flex items-center justify-center h-full">
+                    <div className="text-center">Loading...</div>
+                </div>
+            </DefaultLayoutAdmin>
+        );
+    }
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Create New Purchase' />
+            <BreadcrumbAdmin pageName='Edit Purchase Details' />
 
             <div className='sm:grid-cols-2'>
                 <div className='flex flex-col gap-9'>
                     <div className='rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark'>
                         <div className='border-b border-stroke py-4 px-6.5 dark:border-strokedark'>
                             <h3 className='font-medium text-black dark:text-white'>
-                                Purchase Details
+                                Edit Purchase Details
                             </h3>
                         </div>
                         <form onSubmit={handleSubmit}>
@@ -199,7 +234,7 @@ const FormLoan = () => {
 
                                 <div className='flex flex-col md:flex-row w-full gap-3 text-center'>
                                     <ButtonOne type="submit">
-                                        <span>Save</span>
+                                        <span>Update</span>
                                     </ButtonOne>
                                     <ButtonTwo type="button" onClick={handleReset}>
                                         <span>Reset</span>
@@ -219,4 +254,4 @@ const FormLoan = () => {
     );
 };
 
-export default FormLoan;
+export default EditPurchaseDetails; 

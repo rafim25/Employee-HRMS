@@ -4,10 +4,13 @@ import AdminPhoto from '../../../../Assets/images/user/admin.svg'
 import { BiLogOut } from 'react-icons/bi'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
-
+import { useAuth } from '../../../../context/AuthContext'
+import { logoutUser } from '../../../../context/actions/authActions'
 
 const DropdownAdmin = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { state, dispatch } = useAuth()
+  const { user } = state
 
   const trigger = useRef(null)
   const dropdown = useRef(null)
@@ -38,6 +41,10 @@ const DropdownAdmin = () => {
     return () => document.removeEventListener('keydown', keyHandler)
   })
 
+  const handleLogout = async () => {
+    await logoutUser(dispatch)
+  }
+
   return (
     <div className='relative'>
       <Link
@@ -48,9 +55,9 @@ const DropdownAdmin = () => {
       >
         <span className='hidden text-right lg:block'>
           <span className='block text-sm font-medium text-black dark:text-white'>
-            Admin
+            {user?.username || 'User'}
           </span>
-          <span className='block text-xs'>Admin HSC</span>
+          <span className='block text-xs'>{user?.role || 'Loading...'}</span>
         </span>
 
         <span className='h-12 w-12 rounded-full'>
@@ -79,10 +86,9 @@ const DropdownAdmin = () => {
             </Link>
           </li>
           <li>
-          </li>
-          <li>
             <Link
               to='/'
+              onClick={handleLogout}
               className='flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base'
             >
               <BiLogOut className="text-xl" />

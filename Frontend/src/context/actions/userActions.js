@@ -54,7 +54,7 @@ export const deleteUser = async (dispatch, userId) => {
       type: SET_USER_ERROR,
       payload: error.response?.data?.msg || "Failed to delete user",
     });
-    toast.error("Failed to delete user", {
+    toast.error(error.response?.data?.msg || "Failed to delete user", {
       id: loadingToast,
     });
   }
@@ -63,7 +63,7 @@ export const deleteUser = async (dispatch, userId) => {
 export const updateUser = async (dispatch, userId, data) => {
   const loadingToast = toast.loading("Updating user...");
   try {
-    const response = await api.put(USER_ENDPOINTS.UPDATE(userId), data);
+    const response = await api.patch(USER_ENDPOINTS.UPDATE(userId), data);
     dispatch({
       type: UPDATE_USER,
       payload: response.data,
@@ -106,5 +106,30 @@ export const createUser = async (dispatch, userData) => {
       id: loadingToast,
     });
     throw error;
+  }
+};
+
+export const fetchUserById = async (dispatch, userId) => {
+  const loadingToast = toast.loading("Fetching user...");
+  try {
+    dispatch({ type: SET_USER_LOADING, payload: true });
+    const response = await api.get(USER_ENDPOINTS.GET(userId));
+    dispatch({
+      type: SET_USER_LIST,
+      payload: response.data,
+    });
+    toast.success("User fetched successfully", {
+      id: loadingToast,
+    });
+  } catch (error) {
+    dispatch({
+      type: SET_USER_ERROR,
+      payload: error.response?.data?.msg || "Failed to fetch user",
+    });
+    toast.error("Failed to fetch user", {
+      id: loadingToast,
+    });
+  } finally {
+    dispatch({ type: SET_USER_LOADING, payload: false });
   }
 };

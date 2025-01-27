@@ -15,23 +15,23 @@ const FeatureHighlights = () => {
   const features = [
     {
       icon: FiCheckCircle,
-      title: "Easy Process",
-      description: "Simple and streamlined loan application process"
+      title: "Agreement Stage",
+      description: "Property agreement and documentation verification completed"
     },
     {
       icon: FiAward,
-      title: "Best Rates",
-      description: "Competitive interest rates and flexible terms"
+      title: "Payment Status",
+      description: "30% of total payment processed and confirmed"
     },
     {
       icon: FiTrendingUp,
-      title: "Fast Growth",
-      description: "Quick approval and disbursement process"
+      title: "Construction Phase",
+      description: "Foundation work completed, structure 40% done"
     },
     {
       icon: FiShield,
-      title: "Secure Platform",
-      description: "Advanced security measures to protect your data"
+      title: "Completion Status",
+      description: "Expected completion in 8 months with current progress"
     }
   ];
 

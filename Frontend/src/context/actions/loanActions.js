@@ -25,14 +25,14 @@ export const fetchLoans = async (dispatch) => {
       payload: response.data,
     });
 
-    toast.success("Loans fetched successfully");
+    toast.success("Purchase fetched successfully");
   } catch (error) {
-    console.error("Error fetching loans:", error);
+    console.error("Error fetching purchase:", error);
     dispatch({
       type: SET_LOAN_ERROR,
-      payload: error.response?.data?.message || "Failed to fetch loans",
+      payload: error.response?.data?.message || "Failed to fetch purchase",
     });
-    toast.error("Failed to fetch loans");
+    toast.error("Failed to fetch purchase");
   } finally {
     isLoading = false;
     dispatch({ type: SET_LOAN_LOADING, payload: false });
@@ -68,22 +68,33 @@ export const createLoan = async (dispatch, loanData) => {
 export const updateLoan = async (dispatch, loanId, data) => {
   const loadingToast = toast.loading("Updating loan...");
   try {
-    const response = await api.put(LOAN_ENDPOINTS.UPDATE(loanId), data);
+    // Calculate the remaining balance based on loan amount and advance amount
+    const updatedData = {
+      ...data,
+      remaining_balance: data.loan_amount - data.advance_amount,
+    };
+
+    const response = await api.put(LOAN_ENDPOINTS.UPDATE(loanId), updatedData);
+
     dispatch({
       type: UPDATE_LOAN,
-      payload: response.data,
+      payload: response.data.loan,
     });
+
     toast.success("Loan updated successfully", {
       id: loadingToast,
     });
+
+    return response.data;
   } catch (error) {
     dispatch({
       type: SET_LOAN_ERROR,
       payload: error.response?.data?.msg || "Failed to update loan",
     });
-    toast.error("Failed to update loan", {
+    toast.error(error.response?.data?.msg || "Failed to update loan", {
       id: loadingToast,
     });
+    throw error;
   }
 };
 
@@ -101,9 +112,9 @@ export const deleteLoan = async (dispatch, loanId) => {
   } catch (error) {
     dispatch({
       type: SET_LOAN_ERROR,
-      payload: error.response?.data?.msg || "Failed to delete loan",
+      payload: error.response?.data?.msg || "Failed to delete Purchase",
     });
-    toast.error("Failed to delete loan", {
+    toast.error(error.response?.data?.msg || "Failed to delete purchase", {
       id: loadingToast,
     });
   }

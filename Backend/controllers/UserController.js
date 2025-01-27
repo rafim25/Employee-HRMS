@@ -3,6 +3,7 @@ import argon2 from "argon2";
 import path from "path";
 import fs from "fs";
 import { Op } from "sequelize";
+import Loan from "../models/Loan.js";
 
 export const getUsersByRole = async (req, res) => {
   try {
@@ -104,6 +105,7 @@ export const getUserById = async (req, res) => {
 
 export const createUser = async (req, res) => {
   const {
+    user_id = "default_user_id",
     username,
     email,
     password,
@@ -147,7 +149,8 @@ export const createUser = async (req, res) => {
 
   try {
     const hashPassword = await argon2.hash(password);
-    await User.create({
+    const newUser = await User.create({
+      user_id: user_id,
       username,
       email,
       password: hashPassword,
@@ -159,7 +162,9 @@ export const createUser = async (req, res) => {
       photo: fileName,
       url: url,
     });
-    res.status(201).json({ msg: "User created successfully" });
+    res
+      .status(201)
+      .json({ msg: "User created successfully", user_id: newUser.user_id });
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
@@ -260,26 +265,54 @@ export const updateUser = async (req, res) => {
 };
 
 export const deleteUser = async (req, res) => {
-  const user = await User.findOne({
-    where: {
-      user_id: req.params.id,
-    },
-  });
-  if (!user) return res.status(404).json({ msg: "User not found" });
-
   try {
-    if (user.photo) {
-      const filePath = `./public/images/${user.photo}`;
-      fs.unlinkSync(filePath);
+    const user = await User.findOne({
+      where: {
+        user_id: req.params.id,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
     }
+
+    // Check for associated loans
+    const loans = await Loan.findAll({
+      where: {
+        customer_id: req.params.id,
+        status: "active",
+      },
+    });
+
+    if (loans.length > 0) {
+      return res.status(400).json({
+        msg: "Cannot delete user with active purchase. Please close or reassign all purchasefirst.",
+      });
+    }
+
+    // Delete profile photo if it exists
+    if (user.photo) {
+      const photoPath = `./public/images/${user.photo}`;
+      try {
+        if (fs.existsSync(photoPath)) {
+          fs.unlinkSync(photoPath);
+        }
+      } catch (photoError) {
+        console.error("Error deleting photo:", photoError);
+        // Continue with user deletion even if photo deletion fails
+      }
+    }
+
     await User.destroy({
       where: {
         user_id: req.params.id,
       },
     });
-    res.json({ msg: "User deleted successfully" });
+
+    res.status(200).json({ msg: "User deleted successfully" });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    console.error("Error deleting user:", error);
+    res.status(500).json({ msg: error.message });
   }
 };
 

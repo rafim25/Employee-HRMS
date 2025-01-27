@@ -12,7 +12,7 @@ const Transaction = db.define(
       autoIncrement: true,
     },
     loan_id: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.STRING,
       allowNull: false,
       references: {
         model: Loan,
@@ -42,6 +42,18 @@ const Transaction = db.define(
     transaction_type: {
       type: Sequelize.ENUM("credit", "debit"),
       allowNull: false,
+    },
+    comments: {
+      type: Sequelize.TEXT,
+      allowNull: true,
+    },
+    receipt: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    receipt_url: {
+      type: Sequelize.STRING,
+      allowNull: true,
     },
     created_at: {
       type: Sequelize.DATE,

@@ -2,6 +2,7 @@ import Footer from './Footer';
 import FormDataJabatan from "./Form/FormDataJabatan";
 import FormDataPegawai from "./Form/FormDataPegawai";
 import FormDataSettingPotonganGaji from "./Form/FormSettingPotonganGaji";
+import EditPurchaseDetails from "./Form/EditPurchaseDetails";
 import HeaderAdmin from './Header/HeaderAdmin';
 import HeaderPegawai from './Header/HeaderPegawai';
 import NotFound from './NotFound';
@@ -10,6 +11,6 @@ import SidebarPegawai from './Sidebar/SidebarPegawai';
 import SidebarLinkGroup from './Sidebar/SidebarLinkGroup';
 
 export {
-    Footer, FormDataJabatan, FormDataPegawai, FormDataSettingPotonganGaji, HeaderAdmin, HeaderPegawai,
+    Footer, FormDataJabatan, FormDataPegawai, FormDataSettingPotonganGaji, EditPurchaseDetails, HeaderAdmin, HeaderPegawai,
     NotFound, SidebarAdmin, SidebarPegawai, SidebarLinkGroup
 };

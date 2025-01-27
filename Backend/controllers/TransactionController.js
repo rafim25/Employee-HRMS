@@ -3,6 +3,13 @@ import Loan from "../models/Loan.js";
 import User from "../models/User.js";
 import { Op } from "sequelize";
 import db from "../config/Database.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import fs from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export const getTransactions = async (req, res) => {
   try {
@@ -65,7 +72,7 @@ export const createTransaction = async (req, res) => {
   const t = await db.transaction();
 
   try {
-    const { loan_id, amount, transaction_type } = req.body;
+    const { loan_id, amount, transaction_type, comments } = req.body;
 
     // First get the loan to get the customer_id
     const loan = await Loan.findOne({
@@ -79,14 +86,62 @@ export const createTransaction = async (req, res) => {
       return res.status(404).json({ msg: "Active loan not found" });
     }
 
+    // Handle file upload
+    let fileName = "";
+    let url = "";
+
+    if (req.files && req.files.receipt) {
+      const file = req.files.receipt;
+      const fileSize = file.data.length;
+      const ext = path.extname(file.name);
+      fileName = file.md5 + ext;
+      const allowedType = [".png", ".jpg", ".jpeg"];
+
+      if (!allowedType.includes(ext.toLowerCase())) {
+        return res.status(422).json({ msg: "Invalid image format" });
+      }
+      if (fileSize > 5000000) {
+        return res.status(422).json({ msg: "Image must be less than 5 MB" });
+      }
+
+      // Create directory path
+      const uploadDir = path.join(__dirname, "..", "public", "receipts");
+
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      // Use absolute path for file storage
+      const uploadPath = path.join(uploadDir, fileName);
+
+      try {
+        await file.mv(uploadPath);
+      } catch (err) {
+        console.error("File upload error:", err);
+        return res.status(500).json({ msg: err.message });
+      }
+
+      // Use production URL in production environment
+      const baseUrl =
+        process.env.NODE_ENV === "production"
+          ? "http://172.105.59.206:3002"
+          : `${req.protocol}://${req.get("host")}`;
+
+      url = `${baseUrl}/receipts/${fileName}`;
+    }
+
     // Create transaction using the loan's customer_id
     const transaction = await Transaction.create(
       {
         loan_id,
-        customer_id: loan.customer_id, // Get customer_id from loan
-        admin_id: req.userId, // from auth middleware
+        customer_id: loan.customer_id,
+        admin_id: req.userId,
         amount,
         transaction_type,
+        comments,
+        receipt: fileName,
+        receipt_url: url,
       },
       { transaction: t }
     );

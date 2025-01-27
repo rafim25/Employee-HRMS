@@ -154,7 +154,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Loan Details 
+                              Purchase Details 
                             </NavLink>
                           </li>
                         </ul>

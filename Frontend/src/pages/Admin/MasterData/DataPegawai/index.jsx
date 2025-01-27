@@ -8,19 +8,27 @@ import { BiSearch } from 'react-icons/bi'
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md'
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchUsers, deleteUser } from '../../../../context/actions/userActions';
+import { toast } from 'react-hot-toast';
 
-const ITEMS_PER_PAGE = 4;
+const ITEMS_PER_PAGE = 5;
 
 const CustomerData = () => {
     const { state, dispatch } = useAuth();
-    const { users, loading, error } = state;
+    const { users, loading } = state;
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
 
     // Memoize the fetch function
     const loadUsers = useCallback(async () => {
-        await fetchUsers(dispatch);
+        try {
+            await fetchUsers(dispatch);
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Failed to fetch users';
+            toast.error(errorMessage);
+        }
     }, [dispatch]);
 
     useEffect(() => {
@@ -60,8 +68,15 @@ const CustomerData = () => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) {
+        return (
+            <DefaultLayoutAdmin>
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+            </DefaultLayoutAdmin>
+        );
+    }
 
     return (
         <DefaultLayoutAdmin>
@@ -109,7 +124,7 @@ const CustomerData = () => {
                     <table className='w-full table-auto'>
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>Photo</th>
+                                {/* <th className='py-4 px-4 font-medium text-black dark:text-white'>Photo</th> */}
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>User ID</th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>Username</th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>Email</th>
@@ -122,13 +137,13 @@ const CustomerData = () => {
                         <tbody>
                             {paginatedUsers.map((customer) => (
                                 <tr key={customer.user_id}>
-                                    <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                    {/* <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                         <img 
                                             src={customer.url || customer.photo} 
                                             alt={customer.username}
                                             className="w-10 h-10 rounded-full"
                                         />
-                                    </td>
+                                    </td> */}
                                     <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
                                         {customer.user_id}
                                     </td>

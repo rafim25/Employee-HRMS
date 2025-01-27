@@ -31,12 +31,10 @@ export const DASHBOARD_ENDPOINTS = {
 // Other endpoints can be added here as needed
 export const LOAN_ENDPOINTS = {
   LIST: "/api/loans",
+  DETAILS: (id) => `/api/loans/${id}`,
   CREATE: "/api/loans",
   UPDATE: (id) => `/api/loans/${id}`,
   DELETE: (id) => `/api/loans/${id}`,
-  DETAILS: (id) => `/api/loans/${id}`,
-  ADD_TRANSACTION: (id) => `/api/loans/${id}/transactions`,
-  GET_TRANSACTIONS: (id) => `/api/transactions/${id}`,
   GET_LOAN_TRASACTIONS: (id) => `/api/loan-transactions/${id}`,
 };
 

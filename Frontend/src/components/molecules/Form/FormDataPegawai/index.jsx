@@ -291,7 +291,7 @@ const UserDataForm = () => {
                 </div>
 
                 {/* Photo and Permissions */}
-                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
+                {/* <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                   <div className='w-full xl:w-1/2'>
                     <label className='mb-2.5 block text-black dark:text-white'>
                       Photo
@@ -327,7 +327,7 @@ const UserDataForm = () => {
                       </span>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Form Buttons */}
                 <div className='flex flex-col md:flex-row w-full gap-3 text-center mt-7.5'>
