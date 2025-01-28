@@ -10,6 +10,6 @@
       "@layout": ["src/layout"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "public/ProjectDocuments"],
   "exclude": ["node_modules", "dist"]
 } 

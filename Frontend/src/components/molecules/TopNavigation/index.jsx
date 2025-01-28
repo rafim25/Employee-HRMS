@@ -20,7 +20,7 @@ const TopNavigation = ({ onLoginClick }) => {
             {/* Logo/Brand */}
             <div className="flex-shrink-0 ml-4">
               <Link to="/" className="flex items-center">
-                <img src={logo} alt="Logo" className="h-16" />
+                <img src={logo} alt="Logo" className="h-20" /> {/* Increased height from h-16 to h-20 */}
               </Link>
             </div>
             
@@ -29,6 +29,7 @@ const TopNavigation = ({ onLoginClick }) => {
               {[
                 { to: "/", label: "Home" },
                 { to: "/gallery", label: "Gallery" },
+                { to: "/project-documents", label: "Project Documents" },
                 { to: "/why-choose-us", label: "Why Choose Us" },
                 { to: "/contact", label: "Contact Us" },
               ].map((item) => (
@@ -90,6 +91,7 @@ const TopNavigation = ({ onLoginClick }) => {
               {[
                 { to: "/", label: "Home" },
                 { to: "/gallery", label: "Gallery" },
+                { to: "/project-documents", label: "Project Documents" },
                 { to: "/why-choose-us", label: "Why Choose Us" },
                 { to: "/contact", label: "Contact Us" },
               ].map((item) => (

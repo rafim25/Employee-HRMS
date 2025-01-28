@@ -51,9 +51,9 @@ const HeaderPegawai = (
                     </button>
                     {/* <!-- Hamburger Toggle BTN --> */}
 
-                    <Link className='block flex-shrink-0 lg:hidden' to='/pegawai/dashboard'>
+                    {/* <Link className='block flex-shrink-0 lg:hidden' to='/pegawai/dashboard'>
                         <img src={LogoIcon} alt='Snipe Tech Pvt Ltd' />
-                    </Link>
+                    </Link> */}
                 </div>
 
                 <div className='hidden sm:block'>

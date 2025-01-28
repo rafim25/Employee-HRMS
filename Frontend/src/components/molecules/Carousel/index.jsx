@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import project1 from '../../../Assets/images/projects/project1.jpg';
-import project2 from '../../../Assets/images/projects/project2.jpg';
-import project3 from '../../../Assets/images/projects/project3.jpg';
-import project4 from '../../../Assets/images/projects/project1.jpg';
-import project5 from '../../../Assets/images/projects/project2.jpg';
+// import project1 from '../../../Assets/images/projects/project1.jpg';
+// import project2 from '../../../Assets/images/projects/project2.jpg';
+// import project3 from '../../../Assets/images/projects/project3.jpg';
+// import project4 from '../../../Assets/images/projects/project1.jpg';
+// import project5 from '../../../Assets/images/projects/project2.jpg';
+
+import project1 from '../../../Assets/images/gallery/gallery1.jpeg';
+import project2 from '../../../Assets/images/gallery/gallery2.jpeg';
+import project3 from '../../../Assets/images/gallery/gallery3.jpeg';
+import project4 from '../../../Assets/images/gallery/gallery4.jpeg';
+import project5 from '../../../Assets/images/gallery/gallery5.jpeg';
 
 const Carousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);

@@ -13,15 +13,16 @@ import {
 import Contact from '../../pages/Contact'
 import WhyChooseUs from '../../pages/WhyChooseUs'
 import Gallery from '../../pages/Gallery'
+import ProjectDocuments from '../../pages/ProjectDocuments'
 
 const AppRoutes = () => {
-
   return (
     <Routes>
       {/* Public Routes */}
       <Route exact path='/contact' element={<Contact />} />
       <Route exact path='/why-choose-us' element={<WhyChooseUs />} />
       <Route exact path='/gallery' element={<Gallery />} />
+      <Route exact path='/project-documents' element={<ProjectDocuments />} />
       
       {/* Route Admin */}
       {/* Login Admin */}
@@ -56,14 +57,13 @@ const AppRoutes = () => {
       <Route exact path='/pegawai/pengaturan/ubah-password' element={<UbahPasswordPegawai />} />
       {/* Route Not Found/404 */}
       <Route exact path="*" element={<NotFound />} />
-          {/* Loan Management Routes */}
+      {/* Loan Management Routes */}
       <Route path='/admin/lending/:loanId' element={<Lending />} />
       <Route path='/admin/master-data/lending/add-lending' element={<FormDataJabatan />} />
       <Route path='/admin/master-data/lending/edit/:loanId' element={<EditPurchaseDetails />} />
 
       {/* <Route path="/admin/master-data/data-pegawai" element={<CustomerData />} /> */}
       <Route path="/admin/master-data/data-pegawai/edit/:userId" element={<EditUser />} />
-    
     </Routes>
   )
 }

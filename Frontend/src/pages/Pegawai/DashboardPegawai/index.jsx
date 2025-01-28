@@ -15,7 +15,9 @@ import {
     FaUserCircle,
     FaVenusMars,
     FaShieldAlt,
-    FaLink
+    FaLink,
+    FaUniversity,
+    FaCopy
 } from 'react-icons/fa';
 
 const DashboardPegawai = () => {
@@ -54,6 +56,27 @@ const DashboardPegawai = () => {
 
     const [showModal, setShowModal] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+    // Add new state for copy notification
+    const [copyNotification, setCopyNotification] = useState('');
+
+    // Function to copy text to clipboard
+    const copyToClipboard = (text, field) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopyNotification(`${field} copied!`);
+            setTimeout(() => setCopyNotification(''), 2000);
+        });
+    };
+
+    // Bank details object
+    const bankDetails = {
+        accountHolder: "TEST BANK ACCOUNT",
+        accountNumber: "%6756789987665",
+        ifsc: "HDFC0002777",
+        branch: "KORAMANGALA - 4TH BLOCK",
+        accountType: "SAVING",
+        mmid: "9240294"
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -267,6 +290,100 @@ const DashboardPegawai = () => {
                             )}
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Add Bank Details Section right after the profile card */}
+            <div className="grid grid-cols-1 gap-4 mb-6 px-4 mt-6">
+                <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+                    <div className="border-b border-stroke pb-4 dark:border-strokedark">
+                        <h3 className="font-medium text-black dark:text-white flex items-center gap-2">
+                            <FaUniversity className="text-xl text-primary" />
+                            Raghav Projects Bank Details
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">You can pay your EMI directly to the below account</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm text-gray-500">Account Holder</label>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-black dark:text-white">{bankDetails.accountHolder}</p>
+                                    <button 
+                                        onClick={() => copyToClipboard(bankDetails.accountHolder, 'Account holder name')}
+                                        className="text-primary hover:text-meta-3 transition-colors"
+                                        title="Copy account holder name"
+                                    >
+                                        <FaCopy size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-500">Account Number</label>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-black dark:text-white">{bankDetails.accountNumber}</p>
+                                    <button 
+                                        onClick={() => copyToClipboard(bankDetails.accountNumber, 'Account number')}
+                                        className="text-primary hover:text-meta-3 transition-colors"
+                                        title="Copy account number"
+                                    >
+                                        <FaCopy size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-500">IFSC Code</label>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-black dark:text-white">{bankDetails.ifsc}</p>
+                                    <button 
+                                        onClick={() => copyToClipboard(bankDetails.ifsc, 'IFSC code')}
+                                        className="text-primary hover:text-meta-3 transition-colors"
+                                        title="Copy IFSC code"
+                                    >
+                                        <FaCopy size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm text-gray-500">Branch</label>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-black dark:text-white">{bankDetails.branch}</p>
+                                    <button 
+                                        onClick={() => copyToClipboard(bankDetails.branch, 'Branch name')}
+                                        className="text-primary hover:text-meta-3 transition-colors"
+                                        title="Copy branch name"
+                                    >
+                                        <FaCopy size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-500">Account Type</label>
+                                <p className="font-medium text-black dark:text-white">{bankDetails.accountType}</p>
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-500">MMID</label>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-medium text-black dark:text-white">{bankDetails.mmid}</p>
+                                    <button 
+                                        onClick={() => copyToClipboard(bankDetails.mmid, 'MMID')}
+                                        className="text-primary hover:text-meta-3 transition-colors"
+                                        title="Copy MMID"
+                                    >
+                                        <FaCopy size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Copy Notification */}
+                    {copyNotification && (
+                        <div className="mt-4 text-sm text-success animate-fade-in-out">
+                            {copyNotification}
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -51,9 +51,9 @@ const HeaderAdmin = (
           </button>
           {/* <!-- Hamburger Toggle BTN --> */}
 
-          <Link className='block flex-shrink-0 lg:hidden' to='/admin/dashboard'>
+          {/* <Link className='block flex-shrink-0 lg:hidden' to='/admin/dashboard'>
             <img src={LogoIcon} alt='Snipe Tech Pvt Ltd' />
-          </Link>
+          </Link> */}
         </div>
 
         <div className='hidden sm:block'>

@@ -35,5 +35,12 @@ export default defineConfig(({ command, mode }) => {
     define: {
       "process.env.NODE_ENV": JSON.stringify(env.VITE_NODE_ENV),
     },
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+    publicDir: "public",
+    base: "/",
   };
 });

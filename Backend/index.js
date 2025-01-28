@@ -18,6 +18,7 @@ import DashBoardRoute from "./routes/DashboardRoute.js";
 
 import AuthV2Route from "./routes/AuthV2Route.js";
 import EmployeeRoute from "./routes/EmployeeRoute.js";
+import EmailRoute from "./routes/EmailRoute.js";
 
 const app = express();
 dotenv.config();
@@ -50,6 +51,7 @@ const startServer = async () => {
         origin:
           process.env.NODE_ENV === "production"
             ? [
+                "http://raghaveliteprojects.com",
                 "http://172.105.59.206:5173",
                 "http://172.105.59.206:3002",
                 "http://localhost:5173",
@@ -89,13 +91,19 @@ const startServer = async () => {
       })
     );
 
+    // Request logging middleware
+    app.use((req, res, next) => {
+      console.log(`${req.method} ${req.path}`);
+      next();
+    });
+
     // File upload and static files
     app.use(FileUpload());
     app.use(express.static("public"));
 
     // Routes
+    app.use("/api", EmailRoute); // Mount email routes first
     app.use(UserRoute);
-
     app.use(AuthV2Route);
 
     // Add this to your routes section

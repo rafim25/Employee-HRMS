@@ -5,6 +5,7 @@ import TopNavigation from '../../components/molecules/TopNavigation';
 import FeatureHighlights from '../../components/molecules/FeatureHighlights';
 import Carousel from '../../components/molecules/Carousel';
 import logo from '../../Assets/images/logo/logo-dark.png';
+import { api } from '../../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,12 @@ const Contact = () => {
     email: '',
     phone: '',
     message: ''
+  });
+
+  const [submitStatus, setSubmitStatus] = useState({
+    loading: false,
+    success: false,
+    error: null
   });
 
   const handleWhatsAppClick = () => {
@@ -24,12 +31,39 @@ const Contact = () => {
     // Handle login click if needed
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Form submitted:', formData);
-    // Reset form
-    setFormData({ name: '', email: '', phone: '', message: '' });
+    setSubmitStatus({ loading: true, success: false, error: null });
+
+    try {
+      const response = await api.post('/api/email/contact', formData);
+      
+      if (response.data.success) {
+        setSubmitStatus({
+          loading: false,
+          success: true,
+          error: null
+        });
+        // Reset form
+        setFormData({ name: '', email: '', phone: '', message: '' });
+        
+        // Show success message for 5 seconds
+        setTimeout(() => {
+          setSubmitStatus(prev => ({ ...prev, success: false }));
+        }, 5000);
+      }
+    } catch (error) {
+      setSubmitStatus({
+        loading: false,
+        success: false,
+        error: error.response?.data?.message || 'Failed to send message. Please try again.'
+      });
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setSubmitStatus(prev => ({ ...prev, error: null }));
+      }, 5000);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -73,6 +107,19 @@ const Contact = () => {
             {/* Contact Form */}
             <div className="bg-white dark:bg-boxdark rounded-lg shadow-lg p-8">
               <h3 className="text-2xl font-semibold mb-6">Get in Touch</h3>
+              
+              {/* Status Messages */}
+              {submitStatus.success && (
+                <div className="mb-4 p-3 bg-success/10 text-success rounded-lg">
+                  Message sent successfully! We'll get back to you soon.
+                </div>
+              )}
+              {submitStatus.error && (
+                <div className="mb-4 p-3 bg-danger/10 text-danger rounded-lg">
+                  {submitStatus.error}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Name</label>
@@ -83,6 +130,7 @@ const Contact = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
+                    disabled={submitStatus.loading}
                   />
                 </div>
                 <div>
@@ -94,6 +142,7 @@ const Contact = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
+                    disabled={submitStatus.loading}
                   />
                 </div>
                 <div>
@@ -105,6 +154,7 @@ const Contact = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
+                    disabled={submitStatus.loading}
                   />
                 </div>
                 <div>
@@ -116,13 +166,15 @@ const Contact = () => {
                     rows="4"
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
+                    disabled={submitStatus.loading}
                   ></textarea>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-primary text-white py-3 rounded-lg hover:bg-blue-600 transition-colors duration-300"
+                  className="w-full bg-primary text-white py-3 rounded-lg hover:bg-blue-600 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitStatus.loading}
                 >
-                  Send Message
+                  {submitStatus.loading ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </div>
