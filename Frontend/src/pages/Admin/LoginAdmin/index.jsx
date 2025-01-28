@@ -8,7 +8,7 @@ import { TfiLock } from 'react-icons/tfi'
 import { Link } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
 import { loginUser } from '../../../context/actions/authActions';
-import { useAuth } from '../../../context/AuthContext'; // Add this import
+import { useAuth } from '../../../context/AuthContext';
 import Testimonials from '../../../components/molecules/Testimonial';
 import TopNavigation from '../../../components/molecules/TopNavigation';
 import FeatureHighlights from '../../../components/molecules/FeatureHighlights';
@@ -26,9 +26,32 @@ const LoginAdmin = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await loginUser(dispatch, { username, password });
-            navigate('/admin/dashboard');
+            const response = await loginUser(dispatch, { username, password });
+            console.log('Login Response:', response.data); // Debug log
+            
+            // Store user data in auth context
+            dispatch({ 
+                type: 'SET_USER', 
+                payload: response.data 
+            });
+
+            // Navigate based on user role
+            if (response && response.role) {
+                const userRole = response.role;
+                console.log('User Role:', userRole); // Debug log
+
+                if (userRole === 'Admin' || userRole === 'admin') {
+                    navigate('/admin/dashboard');
+                } else if (userRole === 'User') {
+                    navigate('/pegawai/dashboard');
+                } else {
+                    setError('Invalid user role');
+                }
+            } else {
+                setError('Role information not found in response');
+            }
         } catch (error) {
+            console.error('Login Error:', error); // Debug log
             setError(error.response?.data?.msg || 'Login failed');
         }
     };

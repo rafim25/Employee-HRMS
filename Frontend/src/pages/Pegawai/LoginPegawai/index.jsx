@@ -4,18 +4,49 @@ import LogoDark from '../../../Assets/images/logo/logo-dark.png'
 import LoginImg from '../../../Assets/images/LoginImg/login.svg'
 import { FiUser } from 'react-icons/fi'
 import { TfiLock } from 'react-icons/tfi'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { loginUser } from '../../../context/actions/authActions';
 import { useAuth } from '../../../context/AuthContext';
 import Testimonials from '../../../components/molecules/Testimonial';
 
 const LoginPegawai = () => {
     const navigate = useNavigate();
-    const auth = useAuth();
+    const { dispatch } = useAuth();
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Implement login logic here
+        try {
+            const response = await loginUser(dispatch, { username, password });
+            console.log('Login Response:', response.data); // Debug log
+            
+            // Store user data in auth context
+            dispatch({ 
+                type: 'SET_USER', 
+                payload: response.data 
+            });
+
+            // Navigate based on user role
+            if (response.data && response.data.role) {
+                const userRole = response.data.role;
+                console.log('User Role:', userRole); // Debug log
+
+                if (userRole === 'Admin' || userRole === 'admin') {
+                    navigate('/admin/dashboard');
+                } else if (userRole === 'User') {
+                    navigate('/pegawai/dashboard');
+                } else {
+                    setError('Invalid user role');
+                }
+            } else {
+                setError('Role information not found in response');
+            }
+        } catch (error) {
+            console.error('Login Error:', error); // Debug log
+            setError(error.response?.data?.msg || 'Login failed');
+        }
     };
 
     return (
@@ -37,8 +68,14 @@ const LoginPegawai = () => {
                 <div className='w-full border-stroke dark:border-strokedark xl:w-1/2 xl:border-l-2'>
                     <div className='w-full p-4 sm:p-12.5 xl:p-17.5'>
                         <h2 className='mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2'>
-                        Employee to  Login 
+                            Sign In
                         </h2>
+
+                        {error && (
+                            <div className="mb-6 rounded-lg bg-danger px-4 py-3 text-sm text-white">
+                                {error}
+                            </div>
+                        )}
 
                         <form onSubmit={handleLogin}>
                             <div className='mb-4'>
@@ -47,8 +84,10 @@ const LoginPegawai = () => {
                                 </label>
                                 <div className='relative'>
                                     <input
-                                        type='username'
+                                        type='text'
                                         placeholder='Enter your username'
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
                                         className='w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                     />
                                     <FiUser className="absolute right-4 top-4 text-xl" />
@@ -63,6 +102,8 @@ const LoginPegawai = () => {
                                     <input
                                         type='password'
                                         placeholder='Enter your password'
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         className='w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                     />
                                     <TfiLock className="absolute right-4 top-4 text-xl" />
@@ -70,13 +111,11 @@ const LoginPegawai = () => {
                             </div>
 
                             <div className='mb-5'>
-                                <Link to='/pegawai/dashboard'>
-                                    <input
-                                        type='submit'
-                                        value='Login'
-                                        className='w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90'
-                                    />
-                                </Link>
+                                <input
+                                    type='submit'
+                                    value='Sign In'
+                                    className='w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90'
+                                />
                             </div>
                         </form>
                     </div>
@@ -96,6 +135,6 @@ const LoginPegawai = () => {
             </footer>
         </div>
     );
-};
+}
 
 export default LoginPegawai;

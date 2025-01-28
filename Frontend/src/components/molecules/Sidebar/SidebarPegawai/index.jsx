@@ -4,7 +4,6 @@ import SidebarLinkGroup from '../SidebarLinkGroup'
 import Logo from '../../../../Assets/images/logo/logo-dark.png'
 import { AiOutlineArrowLeft } from 'react-icons/ai'
 import { RxDashboard } from 'react-icons/rx'
-import { FaRegMoneyBillAlt } from 'react-icons/fa'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
 
@@ -47,11 +46,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   })
 
   useEffect(() => {
-    localStorage.setItem('sidebar-expanded', sidebarExpanded)
+    localStorage.setItem('sidebar-expanded', sidebarExpanded.toString())
     if (sidebarExpanded) {
-      document.querySelector('body').classList.add('sidebar-expanded')
+      document.querySelector('body')?.classList.add('sidebar-expanded')
     } else {
-      document.querySelector('body').classList.remove('sidebar-expanded')
+      document.querySelector('body')?.classList.remove('sidebar-expanded')
     }
   }, [sidebarExpanded])
 
@@ -82,7 +81,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       <div className='no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear'>
         <nav className='mt-4 px-4 lg:mt-9 lg:px-6'>
           <div>
-
             <ul className='mb-6 flex flex-col gap-1.5'>
               {/* <!--Dashboard Admin--> */}
               <NavLink
@@ -95,20 +93,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 Dashboard
               </NavLink>
               {/* <!-- Dashboard Admin --> */}
-
-              {/* <!-- Salary Data  Employee--> */}
-              <li>
-                <NavLink
-                  to='/pegawai/data-gaji'
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('datagaji') &&
-                    'bg-graydark dark:bg-meta-4'
-                    }`}
-                >
-                  <FaRegMoneyBillAlt />
-                  Salary Data 
-                </NavLink>
-              </li>
-              {/* <!-- Salary Data  Employee --> */}
 
               {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
@@ -152,17 +136,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                               }
                             >
                               Change Password
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to='/pegawai/login'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              Log Out
                             </NavLink>
                           </li>
                         </ul>

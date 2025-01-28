@@ -17,6 +17,7 @@ import TransactionRoute from "./routes/TransactionRoute.js";
 import DashBoardRoute from "./routes/DashboardRoute.js";
 
 import AuthV2Route from "./routes/AuthV2Route.js";
+import EmployeeRoute from "./routes/EmployeeRoute.js";
 
 const app = express();
 dotenv.config();
@@ -106,6 +107,7 @@ const startServer = async () => {
     app.use(DataJabatanRoute);
     app.use(AuthRoute);
     app.use(DataKehadiranRoute);
+    app.use(EmployeeRoute);
 
     // 404 Handler
     app.use((req, res) => {
