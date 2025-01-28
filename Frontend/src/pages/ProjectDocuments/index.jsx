@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaDownload, FaFileAlt, FaBuilding, FaHome, FaTree, FaRoad } from 'react-icons/fa';
-import TopNavigation from '../../components/molecules/TopNavigation';
+import PublicLayout from '../../components/layouts/PublicLayout';
+import { FiDownload } from 'react-icons/fi';
 import Carousel from '../../components/molecules/Carousel';
 
 const ProjectDocuments = () => {
@@ -110,14 +111,11 @@ const ProjectDocuments = () => {
     };
 
     return (
-        <div className="bg-gray-50 dark:bg-boxdark-2 min-h-screen">
-            <TopNavigation />
-            
-            {/* Carousel Section */}
-            <div id="top" className="w-full">
+        <PublicLayout>
+            <div className="w-full">
                 <Carousel />
             </div>
-            
+
             <div className="container mx-auto px-4 py-8">
                 <div id="facilities" className="mb-8">
                     <h1 className="text-3xl font-bold text-black dark:text-white mb-2">Project Documents</h1>
@@ -213,7 +211,7 @@ const ProjectDocuments = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </PublicLayout>
     );
 };
 

@@ -4,6 +4,7 @@ import NotFound from '../../components/molecules/NotFound'
 import FormDataPegawai from '../../components/molecules/Form/FormDataPegawai'
 import FormDataJabatan from '../../components/molecules/Form/FormDataJabatan'
 import FormSettingPotonganGaji from '../../components/molecules/Form/FormSettingPotonganGaji'
+import { ProtectedRoute } from '../../components/ProtectedRoute'
 import {
   LoginAdmin, DashboardAdmin, DataPegawai, DataJabatan, DataAbsensi, SettingPotonganGaji, DataGaji, LaporanGaji,
   LaporanAbsensi, SlipGaji, UbahPasswordAdmin, LoginPegawai, DashboardPegawai, DataGajiPegawai, UbahPasswordPegawai,
@@ -23,47 +24,111 @@ const AppRoutes = () => {
       <Route exact path='/why-choose-us' element={<WhyChooseUs />} />
       <Route exact path='/gallery' element={<Gallery />} />
       <Route exact path='/project-documents' element={<ProjectDocuments />} />
-      
-      {/* Route Admin */}
-      {/* Login Admin */}
       <Route exact path='/admin/login' element={<LoginAdmin />} />
       <Route exact path='/' element={<LoginAdmin />} />
-      {/* Dashboard Admin */}
-      <Route exact path='/admin/dashboard' element={<DashboardAdmin />} />
-      {/* Master Data Admin */}
-      <Route path='/admin/master-data/data-pegawai' element={<DataPegawai />} />
-      <Route path='/admin/master-data/data-pegawai/form-data-pegawai' element={<FormDataPegawai />} />
-      <Route path='/admin/master-data/data-jabatan' element={<DataJabatan />} />
-      <Route path='/admin/master-data/data-jabatan/form-data-jabatan' element={<FormDataJabatan />} />
-      {/* Transaction Admin */}
-      <Route path='/admin/transaksi/data-absensi' element={<DataAbsensi />} />
-      <Route path='/admin/transaksi/setting-potongan-gaji' element={<SettingPotonganGaji />} />
-      <Route path='/admin/transaksi/setting-potongan-gaji/form-setting-potongan-gaji' element={<FormSettingPotonganGaji />} />
-      <Route path='/admin/transaksi/data-gaji' element={<DataGaji />} />
-      {/* Report Admin */}
-      <Route path='/admin/laporan/laporan-gaji' element={<LaporanGaji />} />
-      <Route path='/admin/laporan/laporan-absensi' element={<LaporanAbsensi />} />
-      <Route path='/admin/laporan/slip-gaji' element={<SlipGaji />} />
-      {/* Settings Admin */}
-      <Route path='/admin/pengaturan/ubah-password' element={<UbahPasswordAdmin />} />
-
-      {/* Route Employee */}
-      {/* Login Employee */}
       <Route exact path='/pegawai/login' element={<LoginPegawai />} />
-      {/* Dashboard Employee */}
-      <Route exact path='/pegawai/dashboard' element={<DashboardPegawai />} />
-      {/* Dashboard Salary Data  Employee */}
-      <Route exact path='/pegawai/data-gaji' element={<DataGajiPegawai />} />
-      <Route exact path='/pegawai/pengaturan/ubah-password' element={<UbahPasswordPegawai />} />
-      {/* Route Not Found/404 */}
-      <Route exact path="*" element={<NotFound />} />
-      {/* Loan Management Routes */}
-      <Route path='/admin/lending/:loanId' element={<Lending />} />
-      <Route path='/admin/master-data/lending/add-lending' element={<FormDataJabatan />} />
-      <Route path='/admin/master-data/lending/edit/:loanId' element={<EditPurchaseDetails />} />
 
-      {/* <Route path="/admin/master-data/data-pegawai" element={<CustomerData />} /> */}
-      <Route path="/admin/master-data/data-pegawai/edit/:userId" element={<EditUser />} />
+      {/* Protected Admin Routes */}
+      <Route exact path='/admin/dashboard' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <DashboardAdmin />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/master-data/data-pegawai' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <DataPegawai />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/master-data/data-pegawai/form-data-pegawai' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <FormDataPegawai />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/master-data/data-jabatan' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <DataJabatan />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/master-data/data-jabatan/form-data-jabatan' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <FormDataJabatan />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/transaksi/data-absensi' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <DataAbsensi />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/transaksi/setting-potongan-gaji' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <SettingPotonganGaji />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/transaksi/setting-potongan-gaji/form-setting-potongan-gaji' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <FormSettingPotonganGaji />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/transaksi/data-gaji' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <DataGaji />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/laporan/laporan-gaji' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <LaporanGaji />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/laporan/laporan-absensi' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <LaporanAbsensi />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/laporan/slip-gaji' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <SlipGaji />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/pengaturan/ubah-password' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <UbahPasswordAdmin />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/lending/:loanId' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <Lending />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/master-data/lending/edit/:loanId' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <EditPurchaseDetails />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/master-data/data-pegawai/edit/:userId' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <EditUser />
+        </ProtectedRoute>
+      } />
+
+      {/* Protected Employee Routes */}
+      <Route exact path='/pegawai/dashboard' element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <DashboardPegawai />
+        </ProtectedRoute>
+      } />
+      <Route exact path='/pegawai/data-gaji' element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <DataGajiPegawai />
+        </ProtectedRoute>
+      } />
+      <Route exact path='/pegawai/pengaturan/ubah-password' element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <UbahPasswordPegawai />
+        </ProtectedRoute>
+      } />
+
+      {/* Route Not Found/404 */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import TopNavigation from '../../components/molecules/TopNavigation';
-import FeatureHighlights from '../../components/molecules/FeatureHighlights';
+import PublicLayout from '../../components/layouts/PublicLayout';
 import Carousel from '../../components/molecules/Carousel';
 import gallery1 from '../../Assets/images/gallery/gallery1.jpeg';
 import gallery2 from '../../Assets/images/gallery/gallery2.jpeg';
 import gallery3 from '../../Assets/images/gallery/gallery3.jpeg';
 import gallery4 from '../../Assets/images/gallery/gallery4.jpeg';
 import gallery5 from '../../Assets/images/gallery/gallery5.jpeg';
+import { FiZoomIn } from 'react-icons/fi';
 
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -51,9 +51,7 @@ const Gallery = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-boxdark dark:to-boxdark-2 flex flex-col">
-      <TopNavigation />
-      
+    <PublicLayout>
       <div className="w-full">
         <Carousel />
       </div>
@@ -123,11 +121,7 @@ const Gallery = () => {
           </div>
         )}
       </div>
-
-      {/* <div className="py-8">
-        <FeatureHighlights />
-      </div> */}
-    </div>
+    </PublicLayout>
   );
 };
 

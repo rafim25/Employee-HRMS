@@ -1,7 +1,6 @@
 import React from 'react';
 import { FiAward, FiUsers, FiHome, FiShield, FiClock, FiDollarSign } from 'react-icons/fi';
-import TopNavigation from '../../components/molecules/TopNavigation';
-import FeatureHighlights from '../../components/molecules/FeatureHighlights';
+import PublicLayout from '../../components/layouts/PublicLayout';
 import Carousel from '../../components/molecules/Carousel';
 
 const WhyChooseUs = () => {
@@ -39,9 +38,7 @@ const WhyChooseUs = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-boxdark dark:to-boxdark-2 flex flex-col">
-      <TopNavigation />
-      
+    <PublicLayout>
       <div className="w-full">
         <Carousel />
       </div>
@@ -103,11 +100,7 @@ const WhyChooseUs = () => {
           </div>
         </div>
       </div>
-
-      {/* <div className="py-8">
-        <FeatureHighlights />
-      </div> */}
-    </div>
+    </PublicLayout>
   );
 };
 

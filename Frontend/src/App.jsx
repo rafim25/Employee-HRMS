@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Routes } from './config';
 import { AuthProvider } from './context/AuthContext';
-
+import { LoginModalProvider } from './context/LoginModalContext';
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -18,11 +18,13 @@ function App() {
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000)
   }, [])
+
   return (
     !loading && (
-      // <Provider store={store}>
       <AuthProvider>
-        <Routes />
+        <LoginModalProvider>
+          <Routes />
+        </LoginModalProvider>
       </AuthProvider>
     )
   )

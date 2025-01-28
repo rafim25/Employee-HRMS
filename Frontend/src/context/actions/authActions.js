@@ -14,17 +14,35 @@ import {
 
 export const loginUser = async (dispatch, credentials) => {
   try {
+    console.log("Making login request with credentials:", credentials);
     const response = await api.post(AUTH_ENDPOINTS_V2.LOGIN, credentials);
+    console.log("Login API response:", response);
 
     if (response.data) {
+      const userData = response.data;
+      console.log("Storing user data:", userData);
+
+      // Store in localStorage first
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      // Then update the context
       dispatch({
         type: SET_USER,
-        payload: response.data,
+        payload: userData,
       });
-      localStorage.setItem("user", JSON.stringify(response.data));
-      return response.data;
+
+      return userData;
+    } else {
+      throw new Error("No data received from login response");
     }
   } catch (error) {
+    console.error("Login action error:", error);
+    console.error("Error details:", {
+      response: error.response,
+      message: error.message,
+      stack: error.stack,
+    });
+
     dispatch({
       type: SET_ERROR,
       payload: error.response?.data?.msg || "Login failed",
@@ -50,11 +68,10 @@ export const getTransactions = async (dispatch, userId) => {
       type: SET_TRANSACTIONS,
       payload: response.data,
     });
+    return response.data;
   } catch (error) {
-    dispatch({
-      type: SET_ERROR,
-      payload: "Failed to fetch transactions",
-    });
+    console.error("Get transactions error:", error);
+    throw error;
   }
 };
 
