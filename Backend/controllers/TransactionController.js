@@ -125,7 +125,7 @@ export const createTransaction = async (req, res) => {
       // Use production URL in production environment
       const baseUrl =
         process.env.NODE_ENV === "production"
-          ? "http://172.105.59.206:3002"
+          ? "https://raghaveliteprojects.com"
           : `${req.protocol}://${req.get("host")}`;
 
       url = `${baseUrl}/receipts/${fileName}`;
