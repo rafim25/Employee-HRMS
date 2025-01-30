@@ -279,9 +279,9 @@ const Contact = () => {
                       Email Addresses
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400">
-                      Info: info@example.com<br />
-                      Support: support@example.com<br />
-                      Sales: sales@example.com
+                      Info: raghav.elite.projects@gmail.com<br />
+                      Support: raghav.elite.projects@gmail.com<br />
+                      Sales: raghav.elite.projects@gmail.com
                     </p>
                   </div>
                 </div>
@@ -292,8 +292,8 @@ const Contact = () => {
           {/* Google Maps Section */}
           <div className="mt-12">
             <div className="bg-white dark:bg-boxdark rounded-lg shadow-lg p-4">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15280.856317329455!2d77.05041535!3d13.0587892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTPCsDAzJzMxLjYiTiA3N8KwMDMnMDEuNSJF!5e0!3m2!1sen!2sin!4v1644304364534!5m2!1sen!2sin"
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3835.8067521882244!2d77.05019899999999!3d15.971465100000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bb7d10058cee913%3A0x66b0e7032568c2b!2sRAGHAV%20ELITE%20PROJECTS!5e0!3m2!1sen!2sin!4v1738206121713!5m2!1sen!2sin"
                 width="100%"
                 height="450"
                 style={{ border: 0 }}

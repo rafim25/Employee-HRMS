@@ -1,66 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { MdPerson } from 'react-icons/md'; // Use MdPerson instead of FaUser
 
 const testimonials = [
   {
-    name: "Rajesh Sharma",
-    profession: "Business Owner",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
+    name: "Dada Khalander",
+    profession: "Software Engineer",
+    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
     message: "Investing in RaghavElite's commercial plot was the best business decision I made. Their transparent process and prime location selection helped me establish my new showroom."
   },
   {
-    name: "Dr. Priya Patel",
-    profession: "Medical Professional",
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-    message: "As a busy doctor, I wanted a hassle-free property investment. Their team guided me through every step, from plot selection to documentation. Now I own a beautiful piece of land for my future clinic."
-  },
-  {
-    name: "Amit Verma",
-    profession: "IT Professional",
-    image: "https://randomuser.me/api/portraits/men/55.jpg",
-    message: "The gated community plots offered by RaghavElite are perfect for tech professionals like me. Excellent infrastructure, security, and future appreciation potential made it an easy choice."
-  },
-  {
-    name: "Meera Reddy",
-    profession: "School Principal",
-    image: "https://randomuser.me/api/portraits/women/28.jpg",
-    message: "After years of teaching, I wanted to invest in property. Their educational institution plots with proper zoning and amenities were exactly what I was looking for my dream school project."
+    name: "Mohammad Rafee",
+    profession: "Software Engineer",
+    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
+    message: "As a busy Engineer, I wanted a hassle-free property investment. Their team guided me through every step, from plot selection to documentation. Now I own a beautiful piece of land for my future clinic."
   },
   {
     name: "Suresh Kumar",
-    profession: "Restaurant Chain Owner",
-    image: "https://randomuser.me/api/portraits/men/36.jpg",
-    message: "Expanding my restaurant chain was made easier with RaghavElite's commercial plots. Strategic locations and excellent connectivity have helped boost my business significantly."
+    profession: "Business Man",
+    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
+    message: "The gated community plots offered by RaghavElite are perfect for tech professionals like me. Excellent infrastructure, security, and future appreciation potential made it an easy choice."
   },
   {
-    name: "Anita Desai",
-    profession: "Software Company CEO",
-    image: "https://randomuser.me/api/portraits/women/22.jpg",
-    message: "The tech park plots are strategically located and perfect for our new development center. The infrastructure and amenities are exactly what we needed for our growing team."
+    name: "Ramesh Kumar",
+    profession: "Teacher",
+    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
+    message: "After years of teaching, I wanted to invest in property. Their educational institution plots with proper zoning and amenities were exactly what I was looking for my dream school project."
   },
-  {
-    name: "Vikram Malhotra",
-    profession: "Hotel Chain Owner",
-    image: "https://randomuser.me/api/portraits/men/45.jpg",
-    message: "RaghavElite helped us find the perfect location for our new resort. Their understanding of hospitality sector requirements made the whole process seamless."
-  },
-  {
-    name: "Dr. Sanjay Gupta",
-    profession: "Hospital Director",
-    image: "https://randomuser.me/api/portraits/men/47.jpg",
-    message: "We acquired a prime plot for our new multi-specialty hospital through RaghavElite. Their expertise in healthcare property requirements was impressive."
-  }
 ];
 
 const TestimonialCard = ({ name, profession, image, message }) => {
   return (
     <div className="bg-white dark:bg-boxdark p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 mx-2">
       <div className="flex items-center mb-4">
-        <img 
-          src={image} 
-          alt={name} 
-          className="w-16 h-16 rounded-full mr-4 object-cover border-2 border-primary"
-        />
+        <div className="w-16 h-16 rounded-full mr-4 flex items-center justify-center bg-primary/10 border-2 border-primary">
+          {image}
+        </div>
         <div>
           <h3 className="font-semibold text-lg text-black dark:text-white">{name}</h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm">{profession}</p>

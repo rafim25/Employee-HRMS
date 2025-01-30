@@ -70,12 +70,12 @@ const DashboardPegawai = () => {
 
     // Bank details object
     const bankDetails = {
-        accountHolder: "TEST BANK ACCOUNT",
-        accountNumber: "%6756789987665",
-        ifsc: "HDFC0002777",
-        branch: "KORAMANGALA - 4TH BLOCK",
+        accountHolder: "Raghav Elite Projects",
+        accountNumber: "120027350028",
+        ifsc: "CNRB0010623",
+        branch: "Ballari Zilla Panchayat Branch",
         accountType: "SAVING",
-        mmid: "9240294"
+        mmid: "583015115" 
     };
 
     useEffect(() => {
