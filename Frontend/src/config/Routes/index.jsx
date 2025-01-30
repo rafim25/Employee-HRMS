@@ -94,6 +94,11 @@ const AppRoutes = () => {
           <UbahPasswordAdmin />
         </ProtectedRoute>
       } />
+      <Route path='/admin/master-data/lending/add-lending' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <FormDataJabatan />
+        </ProtectedRoute>
+      } />
       <Route path='/admin/lending/:loanId' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <Lending />

@@ -51,8 +51,25 @@ const CustomerData = () => {
     const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
     const handleDelete = async (userId) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
-            await deleteUser(dispatch, userId);
+        setUserToDelete(userId);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await deleteUser(dispatch, userToDelete);
+            toast.success('User deleted successfully');
+            loadUsers(); // Refresh the user list
+        } catch (error) {
+            const errorMessage = error.response?.data?.msg || 'Failed to delete user';
+            if (errorMessage.includes('active purchase')) {
+                toast.error('Cannot delete user with active purchases. Please close or reassign all purchases first.');
+            } else {
+                toast.error(errorMessage);
+            }
+        } finally {
+            setShowDeleteModal(false);
+            setUserToDelete(null);
         }
     };
 
@@ -124,7 +141,6 @@ const CustomerData = () => {
                     <table className='w-full table-auto'>
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
-                                {/* <th className='py-4 px-4 font-medium text-black dark:text-white'>Photo</th> */}
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>User ID</th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>Username</th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>Email</th>
@@ -135,45 +151,53 @@ const CustomerData = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedUsers.map((customer) => (
-                                <tr key={customer.user_id}>
-                                    {/* <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        <img 
-                                            src={customer.url || customer.photo} 
-                                            alt={customer.username}
-                                            className="w-10 h-10 rounded-full"
-                                        />
-                                    </td> */}
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.user_id}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.username}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.email}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.mobile_number}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.status}
-                                    </td>
-                                    <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        {customer.role}
-                                    </td>
-                                    <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                        <div className='flex items-center space-x-3.5'>
-                                            <Link to={`/admin/master-data/data-pegawai/edit/${customer.user_id}`}>
-                                                <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
-                                            </Link>
-                                            <button onClick={() => handleDelete(customer.user_id)}>
-                                                <BsTrash3 className="text-danger text-xl hover:text-black dark:hover:text-white" />
-                                            </button>
+                            {paginatedUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-4">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <p className="text-lg text-gray-500 dark:text-gray-400 mb-2">No customers found</p>
+                                            <p className="text-sm text-gray-400 dark:text-gray-500">
+                                                {searchTerm || statusFilter ? 
+                                                    'Try adjusting your search or filter to find what you\'re looking for.' : 
+                                                    'Get started by adding your first customer.'}
+                                            </p>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                paginatedUsers.map((customer) => (
+                                    <tr key={customer.user_id}>
+                                        <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            {customer.user_id}
+                                        </td>
+                                        <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            {customer.username}
+                                        </td>
+                                        <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            {customer.email}
+                                        </td>
+                                        <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            {customer.mobile_number}
+                                        </td>
+                                        <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            {customer.status}
+                                        </td>
+                                        <td className='border-b text-black border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            {customer.role}
+                                        </td>
+                                        <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            <div className='flex items-center space-x-3.5'>
+                                                <Link to={`/admin/master-data/data-pegawai/edit/${customer.user_id}`}>
+                                                    <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
+                                                </Link>
+                                                <button onClick={() => handleDelete(customer.user_id)}>
+                                                    <BsTrash3 className="text-danger text-xl hover:text-black dark:hover:text-white" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -181,74 +205,104 @@ const CustomerData = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} Customers
+                            {paginatedUsers.length > 0 ? (
+                                `Showing ${startIndex + 1}-${Math.min(endIndex, filteredUsers.length)} of ${filteredUsers.length} Customers`
+                            ) : (
+                                'No customers to display'
+                            )}
                         </span>
                     </div>
-                    <div className='flex space-x-2 py-4'>
-                        <button
-                            disabled={currentPage === 1}
-                            onClick={goToPrevPage}
-                            className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
-                        >
-                            Prev
-                        </button>
-                        {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                            const page = i + 1;
-                            if (page === currentPage) {
-                                return (
-                                    <div
-                                        key={i}
-                                        className="py-2 px-4 rounded-lg border border-primary bg-primary text-white font-semibold hover:bg-primary dark:text-white dark:bg-primary dark:hover:bg-primary"
-                                    >
-                                        {page}
-                                    </div>
-                                );
-                            } else if (page === 2 && currentPage > 4) {
-                                return (
-                                    <p
-                                        key={i}
-                                        className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
-                                    >
-                                        ...
-                                    </p>
-                                );
-                            } else if (page === totalPages - 1 && currentPage < totalPages - 3) {
-                                return (
-                                    <p
-                                        key={i}
-                                        className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
-                                    >
-                                        ...
-                                    </p>
-                                );
-                            } else if (
-                                page === 1 ||
-                                page === totalPages ||
-                                (page >= currentPage - 1 && page <= currentPage + 1)
-                            ) {
-                                return (
-                                    <div
-                                        key={i}
-                                        className="py-2 px-4 rounded-lg border border-gray-2 text-black dark:bg-transparent bg-gray font-medium dark:border-strokedark dark:text-white"
-                                    >
-                                        {page}
-                                    </div>
-                                );
-                            } else {
-                                return null;
-                            }
-                        })}
-
-                        <button
-                            disabled={currentPage === totalPages}
-                            onClick={goToNextPage}
-                            className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
-                        >
-                            Next
-                        </button>
-                    </div>
+                    {paginatedUsers.length > 0 && (
+                        <div className='flex space-x-2 py-4'>
+                            <button
+                                disabled={currentPage === 1}
+                                onClick={goToPrevPage}
+                                className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
+                            >
+                                Prev
+                            </button>
+                            {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                                const page = i + 1;
+                                if (page === currentPage) {
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="py-2 px-4 rounded-lg border border-primary bg-primary text-white font-semibold hover:bg-primary dark:text-white dark:bg-primary dark:hover:bg-primary"
+                                        >
+                                            {page}
+                                        </div>
+                                    );
+                                } else if (page === 2 && currentPage > 4) {
+                                    return (
+                                        <p
+                                            key={i}
+                                            className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
+                                        >
+                                            ...
+                                        </p>
+                                    );
+                                } else if (page === totalPages - 1 && currentPage < totalPages - 3) {
+                                    return (
+                                        <p
+                                            key={i}
+                                            className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
+                                        >
+                                            ...
+                                        </p>
+                                    );
+                                } else if (
+                                    page === 1 ||
+                                    page === totalPages ||
+                                    (page >= currentPage - 1 && page <= currentPage + 1)
+                                ) {
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="py-2 px-4 rounded-lg border border-gray-2 text-black dark:bg-transparent bg-gray font-medium dark:border-strokedark dark:text-white"
+                                        >
+                                            {page}
+                                        </div>
+                                    );
+                                } else {
+                                    return null;
+                                }
+                            })}
+                            <button
+                                disabled={currentPage === totalPages}
+                                onClick={goToNextPage}
+                                className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="rounded-sm border border-stroke bg-white p-8 shadow-default dark:border-strokedark dark:bg-boxdark">
+                        <h2 className="mb-4 text-xl font-semibold text-black dark:text-white">Confirm Delete</h2>
+                        <p className="mb-6 text-sm">Are you sure you want to delete this user? This action cannot be undone.</p>
+                        <p className="mb-6 text-sm text-warning">Note: Users with active purchases cannot be deleted. Please close or reassign all purchases first.</p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="rounded-lg border border-stroke py-2 px-6 text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="rounded-lg border border-danger bg-danger py-2 px-6 text-white hover:bg-opacity-90"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DefaultLayoutAdmin>
     );
 };
