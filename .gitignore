@@ -11,6 +11,10 @@ node_modules/
 # production
 /build
 # Config/
+
+# Explicitly allow Frontend/dist for deployment
+!Frontend/dist/
+
 # misc
 .DS_Store
 .env.local
