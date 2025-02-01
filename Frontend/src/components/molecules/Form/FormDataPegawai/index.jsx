@@ -43,7 +43,9 @@ const UserDataForm = () => {
     const { name, value, type, files } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'file' ? files[0] : value
+      [name]: type === 'file' ? files[0] : value,
+      // Set password to match username when username changes
+      ...(name === 'username' ? { password: value } : {})
     }));
   };
 
@@ -162,10 +164,9 @@ const UserDataForm = () => {
                       type='password'
                       name='password'
                       value={formData.password}
-                      onChange={handleChange}
-                      required
-                      placeholder='Enter password'
-                      className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                      readOnly
+                      placeholder='Password will match username'
+                      className='w-full rounded border-[1.5px] border-stroke bg-gray-100 py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                     />
                   </div>
                 </div>
