@@ -25,7 +25,7 @@ const DefaultLayoutPegawai = ({ children }) => {
             </div>
           </main>
           {/* <!-- ===== Main Content End ===== --> */}
-          <Footer />
+          {/* <Footer /> */}
         </div>
         {/* <!-- ===== Content Area End ===== --> */}
       </div>

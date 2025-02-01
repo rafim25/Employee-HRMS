@@ -51,7 +51,7 @@ const LoginAdmin = () => {
             if (role === 'admin') {
                 navigate('/admin/dashboard');
             } else {
-                navigate('/customer/dashboard');
+                navigate('/pegawai/dashboard');
             }
         } catch (error) {
             console.error('Login error:', error);
