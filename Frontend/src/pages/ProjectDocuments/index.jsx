@@ -1,81 +1,50 @@
 import React from 'react';
-import { FaDownload, FaFileAlt, FaBuilding, FaHome, FaTree, FaRoad } from 'react-icons/fa';
 import PublicLayout from '../../components/layouts/PublicLayout';
-import { FiDownload } from 'react-icons/fi';
-import Carousel from '../../components/molecules/Carousel';
+import { motion } from 'framer-motion';
+import { FaFileAlt, FaFileContract, FaFilePdf, FaFileSignature, FaFileInvoice, FaFileDownload } from 'react-icons/fa';
 
 const ProjectDocuments = () => {
-    // Real estate facilities data
-    const facilities = [
-        {
-            id: 1,
-            name: 'Residential Plots',
-            description: 'Premium residential plots with all modern amenities',
-            area: '1200-2400 sq ft',
-            type: 'Residential',
-            icon: <FaHome className="text-2xl text-primary" />
-        },
-        {
-            id: 2,
-            name: 'Commercial Spaces',
-            description: 'Strategic commercial plots for business development',
-            area: '2000-5000 sq ft',
-            type: 'Commercial',
-            icon: <FaBuilding className="text-2xl text-meta-3" />
-        },
-        {
-            id: 3,
-            name: 'Green Zones',
-            description: 'Dedicated green spaces and parks',
-            area: '5 acres',
-            type: 'Recreational',
-            icon: <FaTree className="text-2xl text-success" />
-        },
-        {
-            id: 4,
-            name: 'Infrastructure',
-            description: 'Well-planned roads and utilities network',
-            area: 'Project-wide',
-            type: 'Infrastructure',
-            icon: <FaRoad className="text-2xl text-meta-5" />
-        }
-    ];
-
-    // Documents data
     const documents = [
         {
-            id: 1,
-            name: 'Project Overview',
-            fileName: 'project_overview.pdf',
-            category: 'General',
-            lastUpdated: '2024-03-15'
+            icon: <FaFileContract />,
+            title: "Legal Documents",
+            description: "Essential legal paperwork and approvals",
+            fileName: "legal_docs.pdf"
         },
         {
-            id: 2,
-            name: 'Legal Documentation',
-            fileName: 'legal_docs.pdf',
-            category: 'Legal',
-            lastUpdated: '2024-03-10'
+            icon: <FaFilePdf />,
+            title: "Project Plans",
+            description: "Detailed architectural and structural plans",
+            fileName: "Project_Elite_MANVI_2.pdf"
         },
         {
-            id: 3,
-            name: 'Site Aggreemnt Plan',
-            fileName: 'aggreemntPlan.pdf',
-            category: 'Technical',
-            lastUpdated: '2024-03-12'
+            icon: <FaFileSignature />,
+            title: "Agreements",
+            description: "Sale and purchase agreements",
+            fileName: "aggreemntPlan.pdf"
         },
         {
-            id: 4,
-            name: 'Facility and infrastructure',
-            fileName: 'Facility_Infra_Details.pdf',
-            category: 'Financial',
-            lastUpdated: '2024-03-14'
+            icon: <FaFileInvoice />,
+            title: "Facility Documents",
+            description: "facility documents for the project",
+            fileName: "Facility_Infra_Details.pdf"
+        },
+        {
+            icon: <FaFileAlt />,
+            title: "Specifications",
+            description: "Technical specifications and materials",
+            fileName: "Facility_Infra_Details.pdf"
+        },
+        {
+            icon: <FaFileDownload />,
+            title: "Project Brochure",
+            description: "Complete project overview and details",
+            fileName: "project_overview.pdf"
         }
     ];
 
     const handleDownload = async (fileName) => {
         try {
-            // Create the full path to the document - using direct path to public folder
             const filePath = `/documents/${fileName}`;
             
             // Fetch the file
@@ -112,102 +81,84 @@ const ProjectDocuments = () => {
 
     return (
         <PublicLayout>
-            <div className="w-full">
-                <Carousel />
-            </div>
-
-            <div className="container mx-auto px-4 py-8">
-                <div id="facilities" className="mb-8">
-                    <h1 className="text-3xl font-bold text-black dark:text-white mb-2">Project Documents</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Access all project-related documents and facilities information</p>
-                </div>
-
-                {/* Real Estate Facilities Section */}
-                <div className="mb-8">
-                    <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-                        <div className="border-b border-stroke px-4 py-4 dark:border-strokedark">
-                            <h3 className="font-medium text-black dark:text-white">
-                                Real Estate Facilities
-                            </h3>
+            <div className="min-h-screen bg-white dark:bg-boxdark">
+                {/* Hero Section */}
+                <div className="container mx-auto px-4 py-8 lg:py-12">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Welcome Header */}
+                        <div className="text-center mb-12">
+                            <h1 className="text-4xl lg:text-5xl font-bold text-black dark:text-white mb-4">
+                                Project Documents
+                            </h1>
+                            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                                Download essential documents about our projects
+                            </p>
                         </div>
-                        <div className="p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {facilities.map((facility) => (
-                                    <div key={facility.id} className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-meta-4 hover:shadow-lg transition-shadow duration-300">
-                                        <div className="flex items-center gap-4 mb-3">
-                                            {facility.icon}
-                                            <h4 className="text-lg font-semibold text-black dark:text-white">
-                                                {facility.name}
-                                            </h4>
-                                        </div>
-                                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                                            {facility.description}
-                                        </p>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-meta-5">Area: {facility.area}</span>
-                                            <span className="text-meta-3">{facility.type}</span>
+
+                        {/* Documents Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {documents.map((doc, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                                    className="bg-white dark:bg-boxdark rounded-xl 
+                                        shadow-lg hover:shadow-xl p-8
+                                        transform hover:scale-105 transition-all duration-300
+                                        border-2 border-stroke dark:border-strokedark
+                                        group cursor-pointer"
+                                    onClick={() => handleDownload(doc.fileName)}
+                                >
+                                    <div className="w-16 h-16 rounded-lg bg-primary flex items-center justify-center mb-6
+                                        transform group-hover:scale-110 transition-transform duration-300">
+                                        <div className="text-white text-2xl">
+                                            {doc.icon}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                    <h3 className="text-2xl font-semibold text-black dark:text-white mb-4">
+                                        {doc.title}
+                                    </h3>
+                                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                        {doc.description}
+                                    </p>
+                                    <button 
+                                        className="w-full px-4 py-2 bg-primary text-white
+                                        rounded-lg font-medium hover:bg-primary/90
+                                        transition-all duration-300 flex items-center justify-center gap-2"
+                                    >
+                                        <FaFileDownload />
+                                        Download Document
+                                    </button>
+                                </motion.div>
+                            ))}
                         </div>
-                    </div>
-                </div>
 
-                {/* Documents Section */}
-                <div id="documents" className="mb-8">
-                    <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-                        <div className="border-b border-stroke px-4 py-4 dark:border-strokedark">
-                            <h3 className="font-medium text-black dark:text-white">
-                                Project Documents
-                            </h3>
-                        </div>
-                        <div className="p-4">
-                            <div className="overflow-x-auto">
-                                <table className="w-full table-auto">
-                                    <thead>
-                                        <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                                            <th className="py-4 px-4 font-medium text-black dark:text-white">Document Name</th>
-                                            <th className="py-4 px-4 font-medium text-black dark:text-white">Category</th>
-                                            <th className="py-4 px-4 font-medium text-black dark:text-white">Last Updated</th>
-                                            <th className="py-4 px-4 font-medium text-black dark:text-white">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {documents.map((doc) => (
-                                            <tr key={doc.id} className="border-b border-[#eee] dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4 transition-colors duration-200">
-                                                <td className="py-4 px-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <FaFileAlt className="text-lg text-meta-3" />
-                                                        <span className="text-black dark:text-white">
-                                                            {doc.name}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="py-4 px-4">
-                                                    <span className="inline-block rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium">
-                                                        {doc.category}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-4">
-                                                    {new Date(doc.lastUpdated).toLocaleDateString()}
-                                                </td>
-                                                <td className="py-4 px-4">
-                                                    <button
-                                                        onClick={() => handleDownload(doc.fileName)}
-                                                        className="flex items-center gap-2 text-primary hover:text-meta-3 transition-colors duration-200"
-                                                        title="Download Document"
-                                                    >
-                                                        <FaDownload className="text-lg" />
-                                                        <span>Download</span>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                        {/* Additional Info Section */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.8 }}
+                            className="mt-16"
+                        >
+                            <div className="bg-white dark:bg-boxdark rounded-xl shadow-xl p-8
+                                border-2 border-stroke dark:border-strokedark">
+                                <div className="max-w-3xl mx-auto text-center">
+                                    <h2 className="text-3xl font-bold text-black dark:text-white mb-6">
+                                        Need Assistance?
+                                    </h2>
+                                    <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+                                        Our team is here to help you with any document-related queries. 
+                                        Feel free to reach out for detailed information about any project documentation.
+                                    </p>
+                                    <button className="px-8 py-3 bg-primary text-white rounded-lg
+                                        transform hover:scale-105 transition-all duration-300
+                                        hover:shadow-lg">
+                                        Contact Support
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>

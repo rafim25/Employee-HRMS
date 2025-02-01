@@ -1,47 +1,80 @@
 import React from 'react';
-import { FiCheckCircle, FiAward, FiTrendingUp, FiShield } from 'react-icons/fi';
+import {
+  FiUserPlus,
+  FiFileText,
+  FiDollarSign,
+  FiCalendar,
+  FiBook,
+  FiKey,
+} from 'react-icons/fi';
 
-const FeatureCard = ({ icon: Icon, title, description }) => (
-  <div className="bg-white dark:bg-boxdark p-4 rounded-lg shadow-sm border border-stroke dark:border-strokedark">
-    <div className="flex items-center mb-2">
-      <Icon className="text-primary text-xl mr-2" />
-      <h3 className="font-semibold text-black dark:text-white">{title}</h3>
+const ProcessStep = ({ icon: Icon, title, description, isLast }) => (
+  <div className="flex flex-col items-center flex-1 relative">
+    <div className="relative z-10">
+      <div className="bg-primary p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+        <Icon className="text-white text-2xl" />
+      </div>
     </div>
-    <p className="text-gray-600 dark:text-gray-400 text-sm">{description}</p>
+    {!isLast && (
+      <div className="absolute top-8 left-[60%] w-full h-0.5 bg-primary" />
+    )}
+    <div className="text-center mt-4 px-4">
+      <h3 className="font-semibold text-black dark:text-white text-lg mb-2">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-400 text-sm">{description}</p>
+    </div>
   </div>
 );
 
-const FeatureHighlights = () => {
-  const features = [
+const LandPurchaseWorkflow = () => {
+  const steps = [
     {
-      icon: FiCheckCircle,
-      title: "Agreement Stage",
-      description: "Property agreement and documentation verification completed"
+      icon: FiUserPlus,
+      title: "Registration",
+      description: "Complete the initial registration process and verify your details"
     },
     {
-      icon: FiAward,
-      title: "Payment Status",
-      description: "30% of total payment processed and confirmed"
+      icon: FiFileText,
+      title: "Agreement",
+      description: "Review and sign the purchase agreement with all terms and conditions"
     },
     {
-      icon: FiTrendingUp,
-      title: "Construction Phase",
-      description: "Foundation work completed, structure 40% done"
+      icon: FiDollarSign,
+      title: "Downpayment",
+      description: "Make the initial downpayment to secure your land purchase"
     },
     {
-      icon: FiShield,
-      title: "Completion Status",
-      description: "Expected completion in 8 months with current progress"
+      icon: FiCalendar,
+      title: "EMI Process",
+      description: "Set up and manage your EMI payments through our easy payment system"
+    },
+    {
+      icon: FiBook,
+      title: "Land Registration",
+      description: "Complete the legal registration process and documentation"
+    },
+    {
+      icon: FiKey,
+      title: "Site Delivery",
+      description: "Receive your property documents and take possession of your land"
     }
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 py-2">
-      {features.map((feature, index) => (
-        <FeatureCard key={index} {...feature} />
-      ))}
+    <div className="w-full p-6 bg-white dark:bg-boxdark rounded-xl shadow-sm border border-stroke dark:border-strokedark overflow-x-auto">
+      <h2 className="text-2xl font-bold text-black dark:text-white mb-12 text-center">
+        Land Purchase Process
+      </h2>
+      <div className="flex min-w-[900px] px-4">
+        {steps.map((step, index) => (
+          <ProcessStep
+            key={index}
+            {...step}
+            isLast={index === steps.length - 1}
+          />
+        ))}
+      </div>
     </div>
   );
 };
 
-export default FeatureHighlights; 
+export default LandPurchaseWorkflow; 

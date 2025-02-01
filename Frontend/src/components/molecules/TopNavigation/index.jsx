@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaWhatsapp } from 'react-icons/fa';
-import logo from '../../../Assets/images/logo/logo-dark.png';
+import logoDark from '../../../Assets/images/logo/logo-dark.png?url';
 
 const TopNavigation = ({ onLoginClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,13 +14,13 @@ const TopNavigation = ({ onLoginClick }) => {
 
   return (
     <>
-      <nav className="bg-gradient-to-r from-blue-50 via-white to-blue-50 dark:from-boxdark dark:to-boxdark shadow-sm border-b border-blue-100/50">
-        <div className="container mx-auto px-4">
+      <nav className="bg-gradient-to-r from-white to-primary text-white shadow-lg">
+        <div className="container mx-auto px-0">
           <div className="flex justify-between items-center h-20">
             {/* Logo/Brand */}
-            <div className="flex-shrink-0 ml-4">
+            <div className="flex-shrink-0 ml-0">
               <Link to="/" className="flex items-center">
-                <img src={logo} alt="Logo" className="h-20" />
+                <img src={logoDark} alt="Logo" className="h-20" />
               </Link>
             </div>
             
@@ -39,7 +39,7 @@ const TopNavigation = ({ onLoginClick }) => {
               ))}
               
               {/* Login Button */}
-              <button
+              {/* <button
                 onClick={onLoginClick}
                 className="px-6 py-2.5 text-base font-medium text-white bg-primary hover:bg-blue-600 
                 rounded-lg transition-all duration-300 flex items-center space-x-2.5 
@@ -59,7 +59,7 @@ const TopNavigation = ({ onLoginClick }) => {
                   />
                 </svg>
                 <span>Login</span>
-              </button>
+              </button> */}
             </div>
 
             {/* Mobile menu button */}
@@ -108,7 +108,7 @@ const TopNavigation = ({ onLoginClick }) => {
               ))}
               
               {/* Mobile Login Button */}
-              <button
+              {/* <button
                 onClick={() => {
                   onLoginClick();
                   setIsMobileMenuOpen(false);
@@ -131,7 +131,7 @@ const TopNavigation = ({ onLoginClick }) => {
                   />
                 </svg>
                 <span>Login</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

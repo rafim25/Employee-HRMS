@@ -1,178 +1,212 @@
-import React, { useState, useEffect } from 'react';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { MdPerson } from 'react-icons/md'; // Use MdPerson instead of FaUser
-
-const testimonials = [
-  {
-    name: "Dada Khalander",
-    profession: "Software Engineer",
-    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
-    message: "Investing in RaghavElite's commercial plot was the best business decision I made. Their transparent process and prime location selection helped me establish my new showroom."
-  },
-  {
-    name: "Mohammad Rafee",
-    profession: "Software Engineer",
-    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
-    message: "As a busy Engineer, I wanted a hassle-free property investment. Their team guided me through every step, from plot selection to documentation. Now I own a beautiful piece of land for my future clinic."
-  },
-  {
-    name: "Suresh Kumar",
-    profession: "Business Man",
-    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
-    message: "The gated community plots offered by RaghavElite are perfect for tech professionals like me. Excellent infrastructure, security, and future appreciation potential made it an easy choice."
-  },
-  {
-    name: "Ramesh Kumar",
-    profession: "Teacher",
-    image: <MdPerson className="w-16 h-16 text-primary" />, // Use React Icon
-    message: "After years of teaching, I wanted to invest in property. Their educational institution plots with proper zoning and amenities were exactly what I was looking for my dream school project."
-  },
-];
-
-const TestimonialCard = ({ name, profession, image, message }) => {
-  return (
-    <div className="bg-white dark:bg-boxdark p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 mx-2">
-      <div className="flex items-center mb-4">
-        <div className="w-16 h-16 rounded-full mr-4 flex items-center justify-center bg-primary/10 border-2 border-primary">
-          {image}
-        </div>
-        <div>
-          <h3 className="font-semibold text-lg text-black dark:text-white">{name}</h3>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">{profession}</p>
-        </div>
-      </div>
-      <div className="relative">
-        <svg 
-          className="absolute top-0 left-0 transform -translate-x-3 -translate-y-3 h-8 w-8 text-primary opacity-20" 
-          fill="currentColor" 
-          viewBox="0 0 32 32"
-        >
-          <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z"/>
-        </svg>
-        <p className="text-gray-700 dark:text-gray-300 italic pl-4">{message}</p>
-      </div>
-    </div>
-  );
-};
+import React from 'react';
+import { FaQuoteLeft, FaStar, FaHome, FaHandshake, FaTools, FaCheckCircle, FaUser } from 'react-icons/fa';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 const Testimonials = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const itemsPerView = {
-    mobile: 1,
-    tablet: 2,
-    desktop: 3
-  };
+    const testimonials = [
+        {
+            name: "Dada Khalander",
+            role: "Property Owner",
+            content: "The entire process from agreement to construction has been transparent and professional. The team's attention to detail and regular updates gave us complete peace of mind.",
+            rating: 5,
+            projectStatus: {
+                agreement: "Completed",
+                payment: "40% Processed",
+                construction: "50% Complete",
+                timeline: "On Schedule"
+            }
+        },
+        {
+            name: "Mohammad Rafee",
+            role: "First-time Buyer",
+            content: "As a first-time property buyer, I was impressed with their professional approach. The team guided me through each step, making it seamless and stress-free.",
+            rating: 5,
+            projectStatus: {
+                agreement: "Completed",
+                payment: "30% Processed",
+                construction: "35% Complete",
+                timeline: "On Schedule"
+            }
+        },
+        {
+            name: "Suresh Kumar",
+            role: "Investment Buyer",
+            content: "The quality of construction and adherence to timelines has been impressive. Their property management solutions are truly world-class.",
+            rating: 5,
+            projectStatus: {
+                agreement: "Completed",
+                payment: "60% Processed",
+                construction: "75% Complete",
+                timeline: "Ahead of Schedule"
+            }
+        },
+        {
+            name: "Venkatesh Reddy",
+            role: "Property Owner",
+            content: "Exceptional service and quality construction. The team's commitment to excellence and timely delivery has exceeded my expectations.",
+            rating: 5,
+            projectStatus: {
+                agreement: "Completed",
+                payment: "45% Processed",
+                construction: "55% Complete",
+                timeline: "On Schedule"
+            }
+        },
+        {
+            name: "Abdul Rahman",
+            role: "Business Owner",
+            content: "Their attention to detail and customer service is outstanding. The construction quality and project management are top-notch.",
+            rating: 5,
+            projectStatus: {
+                agreement: "Completed",
+                payment: "70% Processed",
+                construction: "80% Complete",
+                timeline: "On Schedule"
+            }
+        },
+        {
+            name: "Ramesh Babu",
+            role: "Property Investor",
+            content: "Very satisfied with the project progress and professional approach. The team's communication and transparency are commendable.",
+            rating: 5,
+            projectStatus: {
+                agreement: "Completed",
+                payment: "50% Processed",
+                construction: "60% Complete",
+                timeline: "On Schedule"
+            }
+        }
+    ];
 
-  // Function to get current items per view based on screen size
-  const getCurrentItemsPerView = () => {
-    if (window.innerWidth < 768) return itemsPerView.mobile;
-    if (window.innerWidth < 1024) return itemsPerView.tablet;
-    return itemsPerView.desktop;
-  };
-
-  const [visibleItems, setVisibleItems] = useState(getCurrentItemsPerView());
-
-  // Update visible items on window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setVisibleItems(getCurrentItemsPerView());
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Function to get visible testimonials with circular rotation
-  const getVisibleTestimonials = () => {
-    let visibleItems = [];
-    for (let i = 0; i < visibleItems; i++) {
-      const index = (currentIndex + i) % testimonials.length;
-      visibleItems.push(testimonials[index]);
-    }
-    return visibleItems;
-  };
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
-
-  // Auto scroll
-  useEffect(() => {
-    const timer = setInterval(nextSlide, 5000);
-    return () => clearInterval(timer);
-  }, [currentIndex]);
-
-  return (
-    <div className="py-12 bg-gray-50 dark:bg-boxdark-2">
-      <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12 text-black dark:text-white">
-          What Our Valued Customers Say
-        </h2>
-        
-        <div className="relative">
-          {/* Navigation Buttons */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 
-            bg-white dark:bg-boxdark p-2 rounded-full shadow-lg 
-            hover:bg-gray-100 dark:hover:bg-boxdark-2 transition-all duration-300
-            md:-translate-x-6"
-          >
-            <FiChevronLeft className="text-2xl text-primary" />
-          </button>
-          
-          <button
-            onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 
-            bg-white dark:bg-boxdark p-2 rounded-full shadow-lg 
-            hover:bg-gray-100 dark:hover:bg-boxdark-2 transition-all duration-300
-            md:translate-x-6"
-          >
-            <FiChevronRight className="text-2xl text-primary" />
-          </button>
-
-          {/* Testimonials Container */}
-          <div className="overflow-hidden">
-            <div 
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${(currentIndex * 100) / visibleItems}%)` }}
-            >
-              {testimonials.map((testimonial, index) => (
-                <div 
-                  key={`${testimonial.name}-${index}`} 
-                  className={`flex-shrink-0 ${
-                    visibleItems === 1 ? 'w-full' : 
-                    visibleItems === 2 ? 'w-1/2' : 'w-1/3'
-                  } px-2`}
-                >
-                  <TestimonialCard {...testimonial} />
+    return (
+        <div className="py-12 bg-gradient-to-br from-white via-blue-50 to-white dark:from-boxdark dark:via-boxdark-2 dark:to-boxdark">
+            <div className="container mx-auto px-4">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl font-bold text-black dark:text-white mb-4">
+                        Client Success Stories
+                    </h2>
+                    <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+                        Discover how we've helped our clients achieve their property dreams with our comprehensive solutions and dedicated support.
+                    </p>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Indicators */}
-          <div className="flex justify-center mt-8 space-x-2">
-            {testimonials.slice(0, testimonials.length - visibleItems + 1).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex 
-                    ? 'w-6 bg-primary' 
-                    : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-              />
-            ))}
-          </div>
+                <Swiper
+                    modules={[Autoplay, Pagination]}
+                    spaceBetween={30}
+                    slidesPerView={1}
+                    pagination={{ clickable: true }}
+                    autoplay={{
+                        delay: 5000,
+                        disableOnInteraction: false,
+                    }}
+                    breakpoints={{
+                        640: {
+                            slidesPerView: 1,
+                        },
+                        768: {
+                            slidesPerView: 2,
+                        },
+                        1024: {
+                            slidesPerView: 3,
+                        },
+                    }}
+                    className="testimonial-swiper"
+                >
+                    {testimonials.map((testimonial, index) => (
+                        <SwiperSlide key={index}>
+                            <div className="bg-white dark:bg-boxdark rounded-xl shadow-default p-6 mb-10 transform hover:scale-105 transition-all duration-300">
+                                <div className="relative">
+                                    {/* Quote Icon */}
+                                    <div className="absolute -top-10 -left-2">
+                                        <FaQuoteLeft className="text-4xl text-primary/20" />
+                                    </div>
+
+                                    {/* Client Info */}
+                                    <div className="flex items-center mb-6">
+                                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <FaUser className="text-3xl text-primary" />
+                                        </div>
+                                        <div className="ml-4">
+                                            <h4 className="text-lg font-semibold text-black dark:text-white">
+                                                {testimonial.name}
+                                            </h4>
+                                            <p className="text-gray-500 dark:text-gray-400">
+                                                {testimonial.role}
+                                            </p>
+                                            <div className="flex mt-1">
+                                                {[...Array(testimonial.rating)].map((_, i) => (
+                                                    <FaStar key={i} className="text-yellow-400 text-sm" />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Testimonial Content */}
+                                    <p className="text-gray-600 dark:text-gray-300 mb-6 min-h-[80px]">
+                                        "{testimonial.content}"
+                                    </p>
+
+                                    {/* Project Status */}
+                                    <div className="border-t border-stroke dark:border-strokedark pt-4">
+                                        <h5 className="text-sm font-semibold text-black dark:text-white mb-3">
+                                            Project Status
+                                        </h5>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="flex items-center">
+                                                <FaHandshake className="text-primary mr-2" />
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                    Agreement: {testimonial.projectStatus.agreement}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <FaHome className="text-primary mr-2" />
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                    Payment: {testimonial.projectStatus.payment}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <FaTools className="text-primary mr-2" />
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                    Construction: {testimonial.projectStatus.construction}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <FaCheckCircle className="text-primary mr-2" />
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                    Timeline: {testimonial.projectStatus.timeline}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </SwiperSlide>
+                    ))}
+                </Swiper>
+            </div>
+
+            {/* Custom Styles */}
+            <style jsx>{`
+                .testimonial-swiper .swiper-pagination {
+                    position: relative;
+                    margin-top: 2rem;
+                }
+                .testimonial-swiper .swiper-pagination-bullet {
+                    width: 10px;
+                    height: 10px;
+                    background: #e2e8f0;
+                    opacity: 1;
+                }
+                .testimonial-swiper .swiper-pagination-bullet-active {
+                    background: var(--color-primary);
+                    transform: scale(1.2);
+                }
+            `}</style>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Testimonials; 
