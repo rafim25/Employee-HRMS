@@ -11,6 +11,7 @@ import {
   Lending, EditUser, EditLoan, EditPurchaseDetails
 } from '../../pages'
 import AddExpense from '../../pages/Admin/Expense/AddExpense'
+import EditExpense from '../../pages/Admin/Expense/EditExpense'
 import ExpenseList from '../../pages/Admin/Expense/ExpenseList'
 import Contact from '../../pages/Contact'
 import WhyChooseUs from '../../pages/WhyChooseUs'
@@ -137,6 +138,11 @@ const AppRoutes = () => {
       <Route path='/admin/expense/add' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <AddExpense />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/expense/edit/:id' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <EditExpense />
         </ProtectedRoute>
       } />
       <Route path='/admin/expense/list' element={

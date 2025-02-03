@@ -4,18 +4,52 @@ import path from "path";
 import { fileURLToPath } from "url";
 import Expense from "../models/Expense.js";
 import User from "../models/User.js";
-import {
-  getExpenses,
-  getExpenseById,
-  createExpense,
-  updateExpense,
-  deleteExpense,
-} from "../controllers/ExpenseController.js";
 
 const router = express.Router();
 
+// Get all expenses
+router.get("/expenses", verify_User, admin_Only, async (req, res) => {
+  try {
+    const expenses = await Expense.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ["username", "email"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    res.json(expenses);
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
+
+// Get single expense
+router.get("/expenses/:id", verify_User, admin_Only, async (req, res) => {
+  try {
+    const expense = await Expense.findOne({
+      where: {
+        uuid: req.params.id,
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["username", "email"],
+        },
+      ],
+    });
+    if (!expense) {
+      return res.status(404).json({ msg: "Expense not found" });
+    }
+    res.json(expense);
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
+
 // Create new expense
-router.post("/api/expenses", verify_User, admin_Only, async (req, res) => {
+router.post("/expenses", verify_User, admin_Only, async (req, res) => {
   try {
     let expenseImage = null;
 
@@ -28,10 +62,10 @@ router.post("/api/expenses", verify_User, admin_Only, async (req, res) => {
 
       // Validate file
       if (!allowedTypes.includes(ext.toLowerCase())) {
-        return res.status(422).json({ message: "Invalid image type" });
+        return res.status(422).json({ msg: "Invalid image type" });
       }
       if (fileSize > 5000000) {
-        return res.status(422).json({ message: "Image must be less than 5MB" });
+        return res.status(422).json({ msg: "Image must be less than 5MB" });
       }
 
       // Generate unique filename
@@ -52,53 +86,12 @@ router.post("/api/expenses", verify_User, admin_Only, async (req, res) => {
 
     res.status(201).json(expense);
   } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Get all expenses
-router.get("/api/expenses", verify_User, admin_Only, async (req, res) => {
-  try {
-    const expenses = await Expense.findAll({
-      include: [
-        {
-          model: User,
-          attributes: ["username", "email"],
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-    });
-    res.json(expenses);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Get single expense
-router.get("/api/expenses/:id", verify_User, admin_Only, async (req, res) => {
-  try {
-    const expense = await Expense.findOne({
-      where: {
-        uuid: req.params.id,
-      },
-      include: [
-        {
-          model: User,
-          attributes: ["username", "email"],
-        },
-      ],
-    });
-    if (!expense) {
-      return res.status(404).json({ message: "Expense not found" });
-    }
-    res.json(expense);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ msg: error.message });
   }
 });
 
 // Update expense
-router.patch("/api/expenses/:id", verify_User, admin_Only, async (req, res) => {
+router.put("/expenses/:id", verify_User, admin_Only, async (req, res) => {
   try {
     const expense = await Expense.findOne({
       where: {
@@ -107,7 +100,7 @@ router.patch("/api/expenses/:id", verify_User, admin_Only, async (req, res) => {
     });
 
     if (!expense) {
-      return res.status(404).json({ message: "Expense not found" });
+      return res.status(404).json({ msg: "Expense not found" });
     }
 
     let updates = { ...req.body };
@@ -121,10 +114,10 @@ router.patch("/api/expenses/:id", verify_User, admin_Only, async (req, res) => {
 
       // Validate file
       if (!allowedTypes.includes(ext.toLowerCase())) {
-        return res.status(422).json({ message: "Invalid image type" });
+        return res.status(422).json({ msg: "Invalid image type" });
       }
       if (fileSize > 5000000) {
-        return res.status(422).json({ message: "Image must be less than 5MB" });
+        return res.status(422).json({ msg: "Image must be less than 5MB" });
       }
 
       // Generate unique filename
@@ -139,39 +132,28 @@ router.patch("/api/expenses/:id", verify_User, admin_Only, async (req, res) => {
     await expense.update(updates);
     res.json(expense);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ msg: error.message });
   }
 });
 
 // Delete expense
-router.delete(
-  "/api/expenses/:id",
-  verify_User,
-  admin_Only,
-  async (req, res) => {
-    try {
-      const expense = await Expense.findOne({
-        where: {
-          uuid: req.params.id,
-        },
-      });
+router.delete("/expenses/:id", verify_User, admin_Only, async (req, res) => {
+  try {
+    const expense = await Expense.findOne({
+      where: {
+        uuid: req.params.id,
+      },
+    });
 
-      if (!expense) {
-        return res.status(404).json({ message: "Expense not found" });
-      }
-
-      await expense.destroy();
-      res.json({ message: "Expense deleted" });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+    if (!expense) {
+      return res.status(404).json({ msg: "Expense not found" });
     }
-  }
-);
 
-router.get("/expenses", verify_User, getExpenses);
-router.get("/expenses/:id", verify_User, getExpenseById);
-router.post("/expenses", verify_User, createExpense);
-router.patch("/expenses/:id", verify_User, updateExpense);
-router.delete("/expenses/:id", verify_User, deleteExpense);
+    await expense.destroy();
+    res.json({ msg: "Expense deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
 
 export default router;

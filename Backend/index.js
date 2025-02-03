@@ -106,7 +106,7 @@ const startServer = async () => {
     app.use("/api", EmailRoute); // Mount email routes first
     app.use(UserRoute);
     app.use(AuthV2Route);
-    app.use(ExpenseRoute);
+    app.use("/api", ExpenseRoute);
 
     // Add this to your routes section
     app.use(LoanRoute);

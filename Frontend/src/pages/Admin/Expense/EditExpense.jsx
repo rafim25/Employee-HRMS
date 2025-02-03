@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { EXPENSE_TYPES } from '../../../constants/expenseTypes';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../components';
+import { EXPENSE_TYPES } from '../../../constants/expenseTypes';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { FaMoneyBillWave, FaFileUpload, FaRegCommentDots } from 'react-icons/fa';
 import { BiCategory } from 'react-icons/bi';
 import { MdDriveFileRenameOutline } from 'react-icons/md';
-import toast from 'react-hot-toast';
 
-const AddExpense = () => {
+const EditExpense = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { id } = useParams();
   const [formData, setFormData] = useState({
     expenseName: '',
     amount: '',
@@ -20,8 +20,35 @@ const AddExpense = () => {
     expenseDate: new Date().toISOString().split('T')[0],
     expenseImage: null
   });
-  const [previewImage, setPreviewImage] = useState(null);
+  const [currentImage, setCurrentImage] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchExpense = async () => {
+      try {
+        const response = await axios.get(`/api/expenses/${id}`);
+        const expense = response.data;
+        setFormData({
+          expenseName: expense.expenseName,
+          amount: expense.amount,
+          expenseType: expense.expenseType,
+          comments: expense.comments || '',
+          expenseDate: new Date(expense.expenseDate || expense.createdAt).toISOString().split('T')[0],
+          expenseImage: null
+        });
+        if (expense.expenseImage) {
+          setCurrentImage(`/uploads/${expense.expenseImage}`);
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.msg || 'Failed to fetch expense details';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
+    };
+
+    fetchExpense();
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,7 +65,7 @@ const AddExpense = () => {
         ...prev,
         expenseImage: file
       }));
-      setPreviewImage(URL.createObjectURL(file));
+      setCurrentImage(URL.createObjectURL(file));
     }
   };
 
@@ -49,20 +76,25 @@ const AddExpense = () => {
 
     try {
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key]);
-      });
+      formDataToSend.append('expenseName', formData.expenseName);
+      formDataToSend.append('amount', formData.amount);
+      formDataToSend.append('expenseType', formData.expenseType);
+      formDataToSend.append('comments', formData.comments);
+      formDataToSend.append('expenseDate', formData.expenseDate);
+      if (formData.expenseImage) {
+        formDataToSend.append('expenseImage', formData.expenseImage);
+      }
 
-      await axios.post('/api/expenses', formDataToSend, {
+      await axios.put(`/api/expenses/${id}`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      toast.success('Expense added successfully!');
+      toast.success('Expense updated successfully!');
       navigate('/admin/expense/list');
     } catch (error) {
-      const errorMessage = error.response?.data?.msg || 'Failed to create expense';
+      const errorMessage = error.response?.data?.msg || 'Failed to update expense';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -73,7 +105,7 @@ const AddExpense = () => {
   return (
     <DefaultLayoutAdmin>
       <div className="mx-auto max-w-screen-2xl p-4">
-        <BreadcrumbAdmin pageName='Add New Expense' />
+        <BreadcrumbAdmin pageName='Edit Expense' />
 
         <div className="flex flex-col gap-6">
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -81,7 +113,7 @@ const AddExpense = () => {
               <div className="flex items-center gap-3">
                 <FaMoneyBillWave className="text-xl text-primary" />
                 <h3 className="text-xl font-semibold text-black dark:text-white">
-                  Expense Details
+                  Edit Expense Details
                 </h3>
               </div>
             </div>
@@ -92,6 +124,7 @@ const AddExpense = () => {
                   {error}
                 </div>
               )}
+
               <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                 <div className="w-full xl:w-1/2">
                   <label className="mb-2.5 block text-black dark:text-white">
@@ -133,6 +166,22 @@ const AddExpense = () => {
               <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                 <div className="w-full xl:w-1/2">
                   <label className="mb-2.5 block text-black dark:text-white">
+                    Expense Date <span className="text-meta-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      name="expenseDate"
+                      value={formData.expenseDate}
+                      onChange={handleChange}
+                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary pl-12"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full xl:w-1/2">
+                  <label className="mb-2.5 block text-black dark:text-white">
                     Expense Type <span className="text-meta-1">*</span>
                   </label>
                   <div className="relative z-20 bg-transparent dark:bg-form-input">
@@ -172,30 +221,30 @@ const AddExpense = () => {
                     </span>
                   </div>
                 </div>
+              </div>
 
-                <div className="w-full xl:w-1/2">
-                  <label className="mb-2.5 block text-black dark:text-white">
-                    Upload Receipt/Image
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="w-full cursor-pointer rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary pl-12"
-                    />
-                    <FaFileUpload className="absolute left-4 top-4 text-xl text-gray-500" />
-                  </div>
-                  {previewImage && (
-                    <div className="mt-3">
-                      <img
-                        src={previewImage}
-                        alt="Preview"
-                        className="max-h-40 rounded-lg object-contain border border-stroke p-2"
-                      />
-                    </div>
-                  )}
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Receipt/Bill Image
+                </label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-full cursor-pointer rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary pl-12"
+                  />
+                  <FaFileUpload className="absolute left-4 top-4 text-xl text-gray-500" />
                 </div>
+                {currentImage && (
+                  <div className="mt-3">
+                    <img
+                      src={currentImage}
+                      alt="Current Receipt"
+                      className="max-h-40 rounded-lg object-contain border border-stroke p-2"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="mb-6">
@@ -227,12 +276,12 @@ const AddExpense = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Saving...
+                      Updating...
                     </>
                   ) : (
                     <>
                       <FaMoneyBillWave className="text-lg" />
-                      Save Expense
+                      Update Expense
                     </>
                   )}
                 </button>
@@ -253,4 +302,4 @@ const AddExpense = () => {
   );
 };
 
-export default AddExpense; 
+export default EditExpense; 

@@ -32,7 +32,7 @@ We are dedicated to providing the best real estate management solutions,
                 <MdLocationOn className="mr-2 text-xl" />
                 <span className="text-sm">RAGHAVA ELITE PROJECTS
 AMRUTHA COLONY, CHIKALPARVI ROAD
-MANVI
+MANVI - 584123
 </span>
               </div>
             </div>

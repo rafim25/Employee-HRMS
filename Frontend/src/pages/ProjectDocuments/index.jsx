@@ -2,27 +2,28 @@ import React from 'react';
 import PublicLayout from '../../components/layouts/PublicLayout';
 import { motion } from 'framer-motion';
 import { FaFileAlt, FaFileContract, FaFilePdf, FaFileSignature, FaFileInvoice, FaFileDownload } from 'react-icons/fa';
-
+import { useNavigate } from 'react-router-dom';
 const ProjectDocuments = () => {
+    const navigate = useNavigate();
     const documents = [
-        {
-            icon: <FaFileContract />,
-            title: "Legal Documents",
-            description: "Essential legal paperwork and approvals",
-            fileName: "legal_docs.pdf"
-        },
-        {
-            icon: <FaFilePdf />,
-            title: "Project Plans",
-            description: "Detailed architectural and structural plans",
-            fileName: "Project_Elite_MANVI_2.pdf"
-        },
-        {
-            icon: <FaFileSignature />,
-            title: "Agreements",
-            description: "Sale and purchase agreements",
-            fileName: "aggreemntPlan.pdf"
-        },
+        // {
+        //     icon: <FaFileContract />,
+        //     title: "Legal Documents",
+        //     description: "Essential legal paperwork and approvals",
+        //     fileName: "legal_docs.pdf"
+        // },
+        // {
+        //     icon: <FaFilePdf />,
+        //     title: "Project Plans",
+        //     description: "Detailed architectural and structural plans",
+        //     fileName: "Project_Elite_MANVI_2.pdf"
+        // },
+        // {
+        //     icon: <FaFileSignature />,
+        //     title: "Agreements",
+        //     description: "Sale and purchase agreements",
+        //     fileName: "aggreemntPlan.pdf"
+        // },
         {
             icon: <FaFileInvoice />,
             title: "Facility Documents",
@@ -153,7 +154,8 @@ const ProjectDocuments = () => {
                                     </p>
                                     <button className="px-8 py-3 bg-primary text-white rounded-lg
                                         transform hover:scale-105 transition-all duration-300
-                                        hover:shadow-lg">
+                                        hover:shadow-lg"
+                                        onClick={() => navigate('/contact')} >
                                         Contact Support
                                     </button>
                                 </div>

@@ -31,12 +31,12 @@ const UserDataForm = () => {
   });
 
   // Generate unique user ID (CID)
-  function generateUserId() {
-    const prefix = 'USR';
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `${prefix}${timestamp}${random}`;
-  }
+ // Generate unique user ID (USR + 4 digits)
+function generateUserId() {
+  const prefix = 'USR';
+  const random = Math.floor(1000 + Math.random() * 9000); // Generates number between 1000-9999
+  return `${prefix}${random}`;
+}
 
   // Handle input changes
   const handleChange = (e) => {

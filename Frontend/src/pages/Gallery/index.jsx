@@ -113,7 +113,7 @@ const Gallery = () => {
         </div>
 
         {/* Featured Section */}
-        <div className="bg-white dark:bg-boxdark">
+        {/* <div className="bg-white dark:bg-boxdark">
           <div className="container mx-auto px-4 py-16">
             <div className="max-w-7xl mx-auto">
               <div className="bg-white dark:bg-boxdark rounded-xl shadow-xl p-8
@@ -122,11 +122,10 @@ const Gallery = () => {
                 <h2 className="text-3xl font-bold text-black dark:text-white mb-8 text-center">
                   Featured Projects
                 </h2>
-                {/* Add featured projects content */}
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Lightbox */}

@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../components';
+import DeleteConfirmationModal from '../../../components/DeleteConfirmationModal';
 import { EXPENSE_TYPES } from '../../../constants/expenseTypes';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { FaRegEdit, FaPlus } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
+import toast from 'react-hot-toast';
 
 const ExpenseList = () => {
   const [expenses, setExpenses] = useState([]);
@@ -16,6 +18,12 @@ const ExpenseList = () => {
   const [itemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState('');
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    expenseId: null,
+    expenseName: ''
+  });
 
   useEffect(() => {
     fetchExpenses();
@@ -26,23 +34,37 @@ const ExpenseList = () => {
       const response = await axios.get('/api/expenses');
       setExpenses(response.data);
     } catch (error) {
-      console.error('Error fetching expenses:', error);
-      alert('Failed to fetch expenses');
+      const errorMessage = error.response?.data?.msg || 'Failed to fetch expenses';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this expense?')) {
-      try {
-        await axios.delete(`/api/expenses/${id}`);
-        setExpenses(expenses.filter(expense => expense._id !== id));
-      } catch (error) {
-        console.error('Error deleting expense:', error);
-        alert('Failed to delete expense');
-      }
+  const handleDeleteClick = (expense) => {
+    setDeleteModal({
+      isOpen: true,
+      expenseId: expense.uuid,
+      expenseName: expense.expenseName
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await axios.delete(`/api/expenses/${deleteModal.expenseId}`);
+      toast.success('Expense deleted successfully!');
+      fetchExpenses(); // Refresh the list after deletion
+      setDeleteModal({ isOpen: false, expenseId: null, expenseName: '' });
+    } catch (error) {
+      const errorMessage = error.response?.data?.msg || 'Failed to delete expense';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, expenseId: null, expenseName: '' });
   };
 
   const getExpenseTypeLabel = (value) => {
@@ -267,10 +289,36 @@ const ExpenseList = () => {
   const currentExpenses = filteredExpenses.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
 
+  if (loading) {
+    return (
+      <DefaultLayoutAdmin>
+        <div className="mx-auto max-w-screen-2xl p-4">
+          <BreadcrumbAdmin pageName='Expense Management' />
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <div className="flex items-center justify-center w-16 h-16 mb-6">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <p className="text-lg font-medium text-black dark:text-white">Loading expenses...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we fetch the data</p>
+          </div>
+        </div>
+      </DefaultLayoutAdmin>
+    );
+  }
+
   return (
     <DefaultLayoutAdmin>
       <div className="mx-auto max-w-screen-2xl p-4">
         <BreadcrumbAdmin pageName='Expense Management' />
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={deleteModal.isOpen}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Expense"
+          message={`Are you sure you want to delete the expense "${deleteModal.expenseName}"? This action cannot be undone.`}
+        />
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
@@ -366,7 +414,7 @@ const ExpenseList = () => {
                 </thead>
                 <tbody>
                   {currentExpenses.map((expense) => (
-                    <tr key={expense._id} className="border-b border-[#eee] dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4">
+                    <tr key={expense.uuid} className="border-b border-[#eee] dark:border-strokedark hover:bg-gray-50 dark:hover:bg-meta-4">
                       <td className="py-5 px-4 pl-9 xl:pl-11">
                         <h5 className="font-medium text-black dark:text-white">
                           {expense.expenseName}
@@ -397,13 +445,13 @@ const ExpenseList = () => {
                       <td className="py-5 px-4">
                         <div className="flex items-center space-x-3.5">
                           <Link
-                            to={`/admin/expense/edit/${expense._id}`}
+                            to={`/admin/expense/edit/${expense.uuid}`}
                             className="hover:text-primary transition duration-200"
                           >
                             <FaRegEdit className="text-xl" />
                           </Link>
                           <button
-                            onClick={() => handleDelete(expense._id)}
+                            onClick={() => handleDeleteClick(expense)}
                             className="hover:text-danger transition duration-200"
                           >
                             <BsTrash3 className="text-xl" />
