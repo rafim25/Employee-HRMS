@@ -216,14 +216,14 @@ const LoginAdmin = () => {
                                                 </button>
                                             </div>
 
-                                            <div className="text-center">
+                                            {/* <div className="text-center">
                                                 <a
                                                     href="#"
                                                     className="text-primary font-medium hover:text-opacity-80 transition-all duration-300"
                                                 >
                                                     Forgot Password?
                                                 </a>
-                                            </div>
+                                            </div> */}
                                         </form>
                                     </div>
                                 </div>

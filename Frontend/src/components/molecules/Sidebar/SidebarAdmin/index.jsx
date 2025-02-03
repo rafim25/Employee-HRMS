@@ -12,6 +12,8 @@ import { AiOutlineTransaction } from 'react-icons/ai'
 import { BsArrowLeftShort } from 'react-icons/bs'
 import { FaMoneyBillWave } from 'react-icons/fa'
 import { TbReport } from 'react-icons/tb'
+import { BiMoney } from 'react-icons/bi'
+import { BsBuilding } from 'react-icons/bs'
 
 const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -166,47 +168,65 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
               </SidebarLinkGroup>
               {/* <!-- Master Data Admin --> */}
 
-              {/* <!-- Transactions - Commented out --> */}
-              {/* <SidebarLinkGroup>
+              {/* <!-- Expense Management --> */}
+              <SidebarLinkGroup
+                activeCondition={
+                  pathname === '/expense' || pathname.includes('expense')
+                }
+              >
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
-                      <div className="nav-group-button" onClick={() => handleClick()}>
-                        <AiOutlineTransaction className="text-xl" />
-                        <span>Transactions</span>
-                        <BsArrowLeftShort className={`${open ? 'rotate-90' : ''}`} />
+                      <NavLink
+                        to='#'
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                          (pathname === '/expense' || pathname.includes('expense')) &&
+                          'bg-graydark dark:bg-meta-4'
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          sidebarExpanded ? handleClick() : setSidebarExpanded(true)
+                        }}
+                      >
+                        <BiMoney />
+                        Expense Management
+                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${
+                          open && 'rotate-180'
+                        }`} />
+                      </NavLink>
+                      {/* <!-- Dropdown Menu Start --> */}
+                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
+                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                          <li>
+                            <NavLink
+                              to='/admin/expense/add'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              Add Expense
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to='/admin/expense/list'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              Expense List
+                            </NavLink>
+                          </li>
+                        </ul>
                       </div>
-                      <div className={`nav-group-items ${open ? '' : 'hidden'}`}>
-                        <NavLink to="/admin/transactions/loans" className="nav-item">
-                          <FaMoneyBillWave />
-                          <span>Loans</span>
-                        </NavLink>
-                      </div>
+                      {/* <!-- Dropdown Menu End --> */}
                     </React.Fragment>
                   )
                 }}
-              </SidebarLinkGroup> */}
-
-              {/* <!-- Reports - Commented out --> */}
-              {/* <SidebarLinkGroup>
-                {(handleClick, open) => {
-                  return (
-                    <React.Fragment>
-                      <div className="nav-group-button" onClick={() => handleClick()}>
-                        <TbReport className="text-xl" />
-                        <span>Reports</span>
-                        <BsArrowLeftShort className={`${open ? 'rotate-90' : ''}`} />
-                      </div>
-                      <div className={`nav-group-items ${open ? '' : 'hidden'}`}>
-                        <NavLink to="/admin/reports/loan-report" className="nav-item">
-                          <FaMoneyBillWave />
-                          <span>Loan Report</span>
-                        </NavLink>
-                      </div>
-                    </React.Fragment>
-                  )
-                }}
-              </SidebarLinkGroup> */}
+              </SidebarLinkGroup>
+              {/* <!-- Expense Management --> */}
 
               {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
@@ -241,7 +261,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                           }`}
                       >
                         <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
-                          <li>
+                          {/* <li>
                             <NavLink
                               to='/admin/pengaturan/ubah-password'
                               className={({ isActive }) =>
@@ -251,7 +271,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                             >
                               Change Password
                             </NavLink>
-                          </li>
+                          </li> */}
                           <li>
                             <NavLink
                               to='/'

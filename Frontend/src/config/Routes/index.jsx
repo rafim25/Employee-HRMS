@@ -8,9 +8,10 @@ import { ProtectedRoute } from '../../components/ProtectedRoute'
 import {
   LoginAdmin, DashboardAdmin, DataPegawai, DataJabatan, DataAbsensi, SettingPotonganGaji, DataGaji, LaporanGaji,
   LaporanAbsensi, SlipGaji, UbahPasswordAdmin, LoginPegawai, DashboardPegawai, DataGajiPegawai, UbahPasswordPegawai,
-  Lending, EditUser, EditLoan,
-  EditPurchaseDetails
+  Lending, EditUser, EditLoan, EditPurchaseDetails
 } from '../../pages'
+import AddExpense from '../../pages/Admin/Expense/AddExpense'
+import ExpenseList from '../../pages/Admin/Expense/ExpenseList'
 import Contact from '../../pages/Contact'
 import WhyChooseUs from '../../pages/WhyChooseUs'
 import Gallery from '../../pages/Gallery'
@@ -129,6 +130,18 @@ const AppRoutes = () => {
       <Route exact path='/pegawai/pengaturan/ubah-password' element={
         <ProtectedRoute allowedRoles={['user']}>
           <UbahPasswordPegawai />
+        </ProtectedRoute>
+      } />
+
+      {/* Expense Management Routes */}
+      <Route path='/admin/expense/add' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AddExpense />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/expense/list' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <ExpenseList />
         </ProtectedRoute>
       } />
 

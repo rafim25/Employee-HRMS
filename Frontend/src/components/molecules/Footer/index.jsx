@@ -26,7 +26,7 @@ We are dedicated to providing the best real estate management solutions,
               </div>
               <div className="flex items-center">
                 <MdPhone className="mr-2 text-xl" />
-                <span className="text-sm">+91 9686918665</span>
+                <span className="text-sm">+91 9900220446</span>
               </div>
               <div className="flex items-center">
                 <MdLocationOn className="mr-2 text-xl" />

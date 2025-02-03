@@ -127,7 +127,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                           }`}
                       >
                         <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
-                          <li>
+                          {/* <li>
                             <NavLink
                               to='/pegawai/pengaturan/ubah-password'
                               className={({ isActive }) =>
@@ -137,7 +137,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                             >
                               Change Password
                             </NavLink>
-                          </li>
+                          </li> */}
                         </ul>
                       </div>
                       {/* <!-- Dropdown Menu End --> */}

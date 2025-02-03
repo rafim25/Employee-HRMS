@@ -9,7 +9,7 @@ const Testimonials = () => {
     const testimonials = [
         {
             name: "Dada Khalander",
-            role: "Property Owner",
+            role: "Software Engineer",
             content: "The entire process from agreement to construction has been transparent and professional. The team's attention to detail and regular updates gave us complete peace of mind.",
             rating: 5,
             projectStatus: {

@@ -11,6 +11,7 @@ import UserRoute from "./routes/UserRoute.js";
 import DataJabatanRoute from "./routes/DataJabatanRoute.js";
 import AuthRoute from "./routes/AuthRoute.js";
 import DataKehadiranRoute from "./routes/DataKehadiranRoute.js";
+import ExpenseRoute from "./routes/expenseRoutes.js";
 
 import LoanRoute from "./routes/LoanRoute.js";
 import TransactionRoute from "./routes/TransactionRoute.js";
@@ -105,6 +106,7 @@ const startServer = async () => {
     app.use("/api", EmailRoute); // Mount email routes first
     app.use(UserRoute);
     app.use(AuthV2Route);
+    app.use(ExpenseRoute);
 
     // Add this to your routes section
     app.use(LoanRoute);

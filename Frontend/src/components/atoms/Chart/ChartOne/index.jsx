@@ -3,27 +3,48 @@ import ReactApexChart from 'react-apexcharts'
 
 class ChartOne extends Component {
   constructor(props) {
-    super(props)
+    super(props);
+    this.initializeChart(props);
+  }
+  calculateTotals = (monthlyExpenses, monthlyIncome) => {
+    const totalExpenses = monthlyExpenses.reduce((sum, expense) => sum + Number(expense), 0);
+    const totalIncome = monthlyIncome.reduce((sum, income) => sum + Number(income), 0);
+    return { totalExpenses, totalIncome };
+  }
+
+  initializeChart = (props) => {
+    
+    const monthlyExpenses = Array.isArray(props.monthlyExpenses) 
+      ? props.monthlyExpenses.map(Number) 
+      : Array(12).fill(0);
+
+    const monthlyIncome = Array.isArray(props.monthlyIncome)
+      ? props.monthlyIncome.map(Number)
+      : Array(12).fill(50000);
+
+
+    const { totalExpenses, totalIncome } = this.calculateTotals(monthlyExpenses, monthlyIncome);
 
     this.state = {
       series: [
         {
-          name: 'Male',
-          data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30, 45],
+          name: 'Income',
+          data: monthlyIncome
         },
-
         {
-          name: 'Female',
-          data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39, 51],
-        },
+          name: 'Expenses',
+          data: monthlyExpenses
+        }
       ],
+      totalIncome,
+      totalExpenses,
       options: {
         legend: {
-          show: false,
+          show: true,
           position: 'top',
           horizontalAlign: 'left',
         },
-        colors: ['#3C50E0', '#80CAEE'],
+        colors: ['#3C50E0', '#80CAEE'], // Dark blue for Income, Light blue for Expenses
         chart: {
           fontFamily: 'Satoshi, sans-serif',
           height: 335,
@@ -36,10 +57,21 @@ class ChartOne extends Component {
             left: 0,
             opacity: 0.1,
           },
-
           toolbar: {
             show: false,
           },
+          zoom: {
+            enabled: false
+          }
+        },
+        fill: {
+          type: 'gradient',
+          gradient: {
+            shadeIntensity: 1,
+            opacityFrom: 0.7,
+            opacityTo: 0.3,
+            stops: [0, 90, 100]
+          }
         },
         responsive: [
           {
@@ -61,11 +93,7 @@ class ChartOne extends Component {
         ],
         stroke: {
           width: [2, 2],
-          curve: 'straight',
-        },
-        labels: {
-          show: false,
-          position: 'top',
+          curve: 'smooth',
         },
         grid: {
           xaxis: {
@@ -85,7 +113,7 @@ class ChartOne extends Component {
         markers: {
           size: 4,
           colors: '#fff',
-          strokeColors: ['#3056D3', '#80CAEE'],
+          strokeColors: ['#3C50E0', '#80CAEE'], // Dark blue for Income, Light blue for Expenses
           strokeWidth: 3,
           strokeOpacity: 0.9,
           strokeDashArray: 0,
@@ -99,10 +127,6 @@ class ChartOne extends Component {
         xaxis: {
           type: 'category',
           categories: [
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
             'Jan',
             'Feb',
             'Mar',
@@ -111,6 +135,10 @@ class ChartOne extends Component {
             'Jun',
             'Jul',
             'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
           ],
           axisBorder: {
             show: false,
@@ -121,18 +149,71 @@ class ChartOne extends Component {
         },
         yaxis: {
           title: {
+            text: 'Amount (₹)',
             style: {
-              fontSize: '0px',
+              fontSize: '12px',
             },
           },
+          labels: {
+            formatter: function(value) {
+              if (value >= 1000000) {
+                return (value / 1000000).toFixed(1) + 'M';
+              } else if (value >= 1000) {
+                return (value / 1000).toFixed(0) + 'K';
+              }
+              return value;
+            }
+          },
           min: 0,
-          max: 100,
+          forceNiceScale: true,
+          tickAmount: 6,
         },
+        tooltip: {
+          shared: true,
+          intersect: false,
+          y: {
+            formatter: function (value) {
+              return '₹' + value.toLocaleString('en-IN')
+            }
+          }
+        }
       },
     }
   }
 
+  componentDidUpdate(prevProps) {
+    if (prevProps.monthlyExpenses !== this.props.monthlyExpenses || 
+        prevProps.monthlyIncome !== this.props.monthlyIncome) {
+      const monthlyExpenses = Array.isArray(this.props.monthlyExpenses)
+        ? this.props.monthlyExpenses.map(Number)
+        : Array(12).fill(0);
+
+      const monthlyIncome = Array.isArray(this.props.monthlyIncome)
+        ? this.props.monthlyIncome.map(Number)
+        : Array(12).fill(50000);
+
+      const { totalExpenses, totalIncome } = this.calculateTotals(monthlyExpenses, monthlyIncome);
+
+      this.setState({
+        series: [
+          {
+            name: 'Income',
+            data: monthlyIncome
+          },
+          {
+            name: 'Expenses',
+            data: monthlyExpenses
+          }
+        ],
+        totalIncome,
+        totalExpenses
+      });
+    }
+  }
+
   render() {
+    const { series, options, totalIncome, totalExpenses } = this.state;
+    
     return (
       <div className='col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:col-span-8'>
         <div className='flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap'>
@@ -142,8 +223,9 @@ class ChartOne extends Component {
                 <span className='block h-2.5 w-full max-w-2.5 rounded-full bg-primary'></span>
               </span>
               <div className='w-full'>
-                <p className='font-semibold text-primary'>Data Total Credited</p>
-                <p className='text-sm font-medium'>14.04.2023 - 14.05.2023</p>
+                <p className='font-semibold text-primary'>Monthly Income</p>
+                <p className='text-sm font-medium'>Variable</p>
+                <p className='text-xs text-gray-500'>Total: ₹{totalIncome.toLocaleString('en-IN')}</p>
               </div>
             </div>
             <div className='flex min-w-47.5'>
@@ -151,22 +233,10 @@ class ChartOne extends Component {
                 <span className='block h-2.5 w-full max-w-2.5 rounded-full bg-secondary'></span>
               </span>
               <div className='w-full'>
-                <p className='font-semibold text-secondary'>Data Total Debit</p>
-                <p className='text-sm font-medium'>14.04.2023 - 14.05.2023</p>
+                <p className='font-semibold text-secondary'>Monthly Expenses</p>
+                <p className='text-sm font-medium'>Variable</p>
+                <p className='text-xs text-gray-500'>Total: ₹{totalExpenses.toLocaleString('en-IN')}</p>
               </div>
-            </div>
-          </div>
-          <div className='flex w-full max-w-45 justify-end'>
-            <div className='inline-flex items-center rounded-md bg-whiter p-1.5 dark:bg-meta-4'>
-              <button className='rounded bg-white py-1 px-3 text-xs font-medium text-black shadow-card hover:bg-white hover:shadow-card dark:bg-boxdark dark:text-white dark:hover:bg-boxdark'>
-                Day
-              </button>
-              <button className='rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'>
-                Week
-              </button>
-              <button className='rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark'>
-                Month
-              </button>
             </div>
           </div>
         </div>
@@ -174,8 +244,8 @@ class ChartOne extends Component {
         <div>
           <div id='chartOne' className='-ml-5'>
             <ReactApexChart
-              options={this.state.options}
-              series={this.state.series}
+              options={options}
+              series={series}
               type='area'
               height={350}
             />

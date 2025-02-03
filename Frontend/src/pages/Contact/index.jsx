@@ -204,7 +204,7 @@ const Contact = () => {
                   {
                     icon: <FiMapPin />,
                     title: "Office Address",
-                    content: `RAGHAVA ELITE PROJECTS\n(REG NO: BLY-P-110-2023-24)\nAMRUTHA COLONY, CHIKALPARVI ROAD\nMANVI\nMOB: 9686918665, 9900220446`
+                    content: `RAGHAVA ELITE PROJECTS\n(REG NO: BLY-P-110-2023-24)\nAMRUTHA COLONY, CHIKALPARVI ROAD\nMANVI - 584123\nMOB: 9900220446`
                   },
                   {
                     icon: <FiMapPin />,
@@ -215,12 +215,12 @@ const Contact = () => {
                   {
                     icon: <FiPhone />,
                     title: "Contact Numbers",
-                    content: `Main: +91 9686918665\nOffice: +91 9686918665\nSupport: +91 9686918665`
+                    content: `Main: +91 9686918665\n`
                   },
                   {
                     icon: <FiMail />,
                     title: "Email Addresses",
-                    content: `Info: raghav.elite.projects@gmail.com\nSupport: raghav.elite.projects@gmail.com\nSales: raghav.elite.projects@gmail.com`
+                    content: `Info: raghav.elite.projects@gmail.com\n`
                   }
                 ].map((item, index) => (
                   <motion.div

@@ -1,54 +1,44 @@
 import { api } from "../../services/api";
-import { DASHBOARD_ENDPOINTS } from "../../constants/apiEndpoints";
-import {
-  SET_USER_COUNT,
-  SET_ADMIN_COUNT,
-  SET_ADMINS,
-  SET_LOANS,
-  SET_ERROR,
-  SET_DASHBOARD_STATS,
-} from "../types";
-
-// export const fetchDashboardData = async (dispatch) => {
-//   try {
-//     const response = await api.get(DASHBOARD_ENDPOINTS.STATS);
-//     const { totalUsers, totalAdmins, totalLoans } = response.data;
-
-//     dispatch({
-//       type: SET_USER_COUNT,
-//       payload: totalUsers,
-//     });
-
-//     dispatch({
-//       type: SET_ADMIN_COUNT,
-//       payload: totalAdmins,
-//     });
-
-//     dispatch({
-//       type: SET_LOANS,
-//       payload: totalLoans,
-//     });
-//   } catch (error) {
-//     console.error("Dashboard data fetch error:", error);
-//     dispatch({
-//       type: SET_ERROR,
-//       payload: "Failed to fetch dashboard data",
-//     });
-//   }
-// };
+import { SET_DASHBOARD_STATS, SET_ERROR } from "../types";
 
 export const fetchDashboardData = async (dispatch) => {
   try {
-    const response = await api.get(DASHBOARD_ENDPOINTS.STATS);
+    const response = await api.get("/api/dashboard/stats");
+    const {
+      totalUsers,
+      totalAdmins,
+      totalLoans,
+      totalExpenses,
+      totalAvailableFunds,
+      recentLoans,
+      recentTransactions,
+      monthlyExpenses,
+      monthlyIncome,
+    } = response.data;
 
-    const { totalUsers, totalAdmins, totalLoans } = response.data;
+    // Map recent loans and transactions to include proper user info
+    const mappedLoans = recentLoans.map((loan) => ({
+      ...loan,
+      customerName: loan.user?.username || loan.customer_name,
+    }));
+
+    const mappedTransactions = recentTransactions.map((transaction) => ({
+      ...transaction,
+      customerName: transaction.customer?.username || "Unknown",
+    }));
 
     dispatch({
       type: SET_DASHBOARD_STATS,
       payload: {
-        activeLoans: totalLoans,
         totalCustomers: totalUsers,
-        totalAdmins: totalAdmins,
+        totalAdmins,
+        activeLoans: totalLoans,
+        totalExpenses,
+        totalAvailableFunds,
+        recentLoans: mappedLoans,
+        recentTransactions: mappedTransactions,
+        monthlyExpenses: monthlyExpenses,
+        monthlyIncome: monthlyIncome,
       },
     });
   } catch (error) {

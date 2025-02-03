@@ -30,6 +30,10 @@ export const authReducer = (state, action) => {
           activeLoans: action.payload.activeLoans,
           totalCustomers: action.payload.totalCustomers,
           totalAdmins: action.payload.totalAdmins,
+          totalAvailableFunds: action.payload.totalAvailableFunds,
+          totalExpenses: action.payload.totalExpenses,
+          monthlyExpenses: action.payload.monthlyExpenses,
+          monthlyIncome: action.payload.monthlyIncome,
         },
       };
     case SET_USER_COUNT:
