@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { useAuth } from '../../../../context/AuthContext';
+import { formatCurrency } from '../../../../utils/formatCurrency';
 
 const ChartTwo = () => {
   const { state } = useAuth();
@@ -40,10 +41,7 @@ const ChartTwo = () => {
               color: '#fff',
               offsetY: 16,
               formatter: function (val) {
-                return `₹${Number(val).toLocaleString('en-IN', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}`;
+                return formatCurrency(val);
               }
             },
             total: {
@@ -51,10 +49,7 @@ const ChartTwo = () => {
               color: '#fff',
               label: 'Total',
               formatter: function (w) {
-                return `₹${w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString('en-IN', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}`;
+                return formatCurrency(w.globals.seriesTotals.reduce((a, b) => a + b, 0));
               }
             },
           },
@@ -112,10 +107,7 @@ const ChartTwo = () => {
             <span className='mr-2 block h-3 w-full max-w-3 rounded-full bg-success'></span>
             <p className='flex w-full justify-between text-md font-medium text-black dark:text-white'>
               <span>Total Income</span>
-              <span>₹{Number(totalAvailableFunds).toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}</span>
+              <span>{formatCurrency(totalAvailableFunds)}</span>
             </p>
           </div>
         </div>
@@ -124,10 +116,7 @@ const ChartTwo = () => {
             <span className='mr-2 block h-3 w-full max-w-3 rounded-full bg-danger'></span>
             <p className='flex w-full justify-between text-md font-medium text-black dark:text-white'>
               <span>Total Expenses</span>
-              <span>₹{Number(totalExpenses).toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}</span>
+              <span>{formatCurrency(totalExpenses)}</span>
             </p>
           </div>
         </div>

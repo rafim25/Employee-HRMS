@@ -30,12 +30,12 @@ const ProjectDocuments = () => {
             description: "facility documents for the project",
             fileName: "Facility_Infra_Details.pdf"
         },
-        {
-            icon: <FaFileAlt />,
-            title: "Specifications",
-            description: "Technical specifications and materials",
-            fileName: "Facility_Infra_Details.pdf"
-        },
+        // {
+        //     icon: <FaFileAlt />,
+        //     title: "Specifications",
+        //     description: "Technical specifications and materials",
+        //     fileName: "Facility_Infra_Details.pdf"
+        // },
         {
             icon: <FaFileDownload />,
             title: "Project Brochure",

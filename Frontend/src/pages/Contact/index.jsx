@@ -215,7 +215,7 @@ const Contact = () => {
                   {
                     icon: <FiPhone />,
                     title: "Contact Numbers",
-                    content: `Main: +91 9686918665\n`
+                    content: `Main: +91 9900220446\n`
                   },
                   {
                     icon: <FiMail />,

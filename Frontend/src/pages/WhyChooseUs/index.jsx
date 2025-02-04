@@ -1,6 +1,7 @@
 import React from 'react';
 import PublicLayout from '../../components/layouts/PublicLayout';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
     FaAward, FaHandshake, FaHeart, FaShieldAlt, FaClock, FaUserTie,
     FaTree, FaWater, FaRoad, FaLightbulb, FaCamera, FaWifi,
@@ -8,6 +9,7 @@ import {
 } from 'react-icons/fa';
 
 const WhyChooseUs = () => {
+    const navigate = useNavigate();
     const reasons = [
         {
             icon: <FaAward className="text-3xl" />,
@@ -208,7 +210,8 @@ const WhyChooseUs = () => {
                                     </p>
                                     <button className="px-8 py-3 bg-primary text-white rounded-lg
                                         transform hover:scale-105 transition-all duration-300
-                                        hover:shadow-lg">
+                                        hover:shadow-lg"
+                                        onClick={() => navigate('/contact')} >
                                         Contact Us Today
                                     </button>
                                 </div>

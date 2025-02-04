@@ -10,6 +10,7 @@ import { FaRegEdit, FaPlus } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import toast from 'react-hot-toast';
+import { formatCurrency } from '../../../utils/formatCurrency';
 
 const ExpenseList = () => {
   const [expenses, setExpenses] = useState([]);
@@ -128,13 +129,13 @@ const ExpenseList = () => {
         }
       },
       dataLabels: {
-        enabled: true,
+        enabled: false,
         style: {
           fontSize: '12px',
           colors: ['#fff']
         },
         formatter: function (val) {
-          return '₹' + val.toFixed(2);
+          return formatCurrency(val);
         }
       },
       stroke: {
@@ -165,7 +166,7 @@ const ExpenseList = () => {
         },
         labels: {
           formatter: function (val) {
-            return '₹' + val.toFixed(0);
+            return formatCurrency(val);
           },
           style: {
             colors: '#64748b'
@@ -178,7 +179,7 @@ const ExpenseList = () => {
       tooltip: {
         y: {
           formatter: function (val) {
-            return "₹" + val.toFixed(2)
+            return formatCurrency(val);
           }
         }
       },
@@ -228,7 +229,7 @@ const ExpenseList = () => {
                 fontSize: '16px',
                 fontWeight: 600,
                 formatter: function (w) {
-                  return '₹' + w.globals.seriesTotals.reduce((a, b) => a + b, 0).toFixed(2);
+                  return formatCurrency(w.globals.seriesTotals.reduce((a, b) => a + b, 0));
                 },
                 color: '#64748b'
               },
@@ -243,7 +244,7 @@ const ExpenseList = () => {
         }
       },
       dataLabels: {
-        enabled: true,
+        enabled: false,
         formatter: function (val) {
           return val.toFixed(1) + '%';
         },

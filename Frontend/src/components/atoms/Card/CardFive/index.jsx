@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaMoneyBillWave } from 'react-icons/fa'
 import { useAuth } from '../../../../context/AuthContext';
+import { formatCurrency } from '../../../../utils/formatCurrency';
 
 const CardFive = () => {
   const { state } = useAuth();
@@ -14,14 +15,11 @@ const CardFive = () => {
 
       <div className='mt-4 flex items-end justify-between'>
         <div>
-          <h4 className='text-title-md font-bold text-danger dark:text-danger'>
+          <h4 className='text-title-md font-bold text-danger dark:text-danger break-words'>
             {error ? (
               <span className="text-danger">Error loading data</span>
             ) : (
-              `₹${Number(totalExpenses).toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`
+              formatCurrency(totalExpenses)
             )}
           </h4>
           <span className='text-sm font-medium text-danger'>Total Expenses</span>

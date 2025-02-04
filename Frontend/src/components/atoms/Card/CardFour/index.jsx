@@ -1,6 +1,7 @@
 import React from 'react';
 import { BiRupee } from 'react-icons/bi'
 import { useAuth } from '../../../../context/AuthContext';
+import { formatCurrency } from '../../../../utils/formatCurrency';
 
 const CardFour = () => {
   const { state } = useAuth();
@@ -14,14 +15,11 @@ const CardFour = () => {
 
       <div className='mt-4 flex items-end justify-between'>
         <div>
-          <h4 className='text-title-md font-bold text-success dark:text-success'>
+          <h4 className='text-title-md font-bold text-success dark:text-success break-words'>
             {error ? (
               <span className="text-danger">Error loading data</span>
             ) : (
-             `₹${Number(totalAvailableFunds).toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`
+              formatCurrency(totalAvailableFunds)
             )}
           </h4>
           <span className='text-sm font-medium text-success'>Total Income</span>
