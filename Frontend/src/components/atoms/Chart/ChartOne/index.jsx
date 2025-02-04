@@ -226,7 +226,7 @@ class ChartOne extends Component {
               </span>
               <div className='w-full'>
                 <p className='font-semibold text-primary'>Monthly Income</p>
-                <p className='text-sm font-medium'>Variable</p>
+                {/* <p className='text-sm font-medium'>Variable</p> */}
                 <p className='text-sm text-gray-500 break-words'>{this.formatCurrency(totalIncome)}</p>
               </div>
             </div>
@@ -236,7 +236,7 @@ class ChartOne extends Component {
               </span>
               <div className='w-full'>
                 <p className='font-semibold text-secondary'>Monthly Expenses</p>
-                <p className='text-sm font-medium'>Variable</p>
+                {/* <p className='text-sm font-medium'>Variable</p> */}
                 <p className='text-sm text-gray-500 break-words'>{this.formatCurrency(totalExpenses)}</p>
               </div>
             </div>

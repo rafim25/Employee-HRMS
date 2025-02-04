@@ -103,20 +103,28 @@ const ChartTwo = () => {
 
       <div className='-mx-8 flex flex-wrap items-center justify-center gap-y-3'>
         <div className='w-full px-8 sm:w-1/2'>
-          <div className='flex w-full items-center'>
-            <span className='mr-2 block h-3 w-full max-w-3 rounded-full bg-success'></span>
-            <p className='flex w-full justify-between text-md font-medium text-black dark:text-white'>
-              <span>Total Income</span>
-              <span>{formatCurrency(totalAvailableFunds)}</span>
+          <div className='flex flex-col items-center'>
+            <div className='flex items-center mb-2'>
+              <span className='mr-2 block h-3 w-3 rounded-full bg-success'></span>
+              <p className='text-md font-medium text-black dark:text-white'>
+                Total Income
+              </p>
+            </div>
+            <p className='text-lg font-bold text-black dark:text-white'>
+              {formatCurrency(totalAvailableFunds)}
             </p>
           </div>
         </div>
         <div className='w-full px-8 sm:w-1/2'>
-          <div className='flex w-full items-center'>
-            <span className='mr-2 block h-3 w-full max-w-3 rounded-full bg-danger'></span>
-            <p className='flex w-full justify-between text-md font-medium text-black dark:text-white'>
-              <span>Total Expenses</span>
-              <span>{formatCurrency(totalExpenses)}</span>
+          <div className='flex flex-col items-center'>
+            <div className='flex items-center mb-2'>
+              <span className='mr-2 block h-3 w-3 rounded-full bg-danger'></span>
+              <p className='text-md font-medium text-black dark:text-white'>
+                Total Expenses
+              </p>
+            </div>
+            <p className='text-lg font-bold text-black dark:text-white'>
+              {formatCurrency(totalExpenses)}
             </p>
           </div>
         </div>
