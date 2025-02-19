@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link, useNavigate } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus, FaHistory } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaHistory, FaFileExcel } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchLoans, deleteLoan } from '../../../../context/actions/loanActions';
 import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -21,6 +22,8 @@ const LendingDetails = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [loanToDelete, setLoanToDelete] = useState(null);
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
 
     // Pagination calculations
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -82,6 +85,52 @@ const LendingDetails = () => {
         }
     };
 
+    // Add download function
+    const handleDownloadExcel = () => {
+        if (!fromDate || !toDate) {
+            toast.error('Please select both From and To dates');
+            return;
+        }
+
+        const startDate = new Date(fromDate);
+        const endDate = new Date(toDate);
+        endDate.setHours(23, 59, 59); // Set to end of day
+
+        if (startDate > endDate) {
+            toast.error('From date cannot be later than To date');
+            return;
+        }
+
+        const filteredData = loans.filter(loan => {
+            const loanDate = new Date(loan.created_at);
+            return loanDate >= startDate && loanDate <= endDate;
+        });
+
+        if (filteredData.length === 0) {
+            toast.error('No purchase records found for the selected date range');
+            return;
+        }
+
+        const worksheet = XLSX.utils.json_to_sheet(filteredData.map(loan => ({
+            'Customer Name': loan.customer_name,
+            'Purchase Amount': loan.loan_amount,
+            'Advance Paid': loan.advance_amount,
+            'Balance Remaining': loan.remaining_balance,
+            'Paid Amount': loan.loan_amount - loan.remaining_balance,
+            'Status': loan.status,
+            'Date': new Date(loan.created_at).toLocaleDateString()
+        })));
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Purchases');
+        
+        // Generate filename with date range
+        const filename = `purchases_${fromDate}_to_${toDate}.xlsx`;
+        XLSX.writeFile(workbook, filename);
+        
+        toast.success('Purchase report downloaded successfully');
+    };
+
     if (loading) {
         return (
             <DefaultLayoutAdmin>
@@ -95,14 +144,42 @@ const LendingDetails = () => {
     return (
         <DefaultLayoutAdmin>
             <BreadcrumbAdmin pageName='Purchase Details' />
-            <Link to="/admin/master-data/lending/add-lending">
-                <ButtonOne>
-                    <span>Add Purchase</span>
-                    <span>
-                        <FaPlus />
-                    </span>
-                </ButtonOne>
-            </Link>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <Link to="/admin/master-data/lending/add-lending">
+                    <ButtonOne>
+                        <span>Add Purchase</span>
+                        <span>
+                            <FaPlus />
+                        </span>
+                    </ButtonOne>
+                </Link>
+
+                <div className="flex flex-wrap items-center gap-3 ml-auto">
+                    <div className="flex items-center gap-2">
+                        <label className="text-black dark:text-white font-medium">From:</label>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="rounded-lg border-[1.5px] border-stroke bg-transparent py-2 px-4 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                        />
+                        <label className="text-black dark:text-white font-medium ml-4">To:</label>
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="rounded-lg border-[1.5px] border-stroke bg-transparent py-2 px-4 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                        />
+                    </div>
+                    <button
+                        onClick={handleDownloadExcel}
+                        className="inline-flex items-center justify-center rounded-md bg-success py-2 px-6 text-center font-medium text-white hover:bg-opacity-90 transition duration-200 ease-in-out ml-4"
+                    >
+                        <FaFileExcel className="mr-2" />
+                        Download Excel
+                    </button>
+                </div>
+            </div>
 
             <div className='rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1 mt-6'>
                 <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
