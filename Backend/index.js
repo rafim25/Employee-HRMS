@@ -46,12 +46,27 @@ const startServer = async () => {
     await store.sync();
     console.log("✅ Session store synchronized");
 
+    // Create Express app with timeout
+    const server = app.listen(process.env.APP_PORT || 3002, () => {
+      console.log(
+        `✅ Server is running on port ${process.env.APP_PORT || 3002}`
+      );
+      console.log(`📝 Environment: ${process.env.NODE_ENV}`);
+      console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN}`);
+    });
+
+    // Set server timeout to 60 seconds
+    server.timeout = 60000;
+    server.keepAliveTimeout = 65000;
+    server.headersTimeout = 66000;
+
     // CORS Middleware
     app.use(
       cors({
         origin:
           process.env.NODE_ENV === "production"
             ? [
+                "https://raghaveliteprojects.com",
                 "http://raghaveliteprojects.com",
                 "http://172.105.59.206:5173",
                 "http://172.105.59.206:3002",
@@ -125,14 +140,6 @@ const startServer = async () => {
     });
 
     console.log("process.env.APP_POR------->T", process.env);
-
-    // Start the server
-    const PORT = process.env.APP_PORT || 3002;
-    app.listen(PORT, () => {
-      console.log(`✅ Server is running on port ${PORT}`);
-      console.log(`📝 Environment: ${process.env.NODE_ENV}`);
-      console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN}`);
-    });
   } catch (error) {
     console.error("❌ Server startup error:", error);
     process.exit(1);

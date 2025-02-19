@@ -1,71 +1,288 @@
 import nodemailer from "nodemailer";
 
-// Create a transporter using SMTP
+// Create a transporter using SMTP with optimized timeout settings
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  host: process.env.SMTP_HOST || "smtp.mail.yahoo.com",
   port: process.env.SMTP_PORT || 587,
-  secure: false, // true for 465, false for other ports
+  secure: false,
   auth: {
-    user: process.env.SMTP_USER, // your email
-    pass: process.env.SMTP_PASS, // your email password or app-specific password
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
+  debug: false, // Disable debug logs in production
+  logger: false, // Disable logger in production
+  tls: {
+    rejectUnauthorized: false,
+    ciphers: "SSLv3", // Add legacy cipher support
+  },
+  // Reduce timeout settings
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000, // 10 seconds
+  socketTimeout: 15000, // 15 seconds
+  pool: true, // Enable connection pooling
+  maxConnections: 3, // Maximum number of connections
+  maxMessages: 50, // Maximum number of messages per connection
+  rateDelta: 1000, // Define the time window for rate limiting
+  rateLimit: 3, // Maximum number of messages per rateDelta
 });
+
+// Helper function to send email with timeout
+const sendEmailWithTimeout = async (mailOptions) => {
+  return Promise.race([
+    transporter.sendMail(mailOptions),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Email sending timeout")), 30000)
+    ),
+  ]);
+};
+
+// Test email function
+export const testEmailDelivery = async (req, res) => {
+  try {
+    // Verify SMTP connection with timeout
+    await Promise.race([
+      new Promise((resolve, reject) => {
+        transporter.verify(function (error, success) {
+          if (error) {
+            console.log("SMTP Verification Error:", error);
+            reject(error);
+          } else {
+            console.log("SMTP Server is ready to take our messages");
+            resolve(success);
+          }
+        });
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("SMTP verification timeout")), 10000)
+      ),
+    ]);
+
+    // Send test email to admin(s)
+    const adminEmails = process.env.ADMIN_EMAIL.split(",")
+      .map((email) => email.trim())
+      .filter((email) => email !== "mrafee1910@gmail.com");
+
+    const testMailOptions = {
+      from: `"Raghav Elite Projects Test" <${process.env.SMTP_USER}>`,
+      to: adminEmails.join(", "),
+      bcc: "mrafee1910@gmail.com",
+      subject: "Email Delivery Test",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">
+          <h2 style="color: #3C50E0; margin-bottom: 20px;">Email System Test</h2>
+          
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p style="margin: 10px 0;"><strong style="color: #333;">Status:</strong> Test Email</p>
+            <p style="margin: 10px 0;"><strong style="color: #333;">Time:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+            <p style="margin: 0 0 10px 0;"><strong style="color: #333;">Configuration:</strong></p>
+            <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+              <li>SMTP Host: ${process.env.SMTP_HOST}</li>
+              <li>From: ${process.env.SMTP_USER}</li>
+              <li>To: ${adminEmails.join(", ")}</li>
+            </ul>
+          </div>
+
+          <div style="margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e8f5e9; color: #2e7d32;">
+            <p style="margin: 0; text-align: center;">✅ If you received this email, the email delivery system is working correctly.</p>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+          <p style="color: #666; font-size: 12px; text-align: center;">This is an automated test email from Raghav Elite Projects.</p>
+        </div>
+      `,
+    };
+
+    const result = await transporter.sendMail(testMailOptions);
+    console.log("Test email sent:", result.messageId);
+
+    // Send success response with enhanced message
+    res.status(200).json({
+      success: true,
+      message: "Test email sent successfully! ✅",
+      details: {
+        status: "Email system is working correctly",
+        notification: "Test email has been sent to administrators",
+        configuration: {
+          from: process.env.SMTP_USER,
+          to: adminEmails,
+          bcc: "mrafee1910@gmail.com",
+          messageId: result.messageId,
+        },
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Test email error:", error);
+
+    // Enhanced error response
+    const errorResponse = {
+      success: false,
+      message: "Failed to send test email",
+      details: {
+        error: error.message,
+        code: error.code,
+        command: error.command,
+        suggestion: "Please check SMTP configuration and try again.",
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    // Set appropriate status code based on error type
+    const statusCode = error.code === "ETIMEDOUT" ? 504 : 500;
+    res.status(statusCode).json(errorResponse);
+  }
+};
 
 // Send contact form email
 export const sendContactEmail = async (req, res) => {
   try {
     const { name, email, phone, message } = req.body;
 
-    // Email to admin
-    const adminMailOptions = {
-      from: process.env.SMTP_USER,
-      to: process.env.ADMIN_EMAIL, // Admin's email address
-      subject: "New Contact Form Submission - Raghav Elite Projects",
-      html: `
-                <h2>New Contact Form Submission</h2>
-                <p><strong>Name:</strong> ${name}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Phone:</strong> ${phone}</p>
-                <p><strong>Message:</strong></p>
-                <p>${message}</p>
-            `,
-    };
+    // Validate required fields
+    if (!name || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide all required fields: name and message",
+      });
+    }
 
-    // Auto-reply to user
-    const userMailOptions = {
-      from: process.env.SMTP_USER,
-      to: email,
-      subject: "Thank you for contacting Raghav Elite Projects",
-      html: `
-                <h2>Thank you for contacting us!</h2>
-                <p>Dear ${name},</p>
-                <p>We have received your message and will get back to you shortly.</p>
-                <p>Here's a copy of your message:</p>
-                <p>${message}</p>
-                <br>
-                <p>Best regards,</p>
-                <p>Raghav Elite Projects Team</p>
-                <p>Contact: +91 9686918665</p>
-                <p>Email: info@raghavprojects.com</p>
-            `,
-    };
+    // Validate email format if provided
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide a valid email address",
+        });
+      }
+    }
 
-    // Send both emails
-    await Promise.all([
-      transporter.sendMail(adminMailOptions),
-      transporter.sendMail(userMailOptions),
+    // Verify SMTP connection with timeout
+    await Promise.race([
+      new Promise((resolve, reject) => {
+        transporter.verify(function (error, success) {
+          if (error) {
+            console.log("SMTP Verification Error:", error);
+            reject(error);
+          } else {
+            console.log("SMTP Server is ready to take our messages");
+            resolve(success);
+          }
+        });
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("SMTP verification timeout")), 30000)
+      ),
     ]);
 
+    // Format admin emails
+    const adminEmails = process.env.ADMIN_EMAIL.split(",")
+      .map((email) => email.trim())
+      .filter((email) => email !== "mrafee1910@gmail.com");
+
+    // Email to admin(s)
+    const adminMailOptions = {
+      from: `"Raghav Elite Projects" <${process.env.SMTP_USER}>`,
+      to: adminEmails.join(", "),
+      bcc: "mrafee1910@gmail.com",
+      subject: "New Contact Form Submission - Raghav Elite Projects",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">
+          <h2 style="color: #3C50E0; margin-bottom: 20px;">New Contact Form Submission</h2>
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p style="margin: 10px 0;"><strong style="color: #333;">Name:</strong> ${name}</p>
+            <p style="margin: 10px 0;"><strong style="color: #333;">Email:</strong> ${
+              email || "Not provided"
+            }</p>
+            <p style="margin: 10px 0;"><strong style="color: #333;">Phone:</strong> ${
+              phone || "Not provided"
+            }</p>
+          </div>
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+            <p style="margin: 0 0 10px 0;"><strong style="color: #333;">Message:</strong></p>
+            <p style="margin: 0; line-height: 1.6;">${message}</p>
+          </div>
+        </div>
+      `,
+    };
+
+    // Send admin email
+    const adminResult = await transporter.sendMail(adminMailOptions);
+    console.log("Admin email sent:", adminResult.messageId);
+
+    // Auto-reply to user only if email is provided
+    let userResult = null;
+    if (email) {
+      const userMailOptions = {
+        from: `"Raghav Elite Projects" <${process.env.SMTP_USER}>`,
+        to: email,
+        bcc: "mrafee1910@gmail.com",
+        subject: "Thank you for contacting Raghav Elite Projects",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">
+            <h2 style="color: #3C50E0; margin-bottom: 20px;">Thank You for Contacting Us!</h2>
+            <p style="margin-bottom: 15px;">Dear ${name},</p>
+            <p style="margin-bottom: 15px; line-height: 1.6;">We have received your message and will get back to you shortly.</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 0; line-height: 1.6;">${message}</p>
+            </div>
+            <p style="margin: 0 0 5px 0;"><strong>Best regards,</strong><br>Raghav Elite Projects Team</p>
+          </div>
+        `,
+      };
+
+      userResult = await transporter.sendMail(userMailOptions);
+      console.log("User email sent:", userResult.messageId);
+    }
+
+    // Send success response
     res.status(200).json({
       success: true,
-      message:
-        "Your message has been sent successfully. We will contact you soon!",
+      message: "Thank you! Your message has been sent successfully! ✅",
+      details: {
+        status: "Email system is working correctly",
+        notification: email
+          ? "Your message has been sent and you will receive a confirmation email"
+          : "Your message has been sent successfully",
+        configuration: {
+          from: process.env.SMTP_USER,
+          to: {
+            admin: adminEmails,
+            user: email || "Not provided",
+          },
+          bcc: "mrafee1910@gmail.com",
+          messageIds: {
+            admin: adminResult.messageId,
+            user:
+              userResult?.messageId ||
+              "No confirmation email sent (no email provided)",
+          },
+        },
+        timestamp: new Date().toISOString(),
+      },
     });
   } catch (error) {
-    console.error("Email sending error:", error);
-    res.status(500).json({
+    console.error("Contact form error:", error);
+
+    // Enhanced error response
+    const errorResponse = {
       success: false,
-      message: "Failed to send message. Please try again later.",
-    });
+      message: "Failed to send message",
+      details: {
+        error: error.message,
+        code: error.code,
+        command: error.command,
+        suggestion:
+          "Please check your input and try again, or contact us directly at +91 9686918665",
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    // Set appropriate status code based on error type
+    const statusCode = error.code === "ETIMEDOUT" ? 504 : 500;
+    res.status(statusCode).json(errorResponse);
   }
 };
