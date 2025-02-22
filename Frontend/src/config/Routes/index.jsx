@@ -17,6 +17,7 @@ import Contact from '../../pages/Contact'
 import WhyChooseUs from '../../pages/WhyChooseUs'
 import Gallery from '../../pages/Gallery'
 import ProjectDocuments from '../../pages/ProjectDocuments'
+import TransactionReport from '../../pages/Admin/Reports/TransactionReport'
 
 const AppRoutes = () => {
   return (
@@ -148,6 +149,13 @@ const AppRoutes = () => {
       <Route path='/admin/expense/list' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <ExpenseList />
+        </ProtectedRoute>
+      } />
+
+      {/* Reports Routes */}
+      <Route path='/admin/reports/transactions' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <TransactionReport />
         </ProtectedRoute>
       } />
 

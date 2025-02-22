@@ -7,6 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import fs from "fs";
+import * as XLSX from "xlsx";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -344,5 +345,146 @@ export const getTransactionsByLoan = async (req, res) => {
   } catch (error) {
     console.error("Error fetching loan transactions:", error);
     res.status(500).json({ msg: error.message });
+  }
+};
+
+// Get transaction report
+export const getTransactionReport = async (req, res) => {
+  try {
+    const { fromDate, toDate } = req.query;
+
+    if (!fromDate || !toDate) {
+      return res.status(400).json({
+        message: "Please provide both fromDate and toDate",
+      });
+    }
+
+    const startDate = new Date(fromDate);
+    const endDate = new Date(toDate);
+    endDate.setHours(23, 59, 59); // Set to end of day
+
+    const transactions = await Transaction.findAll({
+      where: {
+        created_at: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["username", "email", "user_id"],
+          as: "customer",
+          foreignKey: "customer_id",
+          targetKey: "user_id",
+        },
+        {
+          model: User,
+          attributes: ["username", "user_id"],
+          as: "admin",
+          foreignKey: "admin_id",
+          targetKey: "user_id",
+        },
+      ],
+      order: [["created_at", "DESC"]],
+    });
+
+    res.json(transactions);
+  } catch (error) {
+    console.error("Transaction Report Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Download transaction report
+export const downloadTransactionReport = async (req, res) => {
+  try {
+    const { fromDate, toDate } = req.query;
+
+    if (!fromDate || !toDate) {
+      return res.status(400).json({
+        message: "Please provide both fromDate and toDate",
+      });
+    }
+
+    const startDate = new Date(fromDate);
+    const endDate = new Date(toDate);
+    endDate.setHours(23, 59, 59); // Set to end of day
+
+    const transactions = await Transaction.findAll({
+      where: {
+        created_at: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["username", "email"],
+          as: "customer",
+        },
+        {
+          model: User,
+          attributes: ["username"],
+          as: "admin",
+        },
+      ],
+      order: [["created_at", "DESC"]],
+    });
+
+    // Format data for Excel
+    const excelData = transactions.map((transaction) => ({
+      Date: new Date(transaction.created_at).toLocaleDateString(),
+      "Transaction ID": transaction.transaction_id,
+      "Customer Name": transaction.customer?.username || "N/A",
+      "Customer Email": transaction.customer?.email || "N/A",
+      Amount: transaction.amount,
+      Type: transaction.transaction_type,
+      Status: transaction.status || "Completed",
+      Comments: transaction.comments || "-",
+      Admin: transaction.admin?.username || "N/A",
+    }));
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Add column widths
+    const columnWidths = [
+      { wch: 12 }, // Date
+      { wch: 15 }, // Transaction ID
+      { wch: 20 }, // Customer Name
+      { wch: 25 }, // Customer Email
+      { wch: 12 }, // Amount
+      { wch: 10 }, // Type
+      { wch: 12 }, // Status
+      { wch: 30 }, // Comments
+      { wch: 15 }, // Admin
+    ];
+    worksheet["!cols"] = columnWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+
+    // Generate buffer
+    const excelBuffer = XLSX.write(workbook, {
+      type: "buffer",
+      bookType: "xlsx",
+    });
+
+    // Set headers for file download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=transactions_${fromDate}_to_${toDate}.xlsx`
+    );
+
+    // Send file
+    res.send(excelBuffer);
+  } catch (error) {
+    console.error("Transaction Download Error:", error);
+    res.status(500).json({ message: error.message });
   }
 };

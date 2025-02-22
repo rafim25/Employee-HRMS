@@ -6,6 +6,8 @@ import {
   updateTransaction,
   deleteTransaction,
   getTransactionsByLoan,
+  getTransactionReport,
+  downloadTransactionReport,
 } from "../controllers/TransactionController.js";
 import {
   verify_User as verifyUser,
@@ -13,6 +15,20 @@ import {
 } from "../middleware/AuthUser.js";
 
 const router = express.Router();
+
+// Transaction report routes (specific routes first)
+router.get(
+  "/api/transactions/report",
+  verifyUser,
+  adminOnly,
+  getTransactionReport
+);
+router.get(
+  "/api/transactions/download",
+  verifyUser,
+  adminOnly,
+  downloadTransactionReport
+);
 
 // Basic CRUD routes
 router.get("/api/transactions", verifyUser, getTransactions);
