@@ -12,16 +12,39 @@ export const getDashboardStats = async (req, res) => {
 
     // Get users, admins, loans, transactions, and expenses in parallel
     const [users, admins, loans, transactions, expenses] = await Promise.all([
-      User.findAll({ where: { role: "User" } }),
-      User.findAll({ where: { role: "Admin" } }),
+      User.findAll({
+        where: {
+          [Op.and]: [
+            { role: "User" },
+            { status: "active" }, // Added status filter
+          ],
+        },
+      }),
+      User.findAll({
+        where: {
+          [Op.and]: [
+            { role: "Admin" },
+            { status: "active" }, // Added status filter
+          ],
+        },
+      }),
       Loan.findAll({
         where: {
-          created_at: {
-            [Op.between]: [
-              new Date(currentYear, 0, 1),
-              new Date(currentYear, 11, 31, 23, 59, 59),
-            ],
-          },
+          [Op.and]: [
+            {
+              created_at: {
+                [Op.between]: [
+                  new Date(currentYear, 0, 1),
+                  new Date(currentYear, 11, 31, 23, 59, 59),
+                ],
+              },
+            },
+            {
+              status: {
+                [Op.in]: ["active", "closed"], // Added status filter
+              },
+            },
+          ],
         },
         include: [
           {

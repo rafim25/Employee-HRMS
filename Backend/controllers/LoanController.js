@@ -1,17 +1,36 @@
+import { Op } from "sequelize";
 import Loan from "../models/Loan.js";
 import User from "../models/User.js";
 
 export const getLoans = async (req, res) => {
   try {
     const loans = await Loan.findAll({
+      where: {
+        status: {
+          [Op.in]: ["active", "closed"], // Corrected condition
+        }, // Only fetch active loans
+      },
+      attributes: [
+        "loan_id",
+        "customer_id",
+        "customer_name",
+        "loan_amount",
+        "advance_amount",
+        "remaining_balance",
+        "referred_by",
+        "status",
+        "created_at",
+        "updated_at",
+      ],
       include: [
         {
           model: User,
           attributes: ["username", "email"],
         },
       ],
+      order: [["created_at", "DESC"]],
     });
-    res.json(loans);
+    res.status(200).json(loans);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -22,6 +41,9 @@ export const getLoanById = async (req, res) => {
     const loan = await Loan.findOne({
       where: {
         loan_id: req.params.id,
+        status: {
+          [Op.in]: ["active", "closed"], // Corrected condition
+        }, // Only fetch active loans
       },
       include: [
         {
@@ -30,16 +52,26 @@ export const getLoanById = async (req, res) => {
         },
       ],
     });
-    if (!loan) return res.status(404).json({ msg: "Loan not found" });
-    res.json(loan);
+
+    if (!loan) {
+      return res.status(404).json({ msg: "Active loan not found" });
+    }
+
+    res.status(200).json(loan);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
 };
 
 export const createLoan = async (req, res) => {
-  const { loan_id, customer_id, customer_name, loan_amount, advance_amount } =
-    req.body;
+  const {
+    loan_id,
+    customer_id,
+    customer_name,
+    loan_amount,
+    advance_amount,
+    referred_by,
+  } = req.body;
 
   try {
     // Verify if user exists
@@ -71,12 +103,13 @@ export const createLoan = async (req, res) => {
       customer_name,
       loan_amount,
       advance_amount,
+      referred_by,
       remaining_balance: loan_amount - advance_amount, // Calculate remaining balance
       status: "active",
     });
 
     res.status(201).json({
-      msg: "Loan created successfully",
+      msg: "Purchase created successfully",
       loan: loan,
     });
   } catch (error) {
@@ -146,24 +179,34 @@ export const deleteLoan = async (req, res) => {
       },
     });
 
-    if (!loan) return res.status(404).json({ msg: "Loan not found" });
+    if (!loan) {
+      return res.status(404).json({ msg: "Purchase not found" });
+    }
 
-    // Check if loan can be deleted (you might want to add more conditions)
+    // Check if loan can be marked as closed
     if (loan.status === "active" && loan.remaining_balance > 0) {
       return res.status(400).json({
-        msg: "Cannot delete active Purchase with remaining balance",
+        msg: "Cannot close active Purchase with remaining balance",
       });
     }
 
-    await Loan.destroy({
-      where: {
-        loan_id: req.params.id,
+    // Update loan status to closed instead of inactive
+    await Loan.update(
+      {
+        status: "inactive",
+        updated_at: new Date(),
       },
-    });
+      {
+        where: {
+          loan_id: req.params.id,
+        },
+      }
+    );
 
-    res.json({ msg: "Loan deleted successfully" });
+    res.status(200).json({ msg: "Purchase deleted successfully" });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    console.error("Error marking purchase as inactive:", error);
+    res.status(500).json({ msg: error.message });
   }
 };
 
@@ -173,6 +216,7 @@ export const getLoansByCustomer = async (req, res) => {
     const loans = await Loan.findAll({
       where: {
         customer_id: req.params.customerId,
+        status: "active", // Only fetch active loans
       },
       include: [
         {

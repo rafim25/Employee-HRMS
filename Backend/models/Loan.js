@@ -37,8 +37,12 @@ const Loan = db.define(
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
     },
+    referred_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     status: {
-      type: DataTypes.ENUM("active", "closed"),
+      type: DataTypes.ENUM("active", "closed", "inactive"),
       allowNull: false,
       defaultValue: "active",
     },
@@ -61,5 +65,15 @@ const Loan = db.define(
 
 // Define relationship
 Loan.belongsTo(User, { foreignKey: "customer_id", targetKey: "user_id" });
+
+// Force sync the model with the database to update ENUM values
+(async () => {
+  try {
+    await Loan.sync({ alter: true });
+    console.log("✅ Loans table synchronized with updated status ENUM values");
+  } catch (error) {
+    console.error("❌ Error synchronizing Loans table:", error);
+  }
+})();
 
 export default Loan;

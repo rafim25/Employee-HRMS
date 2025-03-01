@@ -1,16 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import DefaultLayoutAdmin from '../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../components';
-import { FaFileExcel, FaSearch } from 'react-icons/fa';
+import { FaFileExcel, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '../../../utils/formatCurrency';
 
+const ITEMS_PER_PAGE = 7;
+
 const TransactionReport = () => {
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [sortConfig, setSortConfig] = useState({
+    key: 'created_at',
+    direction: 'desc'
+  });
 
   const fetchTransactions = async () => {
     if (!fromDate || !toDate) {
@@ -18,16 +25,86 @@ const TransactionReport = () => {
       return;
     }
 
+    const startDate = new Date(fromDate);
+    const endDate = new Date(toDate);
+    endDate.setHours(23, 59, 59);
+
+    if (startDate > endDate) {
+      toast.error('From date cannot be later than To date');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.get(`/api/transactions/report?fromDate=${fromDate}&toDate=${toDate}`);
       setTransactions(response.data);
-      toast.success('Transactions fetched successfully');
+      if (response.data.length === 0) {
+        toast.error('No transactions found for the selected date range');
+      }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to fetch transactions';
-      toast.error(errorMessage);
+      toast.error('Failed to fetch transactions');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle sorting
+  const handleSort = (key) => {
+    setSortConfig((prevSort) => ({
+      key,
+      direction: prevSort.key === key && prevSort.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  // Render sort icon
+  const renderSortIcon = (columnKey) => {
+    if (sortConfig.key === columnKey) {
+      return sortConfig.direction === 'asc' ? 
+        <FaSortUp className="inline ml-1 text-primary" /> : 
+        <FaSortDown className="inline ml-1 text-primary" />;
+    }
+    return <FaSort className="inline ml-1 text-gray-400 hover:text-primary" />;
+  };
+
+  // Sort and paginate transactions
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    if (sortConfig.key === 'customer_name') {
+      const aName = a.customer?.username || '';
+      const bName = b.customer?.username || '';
+      return sortConfig.direction === 'asc' 
+        ? aName.localeCompare(bName)
+        : bName.localeCompare(aName);
+    }
+    if (sortConfig.key === 'loan_id') {
+      return sortConfig.direction === 'asc'
+        ? a.loan_id.localeCompare(b.loan_id)
+        : b.loan_id.localeCompare(a.loan_id);
+    }
+    if (sortConfig.key === 'created_at') {
+      return sortConfig.direction === 'asc'
+        ? new Date(a.created_at) - new Date(b.created_at)
+        : new Date(b.created_at) - new Date(a.created_at);
+    }
+    // Default sort by created_at
+    return sortConfig.direction === 'asc'
+      ? new Date(a.created_at) - new Date(b.created_at)
+      : new Date(b.created_at) - new Date(a.created_at);
+  });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedTransactions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTransactions = sortedTransactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
     }
   };
 
@@ -58,6 +135,16 @@ const TransactionReport = () => {
       toast.error(errorMessage);
     }
   };
+
+  if (loading) {
+    return (
+      <DefaultLayoutAdmin>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </DefaultLayoutAdmin>
+    );
+  }
 
   return (
     <DefaultLayoutAdmin>
@@ -107,31 +194,34 @@ const TransactionReport = () => {
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="py-4 px-4 font-medium text-black dark:text-white">
-                  Date
+                <th onClick={() => handleSort('loan_id')}
+                    className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-3">
+                  Purchase ID {renderSortIcon('loan_id')}
                 </th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">
-                  Transaction ID
+                <th onClick={() => handleSort('customer_name')}
+                    className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-3">
+                  Customer Name {renderSortIcon('customer_name')}
                 </th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">
-                  Customer Name
-                </th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">
+                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                   Amount
                 </th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">
+                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                   Type
                 </th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">
+                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                   Status
                 </th>
-                <th className="py-4 px-4 font-medium text-black dark:text-white">
+                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
                   Comments
+                </th>
+                <th onClick={() => handleSort('created_at')}
+                    className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-3">
+                  Created At {renderSortIcon('created_at')}
                 </th>
               </tr>
             </thead>
             <tbody>
-              {transactions.length === 0 ? (
+              {paginatedTransactions.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="text-center py-8">
                     <div className="flex flex-col items-center justify-center">
@@ -145,16 +235,11 @@ const TransactionReport = () => {
                   </td>
                 </tr>
               ) : (
-                transactions.map((transaction) => (
+                paginatedTransactions.map((transaction) => (
                   <tr key={transaction.transaction_id}>
                     <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                       <p className="text-black dark:text-white">
-                        {new Date(transaction.created_at).toLocaleDateString()}
-                      </p>
-                    </td>
-                    <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                      <p className="text-black dark:text-white">
-                        {transaction.transaction_id}
+                        {transaction.loan_id}
                       </p>
                     </td>
                     <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
@@ -186,11 +271,47 @@ const TransactionReport = () => {
                         {transaction.comments || '-'}
                       </p>
                     </td>
+                    <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                      <p className="text-black dark:text-white">
+                      {new Date(transaction.created_at).toISOString().split('T')[0]}
+                      </p>
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="text-gray-5 dark:text-gray-4 text-sm py-4">
+              {paginatedTransactions.length > 0 ? (
+                `Showing ${startIndex + 1}-${Math.min(startIndex + ITEMS_PER_PAGE, sortedTransactions.length)} of ${sortedTransactions.length} Transactions`
+              ) : (
+                'No transactions to display'
+              )}
+            </span>
+          </div>
+          {paginatedTransactions.length > 0 && (
+            <div className="flex space-x-2 py-4">
+              <button
+                disabled={currentPage === 1}
+                onClick={goToPrevPage}
+                className="py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={goToNextPage}
+                className="py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </DefaultLayoutAdmin>

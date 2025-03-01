@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import User from "../models/User.js";
 import Loan from "../models/Loan.js";
 import Transaction from "../models/Transaction.js";
@@ -53,39 +54,57 @@ export const getEmployeeLoanStatistics = async (req, res) => {
   try {
     const userId = req.userId;
 
-    // Get total loans
-    const totalLoans = await Loan.count({
-      where: { customer_id: userId },
-    });
-
-    // Get active loans
-    const activeLoans = await Loan.count({
+    // Get all loans for the user
+    const loans = await Loan.findAll({
       where: {
         customer_id: userId,
-        status: "active",
+        status: {
+          [Op.in]: ["active", "closed"], // Added status filter
+        },
       },
+      attributes: [
+        "loan_amount",
+        "remaining_balance",
+        "advance_amount",
+        "status",
+      ],
     });
 
-    // Calculate total amount paid
-    const transactions = await Transaction.sum("amount", {
-      where: {
-        customer_id: userId,
-        transaction_type: "credit",
-      },
-    });
+    // Calculate statistics
+    const totalLoans = loans.length;
+    const activeLoans = loans.filter((loan) => loan.status === "active").length;
+    const totalAdvancePaid = loans.reduce(
+      (sum, loan) => sum + Number(loan.advance_amount),
+      0
+    );
 
-    // Calculate advance paid
-    const advancePaid = await Loan.sum("advance_amount", {
-      where: { customer_id: userId },
-    });
+    // Get total amount paid from transactions
+    const totalAmountPaid =
+      (await Transaction.sum("amount", {
+        where: {
+          customer_id: userId,
+          transaction_type: "credit",
+          "$loan.status$": {
+            [Op.in]: ["active", "closed"],
+          },
+        },
+        include: [
+          {
+            model: Loan,
+            attributes: [],
+            required: true,
+          },
+        ],
+      })) || 0;
 
     res.status(200).json({
       totalLoans,
-      totalAmountPaid: transactions || 0,
-      totalAdvancePaid: advancePaid || 0,
+      totalAmountPaid,
+      totalAdvancePaid,
       activeLoans,
     });
   } catch (error) {
+    console.error("Error fetching loan statistics:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -94,8 +113,14 @@ export const getEmployeeLoanStatistics = async (req, res) => {
 export const getEmployeeRecentLoans = async (req, res) => {
   try {
     const userId = req.userId;
+
     const loans = await Loan.findAll({
-      where: { customer_id: userId },
+      where: {
+        customer_id: userId,
+        status: {
+          [Op.in]: ["active", "closed"], // Corrected condition
+        },
+      },
       attributes: [
         "loan_id",
         "loan_amount",
@@ -179,16 +204,19 @@ export const getLoanTransactions = async (req, res) => {
     const userId = req.userId;
     const loanId = req.params.id;
 
-    // First verify that the loan belongs to the user
+    // First verify that the loan belongs to the user and is active
     const loan = await Loan.findOne({
       where: {
         loan_id: loanId,
         customer_id: userId,
+        status: "active", // Only check active loans
       },
     });
 
     if (!loan) {
-      return res.status(404).json({ error: "Loan not found or unauthorized" });
+      return res
+        .status(404)
+        .json({ error: "Active loan not found or unauthorized" });
     }
 
     // Get all transactions for this loan

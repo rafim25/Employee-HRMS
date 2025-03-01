@@ -9,18 +9,18 @@ export const getUsersByRole = async (req, res) => {
   try {
     const { role } = req.query;
 
-    const whereClause = role
-      ? {
-          role: {
-            [Op.like]: `%${role}%`,
-          },
-        }
-      : {};
+    const whereClause = {
+      status: "active", // Only fetch active users
+      ...(role && {
+        role: {
+          [Op.like]: `%${role}%`,
+        },
+      }),
+    };
 
     const users = await User.findAll({
       where: whereClause,
       attributes: [
-        "id",
         "user_id",
         "username",
         "email",
@@ -34,16 +34,16 @@ export const getUsersByRole = async (req, res) => {
         "url",
         "permissions",
       ],
-      order: [["createdAt", "DESC"]], // Changed from created_at to createdAt to match your model
+      order: [["date_joined", "DESC"]],
     });
 
     if (users.length === 0) {
       return res.status(404).json({
-        msg: `No users found${role ? ` with role '${role}'` : ""}`,
+        msg: `No active users found${role ? ` with role '${role}'` : ""}`,
       });
     }
 
-    res.json(users);
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -52,13 +52,15 @@ export const getUsersByRole = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
+      where: {
+        status: "active", // Only fetch active users
+      },
       attributes: [
-        "id",
         "user_id",
         "username",
         "email",
-        "gender",
         "role",
+        "gender",
         "date_joined",
         "mobile_number",
         "address",
@@ -67,8 +69,9 @@ export const getUsers = async (req, res) => {
         "url",
         "permissions",
       ],
+      order: [["date_joined", "DESC"]],
     });
-    res.json(users);
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -79,14 +82,14 @@ export const getUserById = async (req, res) => {
     const user = await User.findOne({
       where: {
         user_id: req.params.id,
+        status: "active", // Only fetch active users
       },
       attributes: [
-        "id",
         "user_id",
         "username",
         "email",
-        "gender",
         "role",
+        "gender",
         "date_joined",
         "mobile_number",
         "address",
@@ -96,8 +99,12 @@ export const getUserById = async (req, res) => {
         "permissions",
       ],
     });
-    if (!user) return res.status(404).json({ msg: "User not found" });
-    res.json(user);
+
+    if (!user) {
+      return res.status(404).json({ msg: "Active user not found" });
+    }
+
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -171,96 +178,117 @@ export const createUser = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-  const user = await User.findOne({
-    where: {
-      user_id: req.params.id,
-    },
-  });
-  if (!user) return res.status(404).json({ msg: "User not found" });
-
-  let fileName = user.photo;
-  let url = user.url;
-
-  if (req.files && req.files.photo) {
-    const file = req.files.photo;
-    const fileSize = file.data.length;
-    const ext = path.extname(file.name);
-    fileName = file.md5 + ext;
-
-    if (fileSize > 5000000) {
-      return res.status(422).json({ msg: "Image must be less than 5 MB" });
-    }
-
-    if (user.photo) {
-      const filePath = `./public/images/${user.photo}`;
-      fs.unlinkSync(filePath);
-    }
-
-    file.mv(`./public/images/${fileName}`, (err) => {
-      if (err) return res.status(500).json({ msg: err.message });
-    });
-    url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
-  }
-
-  const {
-    username,
-    email,
-    password,
-    gender,
-    role,
-    mobile_number,
-    address,
-    permissions,
-    status,
-  } = req.body;
-
   try {
-    if (password) {
-      const hashPassword = await argon2.hash(password);
-      await User.update(
-        {
-          username,
-          email,
-          password: hashPassword,
-          gender,
-          role,
-          mobile_number,
-          address,
-          permissions,
-          status,
-          photo: fileName,
-          url: url,
-        },
-        {
-          where: {
-            user_id: req.params.id,
-          },
+    const user = await User.findOne({
+      where: {
+        user_id: req.params.id,
+        status: "active", // Only update active users
+      },
+    });
+
+    if (!user) return res.status(404).json({ msg: "Active user not found" });
+
+    let fileName = user.photo;
+    let url = user.url;
+
+    if (req.files && req.files.photo) {
+      const file = req.files.photo;
+      const fileSize = file.data.length;
+      const ext = path.extname(file.name);
+      fileName = file.md5 + ext;
+
+      if (fileSize > 5000000) {
+        return res.status(422).json({ msg: "Image must be less than 5 MB" });
+      }
+
+      if (user.photo) {
+        const filePath = `./public/images/${user.photo}`;
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        } catch (error) {
+          console.error("Error deleting old photo:", error);
         }
-      );
-    } else {
-      await User.update(
-        {
-          username,
-          email,
-          gender,
-          role,
-          mobile_number,
-          address,
-          permissions,
-          status,
-          photo: fileName,
-          url: url,
-        },
-        {
-          where: {
-            user_id: req.params.id,
-          },
-        }
-      );
+      }
+
+      file.mv(`./public/images/${fileName}`, (err) => {
+        if (err) return res.status(500).json({ msg: err.message });
+      });
+      url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
     }
-    res.json({ msg: "User updated successfully" });
+
+    const {
+      username,
+      email,
+      password,
+      gender,
+      role,
+      mobile_number,
+      address,
+      permissions,
+      status,
+    } = req.body;
+
+    // Prevent changing status to inactive through this endpoint
+    if (status === "inactive") {
+      return res.status(400).json({
+        msg: "Cannot change user status to inactive through this endpoint. Please use the deactivate endpoint.",
+      });
+    }
+
+    try {
+      if (password) {
+        const hashPassword = await argon2.hash(password);
+        await User.update(
+          {
+            username,
+            email,
+            password: hashPassword,
+            gender,
+            role,
+            mobile_number,
+            address,
+            permissions,
+            status: "active", // Ensure status remains active
+            photo: fileName,
+            url: url,
+            updated_at: new Date(),
+          },
+          {
+            where: {
+              user_id: req.params.id,
+            },
+          }
+        );
+      } else {
+        await User.update(
+          {
+            username,
+            email,
+            gender,
+            role,
+            mobile_number,
+            address,
+            permissions,
+            status: "active", // Ensure status remains active
+            photo: fileName,
+            url: url,
+            updated_at: new Date(),
+          },
+          {
+            where: {
+              user_id: req.params.id,
+            },
+          }
+        );
+      }
+      res.status(200).json({ msg: "User updated successfully" });
+    } catch (error) {
+      res.status(400).json({ msg: error.message });
+    }
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    res.status(500).json({ msg: error.message });
   }
 };
 
@@ -276,7 +304,7 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    // Check for associated loans
+    // Check for associated active loans
     const loans = await Loan.findAll({
       where: {
         customer_id: req.params.id,
@@ -286,32 +314,26 @@ export const deleteUser = async (req, res) => {
 
     if (loans.length > 0) {
       return res.status(400).json({
-        msg: "Cannot delete user with active purchase. Please close or reassign all purchasefirst.",
+        msg: "Cannot deactivate user with active purchases. Please close or reassign all purchases first.",
       });
     }
 
-    // Delete profile photo if it exists
-    if (user.photo) {
-      const photoPath = `./public/images/${user.photo}`;
-      try {
-        if (fs.existsSync(photoPath)) {
-          fs.unlinkSync(photoPath);
-        }
-      } catch (photoError) {
-        console.error("Error deleting photo:", photoError);
-        // Continue with user deletion even if photo deletion fails
-      }
-    }
-
-    await User.destroy({
-      where: {
-        user_id: req.params.id,
+    // Update user status to inactive instead of deleting
+    await User.update(
+      {
+        status: "inactive",
+        updated_at: new Date(),
       },
-    });
+      {
+        where: {
+          user_id: req.params.id,
+        },
+      }
+    );
 
-    res.status(200).json({ msg: "User deleted successfully" });
+    res.status(200).json({ msg: "User deactivated successfully" });
   } catch (error) {
-    console.error("Error deleting user:", error);
+    console.error("Error deactivating user:", error);
     res.status(500).json({ msg: error.message });
   }
 };
@@ -322,11 +344,12 @@ export const updatePassword = async (req, res) => {
     const user = await User.findOne({
       where: {
         user_id: req.params.id,
+        status: "active", // Only update active users
       },
     });
 
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ msg: "Active user not found" });
     }
 
     // Hash the new password
@@ -335,15 +358,17 @@ export const updatePassword = async (req, res) => {
     await User.update(
       {
         password: hashedPassword,
+        updated_at: new Date(),
       },
       {
         where: {
           user_id: req.params.id,
+          status: "active", // Ensure we're only updating active users
         },
       }
     );
 
-    res.json({ msg: "Password updated successfully" });
+    res.status(200).json({ msg: "Password updated successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: error.message });

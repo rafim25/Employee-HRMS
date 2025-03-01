@@ -19,6 +19,7 @@ const FormLoan = () => {
         loan_amount: '',
         advance_amount: '',
         remaining_balance: '',
+        referred_by: '',
         status: 'active'
     });
 
@@ -74,11 +75,11 @@ const FormLoan = () => {
             };
 
             const response = await api.post(LOAN_ENDPOINTS.CREATE, loanData);
-            
-            toast.success('Loan created successfully', {
+
+            toast.success("Purchase created successfully", {
                 id: loadingToast,
             });
-            
+
             navigate('/admin/master-data/data-jabatan');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to create loan', {
@@ -96,6 +97,7 @@ const FormLoan = () => {
             loan_amount: '',
             advance_amount: '',
             remaining_balance: '',
+            referred_by: '',
             status: 'active'
         });
     };
@@ -163,21 +165,39 @@ const FormLoan = () => {
                                     </div>
                                 </div>
 
-                                <div className='mb-4.5'>
-                                    <label className='mb-2.5 block text-black dark:text-white'>
-                                        Land Purchase Amount <span className='text-meta-1'>*</span>
-                                    </label>
-                                    <input
-                                        type='number'
-                                        placeholder='Enter purchase amount'
-                                        value={formData.loan_amount}
-                                        onChange={(e) => setFormData({
-                                            ...formData,
-                                            loan_amount: e.target.value
-                                        })}
-                                        className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
-                                        required
-                                    />
+                                <div className='mb-4.5 flex flex-col gap-6 xl:flex-row'>
+                                    <div className='w-full xl:w-1/2'>
+                                        <label className='mb-2.5 block text-black dark:text-white'>
+                                            Land Purchase Amount <span className='text-meta-1'>*</span>
+                                        </label>
+                                        <input
+                                            type='number'
+                                            placeholder='Enter purchase amount'
+                                            value={formData.loan_amount}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                loan_amount: e.target.value
+                                            })}
+                                            className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className='w-full xl:w-1/2'>
+                                        <label className='mb-2.5 block text-black dark:text-white'>
+                                            Referred By
+                                        </label>
+                                        <input
+                                            type='text'
+                                            placeholder='Enter referrer name'
+                                            value={formData.referred_by}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                referred_by: e.target.value
+                                            })}
+                                            className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className='mb-4.5'>

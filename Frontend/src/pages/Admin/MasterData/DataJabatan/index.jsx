@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link, useNavigate } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus, FaHistory, FaFileExcel } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaHistory, FaFileExcel, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
-import { BiSearch } from 'react-icons/bi';
+import { BiSearch, BiSortAlt2, BiUpArrow, BiDownArrow } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchLoans, deleteLoan } from '../../../../context/actions/loanActions';
 import toast from 'react-hot-toast';
@@ -24,6 +24,10 @@ const LendingDetails = () => {
     const [loanToDelete, setLoanToDelete] = useState(null);
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
+    const [sortConfig, setSortConfig] = useState({
+        key: 'updated_at',
+        direction: 'desc'
+    });
 
     // Pagination calculations
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -43,11 +47,41 @@ const LendingDetails = () => {
         loadLoans();
     }, [loadLoans]);
 
-    // Filter and search logic
+    // Add sort handler
+    const handleSort = (key) => {
+        setSortConfig((prevSort) => ({
+            key,
+            direction: prevSort.key === key && prevSort.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
+
+    // Update the filtered and sorted loans logic
     const filteredLoans = loans.filter(loan => {
         const matchesSearch = loan.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = !statusFilter || loan.status?.toLowerCase() === statusFilter.toLowerCase();
         return matchesSearch && matchesStatus;
+    }).sort((a, b) => {
+        if (sortConfig.key === 'customer_name') {
+            return sortConfig.direction === 'asc' 
+                ? a.customer_name.localeCompare(b.customer_name)
+                : b.customer_name.localeCompare(a.customer_name);
+        }
+        if (sortConfig.key === 'referred_by') {
+            const aRef = a.referred_by || '';
+            const bRef = b.referred_by || '';
+            return sortConfig.direction === 'asc'
+                ? aRef.localeCompare(bRef)
+                : bRef.localeCompare(aRef);
+        }
+        if (sortConfig.key === 'status') {
+            return sortConfig.direction === 'asc'
+                ? a.status.localeCompare(b.status)
+                : b.status.localeCompare(a.status);
+        }
+        // Default sort by updated_at
+        return sortConfig.direction === 'asc'
+            ? new Date(a.updated_at) - new Date(b.updated_at)
+            : new Date(b.updated_at) - new Date(a.updated_at);
     });
 
     const totalPages = Math.ceil(filteredLoans.length / ITEMS_PER_PAGE);
@@ -117,6 +151,7 @@ const LendingDetails = () => {
             'Advance Paid': loan.advance_amount,
             'Balance Remaining': loan.remaining_balance,
             'Paid Amount': loan.loan_amount - loan.remaining_balance,
+            'Referred By': loan.referred_by || 'N/A',
             'Status': loan.status,
             'Date': new Date(loan.created_at).toLocaleDateString()
         })));
@@ -129,6 +164,15 @@ const LendingDetails = () => {
         XLSX.writeFile(workbook, filename);
         
         toast.success('Purchase report downloaded successfully');
+    };
+
+    const renderSortIcon = (columnKey) => {
+        if (sortConfig.key === columnKey) {
+            return sortConfig.direction === 'asc' ? 
+                <FaSortUp className="inline ml-1 text-primary" /> : 
+                <FaSortDown className="inline ml-1 text-primary" />;
+        }
+        return <FaSort className="inline ml-1 text-gray-400 hover:text-primary" />;
     };
 
     if (loading) {
@@ -204,7 +248,7 @@ const LendingDetails = () => {
                         >
                             <option value="">All Status</option>
                             <option value="active">Active</option>
-                            <option value="completed">Completed</option>
+                            <option value="closed">Closed</option>
                         </select>
                     </div>
                 </div>
@@ -213,23 +257,29 @@ const LendingDetails = () => {
                     <table className='w-full table-auto'>
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Customer Name
+                                <th onClick={() => handleSort('customer_name')} 
+                                    className='min-w-[170px] py-4 px-4 font-medium text-black dark:text-white cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-3'>
+                                    Customer{renderSortIcon('customer_name')}
                                 </th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
+                                <th className='min-w-[150px] py-4 px-4 font-medium text-black dark:text-white'>
                                     Purchase Amount
                                 </th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Advance Paid
+                                <th className='min-w-[120px] py-4 px-4 font-medium text-black dark:text-white'>
+                                    Advance Amount
                                 </th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Balance Remaining
+                                <th className='min-w-[120px] py-4 px-4 font-medium text-black dark:text-white'>
+                                    Balance Amount
                                 </th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Paid Amount
+                                <th className='min-w-[120px] py-4 px-4 font-medium text-black dark:text-white'>
+                                    Total Paid
                                 </th>
-                                <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Status
+                                <th onClick={() => handleSort('referred_by')}
+                                    className='min-w-[150px] py-4 px-4 font-medium text-black dark:text-white cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-3'>
+                                    Referred By {renderSortIcon('referred_by')}
+                                </th>
+                                <th onClick={() => handleSort('status')}
+                                    className='min-w-[120px] py-4 px-4 font-medium text-black dark:text-white cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-3'>
+                                    Status {renderSortIcon('status')}
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Actions
@@ -274,6 +324,9 @@ const LendingDetails = () => {
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                             <p className='text-black dark:text-white'>₹{Number(loan.loan_amount - loan.remaining_balance).toFixed(2)}</p>
+                                        </td>
+                                        <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
+                                            <p className='text-black dark:text-white'>{loan.referred_by || 'N/A'}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                             <span className={`inline-block px-3 py-1 rounded-full ${

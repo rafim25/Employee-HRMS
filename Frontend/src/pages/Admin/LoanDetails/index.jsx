@@ -297,6 +297,15 @@ const LoanDetails = () => {
               />
             </div>
             <div>
+              <label className="mb-1 block text-sm font-medium">Referred By</label>
+              <input
+                type="text"
+                className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
+                value={loanDetails?.referred_by || 'N/A'}
+                disabled
+              />
+            </div>
+            <div>
               <label className="mb-1 block text-sm font-medium">Status</label>
               <input
                 type="text"
@@ -312,56 +321,68 @@ const LoanDetails = () => {
       {/* Add Transaction Form */}
       <div className="mt-6 rounded-lg bg-white p-6 shadow-default dark:bg-boxdark">
         <h2 className="mb-4 text-xl font-semibold">Add Transaction</h2>
-        <form onSubmit={handleTransaction} id="transactionForm">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Amount</label>
-              <input
-                type="number"
-                className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
-                value={transaction.amount}
-                onChange={(e) => setTransaction({ ...transaction, amount: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Date</label>
-              <input
-                type="date"
-                className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
-                value={transaction.date}
-                onChange={(e) => setTransaction({ ...transaction, date: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Upload Receipt</label>
-              <input
-                type="file"
-                className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
-                onChange={(e) => setTransaction({ ...transaction, image: e.target.files[0] })}
-                accept="image/*"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Comments</label>
-              <input
-                type="text"
-                className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
-                value={transaction.comments}
-                onChange={(e) => setTransaction({ ...transaction, comments: e.target.value })}
-              />
-            </div>
-            <div className="md:col-span-2 flex gap-4">
-              <ButtonOne type="submit">
-                Add Transaction
-              </ButtonOne>
-              <ButtonOne type="button" onClick={resetTransactionForm}>
-                Reset Form
-              </ButtonOne>
-            </div>
+        
+        {/* Show message if loan is inactive or fully paid */}
+        {(loanDetails?.status === "closed" || loanDetails?.remaining_balance <= 0) ? (
+          <div className="mb-4 rounded-lg bg-warning/10 p-4 text-warning">
+            <p className="font-medium">
+              {loanDetails?.status === "closed" 
+                ? "This purchase is closed. No further transactions can be added."
+                : "Customer has paid all the balance amount against their land purchase."}
+            </p>
           </div>
-        </form>
+        ) : (
+          <form onSubmit={handleTransaction} id="transactionForm">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Amount</label>
+                <input
+                  type="number"
+                  className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
+                  value={transaction.amount}
+                  onChange={(e) => setTransaction({ ...transaction, amount: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Date</label>
+                <input
+                  type="date"
+                  className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
+                  value={transaction.date}
+                  onChange={(e) => setTransaction({ ...transaction, date: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Upload Receipt</label>
+                <input
+                  type="file"
+                  className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
+                  onChange={(e) => setTransaction({ ...transaction, image: e.target.files[0] })}
+                  accept="image/*"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Comments</label>
+                <input
+                  type="text"
+                  className="w-full rounded-md border border-stroke p-3 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input"
+                  value={transaction.comments}
+                  onChange={(e) => setTransaction({ ...transaction, comments: e.target.value })}
+                />
+              </div>
+              <div className="md:col-span-2 flex gap-4">
+                <ButtonOne type="submit">
+                  Add Transaction
+                </ButtonOne>
+                <ButtonOne type="button" onClick={resetTransactionForm}>
+                  Reset Form
+                </ButtonOne>
+              </div>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Transaction History */}

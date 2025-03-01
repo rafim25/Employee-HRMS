@@ -104,7 +104,7 @@ const EditExpense = () => {
 
   return (
     <DefaultLayoutAdmin>
-      <div className="mx-auto max-w-screen-2xl p-4">
+      <div >
         <BreadcrumbAdmin pageName='Edit Expense' />
 
         <div className="flex flex-col gap-6">

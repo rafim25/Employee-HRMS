@@ -49,7 +49,7 @@ export const createLoan = async (dispatch, loanData) => {
       payload: response.data,
     });
 
-    toast.success("Loan created successfully", {
+    toast.success("Purchase created successfully", {
       id: loadingToast,
     });
     return response.data;
@@ -106,7 +106,7 @@ export const deleteLoan = async (dispatch, loanId) => {
       type: DELETE_LOAN,
       payload: loanId,
     });
-    toast.success("Loan deleted successfully", {
+    toast.success("Purchase deleted successfully", {
       id: loadingToast,
     });
   } catch (error) {

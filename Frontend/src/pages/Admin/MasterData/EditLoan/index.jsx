@@ -130,8 +130,8 @@ const EditLoan = () => {
                                 >
                                     <option value="">Select Status</option>
                                     <option value="active">Active</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
+                                    <option value="closed">Closed</option>
+                                    <option value="inactive">Inactive</option>
                                 </select>
                             </div>
 

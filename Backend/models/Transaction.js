@@ -9,10 +9,10 @@ const Transaction = db.define(
   "transactions",
   {
     transaction_id: {
-      type: DataTypes.STRING,
-      defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
+      type: DataTypes.INTEGER,
       primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
     },
     loan_id: {
       type: DataTypes.STRING,

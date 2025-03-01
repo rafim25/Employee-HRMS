@@ -293,7 +293,7 @@ const ExpenseList = () => {
   if (loading) {
     return (
       <DefaultLayoutAdmin>
-        <div className="mx-auto max-w-screen-2xl p-4">
+        <div>
           <BreadcrumbAdmin pageName='Expense Management' />
           <div className="flex flex-col items-center justify-center min-h-[400px]">
             <div className="flex items-center justify-center w-16 h-16 mb-6">
@@ -309,7 +309,7 @@ const ExpenseList = () => {
 
   return (
     <DefaultLayoutAdmin>
-      <div className="mx-auto max-w-screen-2xl p-4">
+      <div>
         <BreadcrumbAdmin pageName='Expense Management' />
 
         {/* Delete Confirmation Modal */}

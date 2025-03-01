@@ -72,7 +72,7 @@ const AddExpense = () => {
 
   return (
     <DefaultLayoutAdmin>
-      <div className="mx-auto max-w-screen-2xl p-4">
+      <div >
         <BreadcrumbAdmin pageName='Add New Expense' />
 
         <div className="flex flex-col gap-6">
