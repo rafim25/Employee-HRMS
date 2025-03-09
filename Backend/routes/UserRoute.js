@@ -45,6 +45,6 @@ router.post("/api/users", verify_User, admin_Only, createUser);
 router.patch("/api/users/:id", verify_User, admin_Only, updateUser);
 router.delete("/api/users/:id", verify_User, admin_Only, deleteUser);
 
-router.patch("/api/users/:id/password", verifyUser, updatePassword);
+router.patch("/api/users/:id/password", verify_User, updatePassword);
 
 export default router;

@@ -338,39 +338,65 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// Add this function to your UserController.js
 export const updatePassword = async (req, res) => {
   try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.params.id;
+
+    console.log("Attempting password update for user:", userId);
+
+    // Find user in Users collection
     const user = await User.findOne({
       where: {
-        user_id: req.params.id,
-        status: "active", // Only update active users
+        user_id: userId,
       },
     });
 
     if (!user) {
-      return res.status(404).json({ msg: "Active user not found" });
+      console.log("User not found:", userId);
+      return res.status(404).json({ msg: "User not found" });
     }
 
-    // Hash the new password
-    const hashedPassword = await argon2.hash(req.body.password);
+    console.log("Found user:", user.username);
 
-    await User.update(
-      {
-        password: hashedPassword,
-        updated_at: new Date(),
-      },
-      {
-        where: {
-          user_id: req.params.id,
-          status: "active", // Ensure we're only updating active users
-        },
+    // Trim any whitespace from the stored password hash
+    const storedPassword = user.password.trim();
+    console.log("Stored password (after trim):", storedPassword);
+
+    try {
+      // Compare the stored password with the provided current password
+      const isPasswordValid = await argon2.verify(
+        storedPassword,
+        currentPassword
+      );
+      console.log("Password verification result:", isPasswordValid);
+
+      if (!isPasswordValid) {
+        return res.status(400).json({ msg: "Current password is incorrect" });
       }
-    );
 
-    res.status(200).json({ msg: "Password updated successfully" });
+      // If we get here, the current password is correct
+      // Hash new password
+      const hashedNewPassword = await argon2.hash(newPassword, {
+        type: argon2.argon2id,
+        memoryCost: 65536,
+        timeCost: 3,
+        parallelism: 4,
+      });
+
+      // Update password
+      await User.update(
+        { password: hashedNewPassword },
+        { where: { user_id: userId } }
+      );
+
+      res.json({ msg: "Password updated successfully" });
+    } catch (verifyError) {
+      console.error("Password verification error:", verifyError);
+      return res.status(400).json({ msg: "Error verifying current password" });
+    }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: error.message });
+    console.error("Error in password update:", error);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };

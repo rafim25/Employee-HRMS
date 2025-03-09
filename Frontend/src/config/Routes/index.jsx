@@ -18,6 +18,7 @@ import WhyChooseUs from '../../pages/WhyChooseUs'
 import Gallery from '../../pages/Gallery'
 import ProjectDocuments from '../../pages/ProjectDocuments'
 import TransactionReport from '../../pages/Admin/Reports/TransactionReport'
+import ResetPassword from '../../pages/Admin/Settings/ResetPassword'
 
 const AppRoutes = () => {
   return (
@@ -94,7 +95,7 @@ const AppRoutes = () => {
       } />
       <Route path='/admin/pengaturan/ubah-password' element={
         <ProtectedRoute allowedRoles={['admin']}>
-          <UbahPasswordAdmin />
+          <ResetPassword />
         </ProtectedRoute>
       } />
       <Route path='/admin/master-data/lending/add-lending' element={
