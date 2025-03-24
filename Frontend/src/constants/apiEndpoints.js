@@ -12,14 +12,7 @@ export const AUTH_ENDPOINTS_V2 = {
 };
 
 // User/Customer endpoints
-export const USER_ENDPOINTS = {
-  LIST: "/api/users",
-  DETAILS: (id) => `/api/users/${id}`,
-  CREATE: "/api/users",
-  UPDATE: (id) => `/api/users/${id}`,
-  DELETE: (id) => `/api/users/${id}`,
-  FILTER_BY_ROLE: (role) => `/api/users/filter?role=${role}`,
-};
+export const USER_ENDPOINTS = 'http://localhost:5000/api';
 
 // Dashboard endpoints
 export const DASHBOARD_ENDPOINTS = {
@@ -43,4 +36,20 @@ export const TRANSACTION_ENDPOINTS = {
   CREATE: "/api/transactions",
   GET_BY_USER: (userId) => `/api/transactions/${userId}`,
   GET_LENDING_DETAILS: (userId) => `/api/lending-details/${userId}`,
+};
+
+export const JOB_ENDPOINTS = {
+  LIST: '/api/jobs',
+  CREATE: '/api/jobs',
+  UPDATE: (id) => `/api/jobs/${id}`,
+  DELETE: (id) => `/api/jobs/${id}`,
+  GET: (id) => `/api/jobs/${id}`,
+};
+
+export const SKILL_ENDPOINTS = {
+  LIST: '/api/skills',
+  CREATE: '/api/skills',
+  UPDATE: (id) => `/api/skills/${id}`,
+  DELETE: (id) => `/api/skills/${id}`,
+  GET: (id) => `/api/skills/${id}`,
 };

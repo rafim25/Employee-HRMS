@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
-import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
+import { BreadcrumbAdmin, ButtonOne, ButtonTwo } from '../../../../components';
 import { FaRegEdit, FaPlus, FaFileExcel } from 'react-icons/fa'
 import { BsTrash3 } from 'react-icons/bs'
 import { BiSearch } from 'react-icons/bi'
@@ -43,13 +43,13 @@ const CustomerData = () => {
 
     // Filter users based on search and status
     const filteredUsers = users?.filter((user) => {
-        const matchesSearch = 
+        const matchesSearch =
             (user?.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (user?.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-        
-        const matchesStatus = !statusFilter || statusFilter === 'all' || 
+
+        const matchesStatus = !statusFilter || statusFilter === 'all' ||
             (user?.status?.toLowerCase() === statusFilter.toLowerCase());
-        
+
         return matchesSearch && matchesStatus;
     }) || [];
 
@@ -105,7 +105,7 @@ const CustomerData = () => {
             // Convert input dates to start and end of day
             const from = new Date(fromDate);
             from.setHours(0, 0, 0, 0);
-            
+
             const to = new Date(toDate);
             to.setHours(23, 59, 59, 999);
 
@@ -115,10 +115,10 @@ const CustomerData = () => {
                 const dateJoined = user?.date_joined ? new Date(user.date_joined.replace(' ', 'T')) : null;
                 if (!dateJoined) return false;
 
-                const matchesSearch = 
+                const matchesSearch =
                     (user?.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
                     (user?.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-                const matchesStatus = !statusFilter || statusFilter === 'all' || 
+                const matchesStatus = !statusFilter || statusFilter === 'all' ||
                     (user?.status?.toLowerCase() === statusFilter.toLowerCase());
                 const matchesDateRange = dateJoined >= from && dateJoined <= to;
 
@@ -171,7 +171,7 @@ const CustomerData = () => {
 
             // Generate Excel file
             XLSX.writeFile(wb, filename);
-            
+
             toast.success('Excel file downloaded successfully');
         } catch (error) {
             console.error('Error generating Excel:', error);
@@ -192,7 +192,7 @@ const CustomerData = () => {
     return (
         <DefaultLayoutAdmin>
             <BreadcrumbAdmin pageName='Customer Data' />
-            
+
             <div className="flex flex-wrap items-center justify-between gap-2.5 mb-6">
                 <div className="flex items-center gap-3 flex-1 justify-between">
                     <Link to="/admin/master-data/data-pegawai/form-data-pegawai">
@@ -239,7 +239,7 @@ const CustomerData = () => {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                     <div className="flex items-center justify-between w-full">
                         <div className='relative w-48'>
-                            <select 
+                            <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                                 className='w-full relative appearance-none rounded border border-stroke bg-transparent py-3 pl-4 pr-8 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input'
@@ -288,8 +288,8 @@ const CustomerData = () => {
                                         <div className="flex flex-col items-center justify-center">
                                             <p className="text-lg text-gray-500 dark:text-gray-400 mb-2">No customers found</p>
                                             <p className="text-sm text-gray-400 dark:text-gray-500">
-                                                {searchTerm || statusFilter ? 
-                                                    'Try adjusting your search or filter to find what you\'re looking for.' : 
+                                                {searchTerm || statusFilter ?
+                                                    'Try adjusting your search or filter to find what you\'re looking for.' :
                                                     'Get started by adding your first customer.'}
                                             </p>
                                         </div>

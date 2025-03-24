@@ -19,6 +19,20 @@ import Gallery from '../../pages/Gallery'
 import ProjectDocuments from '../../pages/ProjectDocuments'
 import TransactionReport from '../../pages/Admin/Reports/TransactionReport'
 import ResetPassword from '../../pages/Admin/Settings/ResetPassword'
+import JobList from '../../pages/Admin/Recruitments/JobManagement/JobList'
+import JobForm from '../../pages/Admin/Recruitments/JobManagement/JobForm'
+import SkillList from '../../pages/Admin/Recruitments/SkillManagement/SkillList'
+import SkillForm from '../../pages/Admin/Recruitments/SkillManagement/SkillForm'
+import EditJob from '../../pages/Admin/Recruitments/JobManagement/EditJob'
+import EditSkill from '../../pages/Admin/Recruitments/SkillManagement/EditSkill'
+import JobDetails from '../../pages/Admin/Recruitments/JobManagement/JobDetails'
+import CandidateForm from '../../pages/Admin/Recruitments/Candidates/CandidateForm'
+import CandidateList from '../../pages/Admin/Recruitments/Candidates/CandidateList'
+import CandidateDetails from '../../pages/Admin/Recruitments/Candidates/CandidateDetails'
+import PublicJobList from '../../pages/Public/Jobs/PublicJobList'
+import PublicJobDetails from '../../pages/Public/Jobs/PublicJobDetails'
+import PublicCandidateForm from '../../pages/Public/Jobs/PublicCandidateForm'
+import CandidateEdit from '../../pages/Admin/Recruitments/Candidates/CandidateEdit'
 
 const AppRoutes = () => {
   return (
@@ -157,6 +171,86 @@ const AppRoutes = () => {
       <Route path='/admin/reports/transactions' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <TransactionReport />
+        </ProtectedRoute>
+      } />
+
+      {/* Job Management Routes */}
+      <Route path="/admin/recruitments/job-management" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <JobList />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/job-management/form-job" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <JobForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/job-management/edit/:id" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <EditJob />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/job-management/details/:id" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <JobDetails />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/job-management/apply/:jobId" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateForm />
+        </ProtectedRoute>
+      } />
+      {/* Skill Management Routes */}
+      <Route path="/admin/recruitments/skill-management" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <SkillList />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/skill-management/form-skill" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <SkillForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/skill-management/edit/:id" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <EditSkill />
+        </ProtectedRoute>
+      } />
+
+      {/* Public Job Routes */}
+      <Route path="/careers" element={<PublicJobList />} />
+      <Route path="/careers/jobs/:id" element={<PublicJobDetails />} />
+      <Route path="/careers/jobs/:jobId/apply" element={<PublicCandidateForm />} />
+
+      {/* Candidate Management Routes */}
+      <Route path="/admin/recruitments/candidates" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateList />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/candidates/:id" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateDetails />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/job-management/:jobId/candidates" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateList />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/job-management/:jobId/candidates/:candidateId" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateDetails />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/candidates/add" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/candidates/edit/:id" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateEdit />
         </ProtectedRoute>
       } />
 

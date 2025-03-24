@@ -14,6 +14,7 @@ import { FaMoneyBillWave } from 'react-icons/fa'
 import { TbReport } from 'react-icons/tb'
 import { BiMoney } from 'react-icons/bi'
 import { BsBuilding } from 'react-icons/bs'
+import { FaUserTie } from 'react-icons/fa'
 
 const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -115,9 +116,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                          pathname.includes('master-data') && 'bg-graydark dark:bg-meta-4'
-                        }`}
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('master-data') && 'bg-graydark dark:bg-meta-4'
+                          }`}
                         onClick={(e) => {
                           e.preventDefault();
                           handleClick();
@@ -125,9 +125,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <FiDatabase />
                         Customer Data
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${
-                          open && 'rotate-180'
-                        }`} />
+                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                          }`} />
                       </NavLink>
                       {/* <!-- Dropdown Menu Start --> */}
                       <div
@@ -176,9 +175,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                          pathname.includes('expense') && 'bg-graydark dark:bg-meta-4'
-                        }`}
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('expense') && 'bg-graydark dark:bg-meta-4'
+                          }`}
                         onClick={(e) => {
                           e.preventDefault();
                           handleClick();
@@ -186,9 +184,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <BiMoney />
                         Expense Management
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${
-                          open && 'rotate-180'
-                        }`} />
+                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                          }`} />
                       </NavLink>
                       {/* <!-- Dropdown Menu Start --> */}
                       <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
@@ -233,9 +230,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                          pathname.includes('reports') && 'bg-graydark dark:bg-meta-4'
-                        }`}
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('reports') && 'bg-graydark dark:bg-meta-4'
+                          }`}
                         onClick={(e) => {
                           e.preventDefault();
                           handleClick();
@@ -243,9 +239,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <TbReport />
                         Reports
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${
-                          open && 'rotate-180'
-                        }`} />
+                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                          }`} />
                       </NavLink>
                       {/* <!-- Dropdown Menu Start --> */}
                       <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
@@ -270,6 +265,77 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
               </SidebarLinkGroup>
               {/* <!-- Reports End --> */}
 
+              {/* <!-- Recruitments --> */}
+              <SidebarLinkGroup
+                activeCondition={
+                  pathname.includes('recruitments')
+                }
+              >
+                {(handleClick, open) => {
+                  return (
+                    <React.Fragment>
+                      <NavLink
+                        to='#'
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('recruitments') && 'bg-graydark dark:bg-meta-4'
+                          }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleClick();
+                        }}
+                      >
+                        <FiSettings />
+                        Recruitments
+                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                          }`} />
+                      </NavLink>
+                      {/* <!-- Dropdown Menu Start --> */}
+                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
+                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                          <li>
+                            <NavLink
+                              to='/admin/recruitments/skill-management'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              Skill Management
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to='/admin/recruitments/job-management'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              Job Management
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to='/admin/recruitments/candidates'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <FaUserTie className="w-4 h-4" />
+                                Candidates
+                              </div>
+                            </NavLink>
+                          </li>
+                        </ul>
+                      </div>
+                      {/* <!-- Dropdown Menu End --> */}
+                    </React.Fragment>
+                  );
+                }}
+              </SidebarLinkGroup>
+              {/* <!-- Recruitments End --> */}
+
               {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
                 activeCondition={
@@ -281,9 +347,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                          pathname.includes('pengaturan') && 'bg-graydark dark:bg-meta-4'
-                        }`}
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('pengaturan') && 'bg-graydark dark:bg-meta-4'
+                          }`}
                         onClick={(e) => {
                           e.preventDefault();
                           handleClick();
@@ -291,9 +356,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <FiSettings />
                         Settings
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${
-                          open && 'rotate-180'
-                        }`} />
+                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                          }`} />
                       </NavLink>
                       {/* <!-- Dropdown Menu Start --> */}
                       <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>

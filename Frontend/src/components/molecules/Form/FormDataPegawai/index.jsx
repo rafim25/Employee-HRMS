@@ -7,13 +7,14 @@ import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import { useAuth } from '../../../../context/AuthContext';
 import { api } from '../../../../services/api';
 import { USER_ENDPOINTS } from '../../../../constants/apiEndpoints';
+import 'rc-slider/assets/index.css';
 
 const UserDataForm = () => {
   const navigate = useNavigate();
   const { dispatch } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Form state
   const [formData, setFormData] = useState({
     user_id: generateUserId(),
@@ -34,12 +35,12 @@ const UserDataForm = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   // Generate unique user ID (CID)
- // Generate unique user ID (USR + 4 digits)
-function generateUserId() {
-  const prefix = 'USR';
-  const random = Math.floor(1000 + Math.random() * 9000); // Generates number between 1000-9999
-  return `${prefix}${random}`;
-}
+  // Generate unique user ID (USR + 4 digits)
+  function generateUserId() {
+    const prefix = 'USR';
+    const random = Math.floor(1000 + Math.random() * 9000); // Generates number between 1000-9999
+    return `${prefix}${random}`;
+  }
 
   // Handle input changes
   const handleChange = (e) => {

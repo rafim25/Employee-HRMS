@@ -34,3 +34,21 @@ export const SET_LOAN_ERROR = "SET_LOAN_ERROR";
 export const CREATE_LOAN = "CREATE_LOAN";
 export const UPDATE_LOAN = "UPDATE_LOAN";
 export const DELETE_LOAN = "DELETE_LOAN";
+
+
+   // Frontend/src/context/types.js
+   export const SET_JOB_LIST = 'SET_JOB_LIST';
+   export const SET_JOB_LOADING = 'SET_JOB_LOADING';
+   export const SET_JOB_ERROR = 'SET_JOB_ERROR';
+   export const DELETE_JOB = 'DELETE_JOB';
+   export const UPDATE_JOB = 'UPDATE_JOB';
+   export const CREATE_JOB = 'CREATE_JOB'; 
+
+      // src/context/types.js
+   export const CREATE_SKILL = 'CREATE_SKILL';
+   export const UPDATE_SKILL = 'UPDATE_SKILL';
+   export const DELETE_SKILL = 'DELETE_SKILL';
+   export const SET_SKILL_LIST = 'SET_SKILL_LIST';
+   export const SET_SKILL_LOADING = 'SET_SKILL_LOADING';
+   export const SET_SKILL_ERROR = 'SET_SKILL_ERROR';
+   // Add other exports as needed

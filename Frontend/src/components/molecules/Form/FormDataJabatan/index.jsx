@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
+import DefaultLayoutAdmin from "../../../../layout/DefaultLayoutAdmin/index.jsx";
 import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
 import { useAuth } from '../../../../context/AuthContext';
 import { api } from '../../../../services/api';
@@ -65,7 +65,7 @@ const FormLoan = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const loadingToast = toast.loading('Creating loan...');
-        
+
         try {
             // Set remaining balance as loan amount minus advance amount
             const loanData = {
@@ -142,8 +142,8 @@ const FormLoan = () => {
                                         >
                                             <option value="">Select Customer</option>
                                             {customers.map(customer => (
-                                                <option 
-                                                    key={customer.user_id} 
+                                                <option
+                                                    key={customer.user_id}
                                                     value={customer.username}
                                                 >
                                                     {customer.username}

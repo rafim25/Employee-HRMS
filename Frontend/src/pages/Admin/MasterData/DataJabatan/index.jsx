@@ -62,7 +62,7 @@ const LendingDetails = () => {
         return matchesSearch && matchesStatus;
     }).sort((a, b) => {
         if (sortConfig.key === 'customer_name') {
-            return sortConfig.direction === 'asc' 
+            return sortConfig.direction === 'asc'
                 ? a.customer_name.localeCompare(b.customer_name)
                 : b.customer_name.localeCompare(a.customer_name);
         }
@@ -158,18 +158,18 @@ const LendingDetails = () => {
 
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Purchases');
-        
+
         // Generate filename with date range
         const filename = `purchases_${fromDate}_to_${toDate}.xlsx`;
         XLSX.writeFile(workbook, filename);
-        
+
         toast.success('Purchase report downloaded successfully');
     };
 
     const renderSortIcon = (columnKey) => {
         if (sortConfig.key === columnKey) {
-            return sortConfig.direction === 'asc' ? 
-                <FaSortUp className="inline ml-1 text-primary" /> : 
+            return sortConfig.direction === 'asc' ?
+                <FaSortUp className="inline ml-1 text-primary" /> :
                 <FaSortDown className="inline ml-1 text-primary" />;
         }
         return <FaSort className="inline ml-1 text-gray-400 hover:text-primary" />;
@@ -187,7 +187,7 @@ const LendingDetails = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Purchase Details' />
+            <BreadcrumbAdmin pageName='Purchase Details2' />
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <Link to="/admin/master-data/lending/add-lending">
                     <ButtonOne>
@@ -257,7 +257,7 @@ const LendingDetails = () => {
                     <table className='w-full table-auto'>
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
-                                <th onClick={() => handleSort('customer_name')} 
+                                <th onClick={() => handleSort('customer_name')}
                                     className='min-w-[170px] py-4 px-4 font-medium text-black dark:text-white cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-3'>
                                     Customer{renderSortIcon('customer_name')}
                                 </th>
@@ -293,11 +293,11 @@ const LendingDetails = () => {
                                         <div className="flex flex-col items-center justify-center">
                                             <p className="text-lg text-gray-500 dark:text-gray-400 mb-2">No purchase records found</p>
                                             <p className="text-sm text-gray-400 dark:text-gray-500">
-                                                {searchTerm || statusFilter ? 
-                                                    'Try adjusting your search criteria or status filter.' : 
+                                                {searchTerm || statusFilter ?
+                                                    'Try adjusting your search criteria or status filter.' :
                                                     'Get started by adding your first purchase record.'}
                                             </p>
-                                            <Link 
+                                            <Link
                                                 to="/admin/master-data/lending/add-lending"
                                                 className="mt-4 inline-flex items-center text-primary hover:underline"
                                             >
@@ -329,29 +329,28 @@ const LendingDetails = () => {
                                             <p className='text-black dark:text-white'>{loan.referred_by || 'N/A'}</p>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
-                                            <span className={`inline-block px-3 py-1 rounded-full ${
-                                                loan.status.toLowerCase() === 'active' 
-                                                    ? 'text-success bg-success/10' 
-                                                    : 'text-danger bg-danger/10'
-                                            }`}>
+                                            <span className={`inline-block px-3 py-1 rounded-full ${loan.status.toLowerCase() === 'active'
+                                                ? 'text-success bg-success/10'
+                                                : 'text-danger bg-danger/10'
+                                                }`}>
                                                 {loan.status}
                                             </span>
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                             <div className='flex items-center space-x-3.5'>
-                                                <button 
+                                                <button
                                                     onClick={() => navigate(`/admin/master-data/lending/edit/${loan.loan_id}`)}
                                                     className='hover:text-black'
                                                 >
                                                     <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleDelete(loan.loan_id)}
                                                     className='hover:text-black'
                                                 >
                                                     <BsTrash3 className="text-danger text-xl hover:text-black dark:hover:text-white" />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => navigate(`/admin/lending/${loan.loan_id}`)}
                                                     className='hover:text-black'
                                                 >

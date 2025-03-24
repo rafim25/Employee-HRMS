@@ -1,0 +1,22 @@
+CREATE TABLE candidates (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    uuid VARCHAR(36) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    experience DECIMAL(4,1),
+    current_company VARCHAR(255),
+    current_ctc DECIMAL(10,2),
+    expected_ctc DECIMAL(10,2),
+    notice_period INT,
+    current_location VARCHAR(255),
+    preferred_location VARCHAR(255),
+    resume_url TEXT,
+    job_id INT,
+    status ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected') DEFAULT 'applied',
+    comments TEXT,
+    uploaded_by VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL
+); 

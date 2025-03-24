@@ -13,6 +13,8 @@ import {
   SET_DASHBOARD_STATS,
 } from "../types";
 
+import { CANDIDATE_TYPES } from '../types/candidateTypes';
+
 export const authReducer = (state, action) => {
   switch (action.type) {
     case SET_USER:
@@ -83,6 +85,37 @@ export const authReducer = (state, action) => {
       return {
         ...state,
         loans: action.payload,
+      };
+    case CANDIDATE_TYPES.SET_CANDIDATES:
+      return {
+        ...state,
+        candidates: action.payload,
+        candidateError: null
+      };
+    case CANDIDATE_TYPES.SET_CANDIDATE_LOADING:
+      return {
+        ...state,
+        candidateLoading: action.payload
+      };
+    case CANDIDATE_TYPES.SET_CANDIDATE_ERROR:
+      return {
+        ...state,
+        candidateError: action.payload,
+        candidateLoading: false
+      };
+    case CANDIDATE_TYPES.ADD_CANDIDATE:
+      return {
+        ...state,
+        candidates: [...state.candidates, action.payload],
+        candidateError: null
+      };
+    case CANDIDATE_TYPES.UPDATE_CANDIDATE:
+      return {
+        ...state,
+        candidates: state.candidates.map(candidate =>
+          candidate.id === action.payload.id ? action.payload : candidate
+        ),
+        candidateError: null
       };
     default:
       return state;

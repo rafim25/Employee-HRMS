@@ -107,7 +107,7 @@ const LoanDetails = () => {
 
       setTransactions(transactionsResponse.data);
       setLoanDetails(loanResponse.data);
-      
+
       // Reset pagination to first page
       setCurrentPage(1);
       setStartIndex(0);
@@ -125,13 +125,13 @@ const LoanDetails = () => {
 
     try {
       const formData = new FormData();
-      
+
       // Add required fields
       formData.append('loan_id', loanId);
       formData.append('customer_id', state.user.user_id);
       formData.append('amount', transaction.amount);
       formData.append('transaction_type', 'credit');
-      
+
       // Add optional fields
       formData.append('date', transaction.date);
       formData.append('comments', transaction.comments);
@@ -276,7 +276,7 @@ const LoanDetails = () => {
 
         {/* Loan Details */}
         <div className="rounded-lg bg-white p-6 shadow-default dark:bg-boxdark">
-          <h2 className="mb-4 text-xl font-semibold">Purchase Details</h2>
+          <h2 className="mb-4 text-xl font-semibold">Purchase Details2</h2>
           <div className="space-y-4">
             <div>
               <label className="mb-1 block text-sm font-medium">Loan ID</label>
@@ -321,12 +321,12 @@ const LoanDetails = () => {
       {/* Add Transaction Form */}
       <div className="mt-6 rounded-lg bg-white p-6 shadow-default dark:bg-boxdark">
         <h2 className="mb-4 text-xl font-semibold">Add Transaction</h2>
-        
+
         {/* Show message if loan is inactive or fully paid */}
         {(loanDetails?.status === "closed" || loanDetails?.remaining_balance <= 0) ? (
           <div className="mb-4 rounded-lg bg-warning/10 p-4 text-warning">
             <p className="font-medium">
-              {loanDetails?.status === "closed" 
+              {loanDetails?.status === "closed"
                 ? "This purchase is closed. No further transactions can be added."
                 : "Customer has paid all the balance amount against their land purchase."}
             </p>

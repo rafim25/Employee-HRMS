@@ -3,6 +3,7 @@ import cors from "cors";
 import session from "express-session";
 import dotenv from "dotenv";
 import db, { testConnection } from "./config/Database.js";
+import initializeDatabase from "./config/initDb.js";
 
 import SequelizeStore from "connect-session-sequelize";
 import FileUpload from "express-fileupload";
@@ -21,8 +22,38 @@ import AuthV2Route from "./routes/AuthV2Route.js";
 import EmployeeRoute from "./routes/EmployeeRoute.js";
 import EmailRoute from "./routes/EmailRoute.js";
 
+// Import job and skill routes
+import jobRoutes from "./routes/jobRoutes.js";
+import skillRoute from "./routes/skillRoute.js";
+import { syncModels } from "./models/index.js";
+import candidateRoutes from './routes/CandidateRoute.js';
+
 const app = express();
 dotenv.config();
+
+// Initialize database without dropping tables
+(async () => {
+  try {
+    await syncModels();
+    console.log("✅ Database initialized successfully");
+  } catch (error) {
+    console.error("❌ Failed to initialize database:", error);
+  }
+})();
+
+// Sync database with models
+(async()=>{
+    try {
+        await db.authenticate();
+        console.log('Database connected...');
+        
+        // Force true will drop and recreate tables
+        await db.sync({ alter: true });
+        console.log('Database synchronized...');
+    } catch (error) {
+        console.error('Error syncing database:', error);
+    }
+})();
 
 // Test database connection before starting the server
 const startServer = async () => {
@@ -134,9 +165,20 @@ const startServer = async () => {
     app.use(DataKehadiranRoute);
     app.use(EmployeeRoute);
 
-    // 404 Handler
+    // Add job and skill routes
+    app.use(jobRoutes);
+    app.use('/api/skills', skillRoute);
+    app.use(candidateRoutes);
+    // Add before your routes
+    app.use((req, res, next) => {
+      console.log(`${req.method} ${req.url}`);
+      next();
+    });
+
+    // Add after your routes
     app.use((req, res) => {
-      res.status(404).json({ error: "Route not found", path: req.path });
+      console.log(`Route not found: ${req.method} ${req.url}`);
+      res.status(404).json({ msg: "Route not found", path: req.url });
     });
 
     console.log("process.env.APP_POR------->T", process.env);
