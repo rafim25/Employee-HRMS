@@ -12,6 +12,8 @@ import { fetchCandidates, updateCandidateStatus, deleteCandidate } from '../../.
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import DataTable from '../../../../components/molecules/DataTable/DataTable';
+import { downloadCandidateTemplate } from '../../../../utils/excelTemplates';
+import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -24,12 +26,14 @@ const CandidateList = () => {
   const [filters, setFilters] = useState({
     status: '',
     source: '',
-    experience: '',
+    experience: { min: '', max: '' },
     location: '',
     dateRange: {
       start: '',
       end: ''
-    }
+    },
+    salary: { min: '', max: '' },
+    jobApplied: ''
   });
 
   // Pagination
@@ -73,127 +77,84 @@ const CandidateList = () => {
     }
   };
 
-  // Filter Modal Component
-  const FilterModal = () => (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity">
-          <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white dark:bg-boxdark px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <h3 className="text-lg font-medium mb-4 dark:text-white">Filter Candidates</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium dark:text-white">Status</label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-                >
-                  <option value="">All Status</option>
-                  <option value="applied">Applied</option>
-                  <option value="screening">Screening</option>
-                  <option value="shortlisted">Shortlisted</option>
-                  <option value="interviewed">Interviewed</option>
-                  <option value="selected">Selected</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
+  const filterConfig = [
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'applied', label: 'Applied' },
+        { value: 'screening', label: 'Screening' },
+        { value: 'shortlisted', label: 'Shortlisted' },
+        { value: 'interviewed', label: 'Interviewed' },
+        { value: 'selected', label: 'Selected' },
+        { value: 'rejected', label: 'Rejected' },
+        { value: 'hold', label: 'Hold' }
+      ]
+    },
+    {
+      key: 'jobApplied',
+      label: 'Job Applied For',
+      type: 'select',
+      options: Array.from(new Set(candidates.map(c => c.job?.title)))
+        .filter(Boolean)
+        .map(title => ({ value: title, label: title }))
+    },
+    {
+      key: 'salary',
+      label: 'Expected Salary (LPA)',
+      type: 'range',
+      min: 0,
+      max: 100,
+      step: 1,
+      placeholder: 'Expected salary range'
+    },
+    {
+      key: 'source',
+      label: 'Source',
+      type: 'select',
+      options: [
+        { value: 'Direct', label: 'Direct' },
+        { value: 'Referral', label: 'Referral' },
+        { value: 'LinkedIn', label: 'LinkedIn' },
+        { value: 'Agency', label: 'Agency' }
+      ]
+    },
+    {
+      key: 'experience',
+      label: 'Experience',
+      type: 'range',
+      placeholder: 'Years of experience'
+    },
+    {
+      key: 'dateRange',
+      label: 'Date Range',
+      type: 'dateRange'
+    },
+    {
+      key: 'location',
+      label: 'Location',
+      type: 'search',
+      placeholder: 'Search location'
+    }
+  ];
 
-              <div>
-                <label className="block text-sm font-medium dark:text-white">Source</label>
-                <select
-                  value={filters.source}
-                  onChange={(e) => setFilters({ ...filters, source: e.target.value })}
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-                >
-                  <option value="">All Sources</option>
-                  <option value="Direct">Direct</option>
-                  <option value="Referral">Referral</option>
-                  <option value="LinkedIn">LinkedIn</option>
-                  <option value="Agency">Agency</option>
-                </select>
-              </div>
+  const handleApplyFilters = () => {
+    // Apply your filters logic here
+    setShowFilterModal(false);
+  };
 
-              <div>
-                <label className="block text-sm font-medium dark:text-white">Experience Range</label>
-                <select
-                  value={filters.experience}
-                  onChange={(e) => setFilters({ ...filters, experience: e.target.value })}
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-                >
-                  <option value="">All Experience</option>
-                  <option value="0-2">0-2 years</option>
-                  <option value="2-5">2-5 years</option>
-                  <option value="5-10">5-10 years</option>
-                  <option value="10+">10+ years</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium dark:text-white">Date Range</label>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={filters.dateRange.start}
-                    onChange={(e) => setFilters({
-                      ...filters,
-                      dateRange: { ...filters.dateRange, start: e.target.value }
-                    })}
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-                  />
-                  <input
-                    type="date"
-                    value={filters.dateRange.end}
-                    onChange={(e) => setFilters({
-                      ...filters,
-                      dateRange: { ...filters.dateRange, end: e.target.value }
-                    })}
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 dark:bg-boxdark px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <ButtonOne
-              type="button"
-              className="w-full sm:w-auto sm:ml-3"
-              onClick={() => {
-                // Apply filters
-                setShowFilterModal(false);
-              }}
-            >
-              Apply Filters
-            </ButtonOne>
-            <ButtonTwo
-              type="button"
-              className="w-full sm:w-auto sm:ml-3"
-              onClick={() => {
-                setFilters({
-                  status: '',
-                  source: '',
-                  experience: '',
-                  location: '',
-                  dateRange: { start: '', end: '' }
-                });
-              }}
-            >
-              Reset
-            </ButtonTwo>
-            <ButtonThree
-              type="button"
-              className="w-full sm:w-auto"
-              onClick={() => setShowFilterModal(false)}
-            >
-              Cancel
-            </ButtonThree>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const handleResetFilters = () => {
+    setFilters({
+      status: '',
+      source: '',
+      experience: { min: '', max: '' },
+      location: '',
+      dateRange: { start: '', end: '' },
+      salary: { min: '', max: '' },
+      jobApplied: ''
+    });
+  };
 
   // Add this function to handle status change
   const handleStatusChange = async (candidateId, newStatus) => {
@@ -280,6 +241,28 @@ const CandidateList = () => {
       )
     },
     {
+      key: 'resume',
+      header: 'Resume',
+      className: 'min-w-[120px]',
+      render: (candidate) => (
+        <div>
+          {candidate.resume_url ? (
+            <button
+              onClick={() => window.open(candidate.resume_url, '_blank')}
+              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200"
+            >
+              <FaDownload className="text-base" />
+              <span className="text-sm font-medium">Download CV</span>
+            </button>
+          ) : (
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              No resume uploaded
+            </span>
+          )}
+        </div>
+      )
+    },
+    {
       key: 'status',
       header: 'Status',
       className: 'min-w-[120px]',
@@ -311,6 +294,49 @@ const CandidateList = () => {
     }
   ];
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const data = [
+        { Code: 'CAND001', 'First Name': 'John', 'Last Name': 'Doe', Email: 'john.doe@email.com', Mobile: '1234567890', 'Job Title': 'Software Engineer', Experience: '5', State: 'Karnataka', City: 'Bangalore', 'Expected Salary': '10', 'Current Salary': '8', Resume: 'john_resume.pdf', Source: 'Direct', Status: 'Applied' }
+      ];
+
+      const success = await downloadCandidateTemplate({ data1: data, fileName: "candidate-upload-template" });
+
+      if (success) {
+        console.log("✅ Success message should print now!");
+        toast.success('Template downloaded successfully');
+      } else {
+        toast.error('Failed to download template');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Error downloading template');
+    }
+  };
+
+  const filteredCandidates = candidates.filter(candidate => {
+    const matchesStatus = !filters.status || candidate.status === filters.status;
+    const matchesSource = !filters.source || candidate.source === filters.source;
+    const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
+      (!filters.experience.max || candidate.experience <= Number(filters.experience.max));
+    const matchesLocation = !filters.location ||
+      candidate.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
+      candidate.state?.toLowerCase().includes(filters.location.toLowerCase());
+    const matchesDateRange = (!filters.dateRange.start || new Date(candidate.createdAt) >= new Date(filters.dateRange.start)) &&
+      (!filters.dateRange.end || new Date(candidate.createdAt) <= new Date(filters.dateRange.end));
+    const matchesSalary = (!filters.salary.min || candidate.expected_salary >= Number(filters.salary.min)) &&
+      (!filters.salary.max || candidate.expected_salary <= Number(filters.salary.max));
+    const matchesJob = !filters.jobApplied || candidate.job?.title === filters.jobApplied;
+
+    return matchesStatus &&
+      matchesSource &&
+      matchesExperience &&
+      matchesLocation &&
+      matchesDateRange &&
+      matchesSalary &&
+      matchesJob;
+  });
+
   return (
     <DefaultLayoutAdmin>
       <BreadcrumbAdmin pageName='Candidates' />
@@ -324,8 +350,15 @@ const CandidateList = () => {
           </ButtonOne>
         </Link>
 
-        <div className="flex flex-wrap items-center gap-3 ml-auto">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* <ButtonOne
+            onClick={handleDownloadTemplate}
+            className="flex items-center gap-2"
+          >
+            <FaDownload />
+            <span>Download Template</span>
+          </ButtonOne> */}
+          {/* <div className="flex items-center gap-2">
             <label className="text-black dark:text-white font-medium">From:</label>
             <input
               type="date"
@@ -346,7 +379,7 @@ const CandidateList = () => {
               })}
               className="rounded-lg border-[1.5px] border-stroke bg-transparent py-2 px-4 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
             />
-          </div>
+          </div> */}
           <button
             onClick={() => setShowFilterModal(true)}
             className="inline-flex items-center justify-center rounded-md bg-primary py-2 px-6 text-center font-medium text-white hover:bg-opacity-90 transition duration-200 ease-in-out ml-4"
@@ -359,7 +392,7 @@ const CandidateList = () => {
 
       {/* Search and Filter Section */}
       <div className='rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1'>
-        <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
+        {/* <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
           <div className="relative flex-1 md:mr-2 mb-4 md:mb-0">
             <input
               type="text"
@@ -388,10 +421,10 @@ const CandidateList = () => {
               <option value="rejected">Rejected</option>
             </select>
           </div>
-        </div>
+        </div> */}
 
         <DataTable
-          data={candidates}
+          data={filteredCandidates}
           columns={columns}
           actions={true}
           statusOptions={statusOptions}
@@ -407,14 +440,14 @@ const CandidateList = () => {
         <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
           <div className="flex items-center space-x-2">
             <span className="text-gray-5 dark:text-gray-4 text-sm py-4">
-              {candidates.length > 0 ? (
-                `Showing ${((currentPage - 1) * itemsPerPage) + 1}-${Math.min(currentPage * itemsPerPage, candidates.length)} of ${candidates.length} Candidates`
+              {filteredCandidates.length > 0 ? (
+                `Showing ${((currentPage - 1) * itemsPerPage) + 1}-${Math.min(currentPage * itemsPerPage, filteredCandidates.length)} of ${filteredCandidates.length} Candidates`
               ) : (
                 'No candidates to display'
               )}
             </span>
           </div>
-          {candidates.length > 0 && (
+          {filteredCandidates.length > 0 && (
             <div className="flex space-x-2 py-4">
               <button
                 disabled={currentPage === 1}
@@ -466,7 +499,15 @@ const CandidateList = () => {
         </div>
       </div>
 
-      {showFilterModal && <FilterModal />}
+      <FilterModal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        filters={filters}
+        setFilters={setFilters}
+        config={filterConfig}
+      />
     </DefaultLayoutAdmin>
   );
 };

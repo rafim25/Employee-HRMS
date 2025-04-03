@@ -8,8 +8,10 @@ import {
   deleteCandidate,
   updateCandidateStatus,
   applyForJob,
-  getCandidatesByJobId
+  getCandidatesByJobId,
+  shareCandidates
 } from "../controllers/CandidateController.js";
+import { sendCandidatesToClient } from "../controllers/EmailController.js";
 import {
   verify_User as verifyUser,
   admin_Only as adminOnly,
@@ -38,5 +40,6 @@ router.put('/api/candidates/:id', verifyUser,adminOnly, updateCandidate);
 
 // Update candidate status
 router.patch('/api/candidates/:id/status', verifyUser,adminOnly, updateCandidateStatus);
+router.post('/api/candidates/share', verifyUser,adminOnly, sendCandidatesToClient);
 
 export default router; 

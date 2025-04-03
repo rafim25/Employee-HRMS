@@ -21,11 +21,11 @@ const LoginPegawai = () => {
         try {
             const response = await loginUser(dispatch, { username, password });
             console.log('Login Response:', response.data); // Debug log
-            
+
             // Store user data in auth context
-            dispatch({ 
-                type: 'SET_USER', 
-                payload: response.data 
+            dispatch({
+                type: 'SET_USER',
+                payload: response.data
             });
 
             // Navigate based on user role
@@ -128,7 +128,7 @@ const LoginPegawai = () => {
                 </div>
             </div>
 
-            
+
         </div>
     );
 }

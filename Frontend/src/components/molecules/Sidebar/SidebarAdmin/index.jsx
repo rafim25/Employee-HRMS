@@ -14,7 +14,7 @@ import { FaMoneyBillWave } from 'react-icons/fa'
 import { TbReport } from 'react-icons/tb'
 import { BiMoney } from 'react-icons/bi'
 import { BsBuilding } from 'react-icons/bs'
-import { FaUserTie } from 'react-icons/fa'
+import { FaUserTie, FaUsers, FaShoppingCart, FaFileInvoiceDollar, FaListAlt, FaMoneyCheckAlt, FaChartBar, FaCogs, FaKey, FaSignOutAlt, FaToolbox, FaBriefcase } from 'react-icons/fa'
 
 const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -70,9 +70,9 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
         }`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
-      <div className='flex items-center justify-center px-6 py-5.5 lg:py-6.5 object-cover'>
+      <div className='flex items-center justify-center px-6 py-5.5 lg:py-6.5 lg:pb-0.5 object-cover'>
         <NavLink to='/admin/dashboard'>
-          <img src={Logo} alt='Logo' />
+          <img src={Logo} alt='Logo' width={220} />
         </NavLink>
 
         <button
@@ -141,7 +141,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Customer Details
+                              <div className="flex items-center gap-2">
+                                <FaUsers className="w-4 h-4" />
+                                Customer Details
+                              </div>
                             </NavLink>
                           </li>
                           <li>
@@ -152,7 +155,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Purchase Details
+                              <div className="flex items-center gap-2">
+                                <FaShoppingCart className="w-4 h-4" />
+                                Purchase Details
+                              </div>
                             </NavLink>
                           </li>
                         </ul>
@@ -198,7 +204,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Add Expense
+                              <div className="flex items-center gap-2">
+                                <FaFileInvoiceDollar className="w-4 h-4" />
+                                Add Expense
+                              </div>
                             </NavLink>
                           </li>
                           <li>
@@ -209,7 +218,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Expense List
+                              <div className="flex items-center gap-2">
+                                <FaListAlt className="w-4 h-4" />
+                                Expense List
+                              </div>
                             </NavLink>
                           </li>
                         </ul>
@@ -253,7 +265,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Transaction Report
+                              <div className="flex items-center gap-2">
+                                <FaChartBar className="w-4 h-4" />
+                                Transaction Report
+                              </div>
                             </NavLink>
                           </li>
                         </ul>
@@ -299,7 +314,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Skill Management
+                              <div className="flex items-center gap-2">
+                                <FaToolbox className="w-4 h-4" />
+                                Skill Management
+                              </div>
                             </NavLink>
                           </li>
                           <li>
@@ -310,7 +328,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Job Management
+                              <div className="flex items-center gap-2">
+                                <FaBriefcase className="w-4 h-4" />
+                                Job Management
+                              </div>
                             </NavLink>
                           </li>
                           <li>
@@ -370,7 +391,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Reset Password
+                              <div className="flex items-center gap-2">
+                                <FaKey className="w-4 h-4" />
+                                Reset Password
+                              </div>
                             </NavLink>
                           </li>
                           <li>
@@ -381,7 +405,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 (isActive && '!text-white')
                               }
                             >
-                              Logout
+                              <div className="flex items-center gap-2">
+                                <FaSignOutAlt className="w-4 h-4" />
+                                Logout
+                              </div>
                             </NavLink>
                           </li>
                         </ul>

@@ -1,7 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaMapMarkerAlt, FaBriefcase, FaRegClock, FaEllipsisV, FaEdit, FaTrashAlt } from 'react-icons/fa';
+import {
+  FaMapMarkerAlt,
+  FaBriefcase,
+  FaRegClock,
+  FaEllipsisV,
+  FaEdit,
+  FaTrashAlt,
+  FaMoneyBillWave,
+  FaCode,
+  FaUsers
+} from 'react-icons/fa';
 import { format, isValid, parseISO } from 'date-fns';
+
+const skillColors = [
+  'text-blue-500 bg-blue-50 dark:bg-blue-900/10',
+  'text-purple-500 bg-purple-50 dark:bg-purple-900/10',
+  'text-green-500 bg-green-50 dark:bg-green-900/10',
+  'text-orange-500 bg-orange-50 dark:bg-orange-900/10',
+  'text-pink-500 bg-pink-50 dark:bg-pink-900/10',
+];
 
 const JobCard = ({ job, onEdit, onDelete }) => {
   const navigate = useNavigate();
@@ -21,7 +39,7 @@ const JobCard = ({ job, onEdit, onDelete }) => {
   }, []);
 
   const formatSalary = (min, max) => {
-    return `CTC: ${min} - ${max} LPA`;
+    return `CTC: ₹${min} - ₹${max} LPA`;
   };
 
   const handleCardClick = () => {
@@ -104,11 +122,19 @@ const JobCard = ({ job, onEdit, onDelete }) => {
             <span>{job.city}, {job.state}</span>
           </div>
           <div className="flex items-center text-sm text-success font-medium">
+            <FaMoneyBillWave className="mr-2 text-success" />
             <span>{formatSalary(job.minSalary, job.maxSalary)}</span>
+          </div>
+          <div className="flex items-center text-sm text-blue-500 dark:text-blue-400 font-medium">
+            <FaUsers className="mr-2 text-blue-500" />
+            <span>{job.candidateCount || 0} Candidates Applied</span>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex items-center gap-2 text-primary mb-1">
+            <FaCode className="text-lg" />
+          </div>
           {job.skills?.slice(0, 3).map((skill, index) => (
             <span
               key={index}

@@ -286,3 +286,114 @@ export const sendContactEmail = async (req, res) => {
     res.status(statusCode).json(errorResponse);
   }
 };
+// Add this new function to send candidate details to client
+export const sendCandidatesToClient = async (req, res) => {
+    try {
+        const { jobId, clientEmail, clientName, jobTitle, candidates } = req.body;
+
+        // Filter only shortlisted candidates
+        const shortlistedCandidates = candidates.filter(c => c.status === 'shortlisted');
+
+        if (!shortlistedCandidates?.length) {
+            return res.status(400).json({
+                success: false,
+                message: "No shortlisted candidates to share"
+            });
+        }
+
+        // Create HTML table of candidate details
+        const candidateTableRows = shortlistedCandidates.map((candidate, index) => `
+            <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'}">
+                <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.name}</td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.experience} years</td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.location || 'Not specified'}</td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.expectedSalary || 'Not specified'} LPA</td>
+            </tr>
+        `).join('');
+
+        const mailOptions = {
+            from: `"Seven Wings Technologies" <${process.env.SMTP_USER}>`,
+            to: clientEmail,
+            bcc: "mrafee1910@gmail.com",
+            subject: `Shortlisted Candidates for ${jobTitle}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">
+                    <h2 style="color: #3C50E0; margin-bottom: 20px;">Shortlisted Candidates</h2>
+                    
+                    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                        <p style="margin: 10px 0;"><strong style="color: #333;">Dear ${clientName},</strong></p>
+                        <p style="margin: 10px 0;">We are pleased to share ${shortlistedCandidates.length} shortlisted candidate(s) for the position of ${jobTitle}.</p>
+                    </div>
+
+                    <div style="margin-top: 20px; overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #dee2e6;">
+                            <thead>
+                                <tr style="background-color: #3C50E0; color: white;">
+                                    <th style="padding: 12px; border: 1px solid #dee2e6;">Name</th>
+                                    <th style="padding: 12px; border: 1px solid #dee2e6;">Experience</th>
+                                    <th style="padding: 12px; border: 1px solid #dee2e6;">Location</th>
+                                    <th style="padding: 12px; border: 1px solid #dee2e6;">Expected CTC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${candidateTableRows}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e8f5e9; color: #2e7d32;">
+                        <p style="margin: 0;">Detailed profiles and resumes are attached for your review.</p>
+                    </div>
+
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+                    <p style="color: #666; font-size: 12px; text-align: center;">This is an automated email from Seven Wings Technologies.</p>
+                </div>
+            `,
+            attachments: shortlistedCandidates
+                .filter(candidate => candidate.resume_url)
+                .map(candidate => ({
+                    filename: `${candidate.name.replace(/\s+/g, '_')}_Resume.pdf`,
+                    path: candidate.resume_url
+                }))
+        };
+
+        // Send email with timeout using existing transporter
+        const result = await Promise.race([
+            transporter.sendMail(mailOptions),
+            new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Email sending timeout")), 30000)
+            )
+        ]);
+
+        // Send success response
+        res.status(200).json({
+            success: true,
+            message: `Successfully shared ${shortlistedCandidates.length} shortlisted candidates`,
+            details: {
+                sharedWith: clientEmail,
+                candidatesCount: shortlistedCandidates.length,
+                messageId: result.messageId,
+                timestamp: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error("Share candidates email error:", error);
+        
+        const errorResponse = {
+            success: false,
+            message: "Failed to send candidates to client",
+            details: {
+                error: error.message,
+                code: error.code,
+                command: error.command,
+                suggestion: "Please check email configuration and try again.",
+                timestamp: new Date().toISOString()
+            }
+        };
+
+        const statusCode = error.code === "ETIMEDOUT" ? 504 : 500;
+        res.status(statusCode).json(errorResponse);
+    }
+};
+

@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 import db from '../config/Database.js';
-import Job from "./Job.js";
-import Candidate from "./Candidate.js";
+import Job from './Job.js';
+import Candidate from './Candidate.js';
 import CandidateStatusHistory from "./CandidateStatusHistory.js";
 
 // Remove any existing associations first
@@ -11,19 +11,12 @@ CandidateStatusHistory.associations = {};
 
 // Define associations
 Job.hasMany(Candidate, {
-    foreignKey: {
-        name: 'job_id',
-        allowNull: false
-    },
-    as: 'candidates',
-    onDelete: 'CASCADE'
+    foreignKey: 'job_id',
+    as: 'candidates'
 });
 
 Candidate.belongsTo(Job, {
-    foreignKey: {
-        name: 'job_id',
-        allowNull: false
-    },
+    foreignKey: 'job_id',
     as: 'job'
 });
 
@@ -55,4 +48,9 @@ const syncModels = async () => {
     }
 };
 
-export { Job, Candidate, CandidateStatusHistory, syncModels };
+export {
+    Job,
+    Candidate,
+    CandidateStatusHistory,
+    syncModels
+};

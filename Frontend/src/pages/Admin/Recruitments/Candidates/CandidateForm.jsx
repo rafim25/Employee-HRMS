@@ -6,6 +6,7 @@ import { FaArrowLeft, FaRupeeSign, FaFileUpload, FaDownload, FaBuilding, FaMapMa
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../../context/AuthContext';
 import { Tab } from '@headlessui/react';
+import { downloadCandidateTemplate } from '../../../../utils/excelTemplates';
 
 const CandidateForm = () => {
   const navigate = useNavigate();
@@ -117,15 +118,24 @@ const CandidateForm = () => {
     }));
   };
 
-  const downloadTemplate = () => {
-    // Template download logic
-    const templateUrl = '/templates/candidate-upload-template.xlsx';
-    const link = document.createElement('a');
-    link.href = templateUrl;
-    link.download = 'candidate-upload-template.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadTemplate = async () => {
+    try {
+      const data = [
+        { Code: 'CAND001', 'First Name': 'John', 'Last Name': 'Doe', Email: 'john.doe@email.com', Mobile: '1234567890', 'Job Title': 'Software Engineer', Experience: '5', State: 'Karnataka', City: 'Bangalore', 'Expected Salary': '10', 'Current Salary': '8', Resume: 'john_resume.pdf', Source: 'Direct', Status: 'Applied' }
+      ];
+
+      const success = await downloadCandidateTemplate({ data1: data, fileName: "candidate-upload-template" });
+
+      if (success) {
+        console.log("✅ Success message should print now!");
+        toast.success('Template downloaded successfully');
+      } else {
+        toast.error('Failed to download template');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Error downloading template');
+    }
   };
 
   const handleBulkUpload = async (e) => {
@@ -485,7 +495,7 @@ const CandidateForm = () => {
                     <h4 className="text-xl font-semibold mb-4">Bulk Upload Candidates</h4>
                     <div className="flex items-center gap-4 mb-6">
                       <button
-                        onClick={downloadTemplate}
+                        onClick={handleDownloadTemplate}
                         className="flex items-center gap-2 text-primary hover:text-primary/80"
                       >
                         <FaDownload /> Download Template

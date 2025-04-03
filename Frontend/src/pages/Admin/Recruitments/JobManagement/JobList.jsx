@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArchive, FaExclamationTriangle, FaFilter } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
@@ -11,6 +11,8 @@ import { fetchJobs, deleteJob } from '../../../../context/actions/jobActions';
 import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import JobCard from '../../../../components/molecules/JobCard';
+import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
+import { skillIcons } from '../../../../config/skillIcons';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -23,20 +25,149 @@ const JobList = () => {
     const [activeTab, setActiveTab] = useState('all');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [jobToDelete, setJobToDelete] = useState(null);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [filters, setFilters] = useState({
+        type: '',
+        experience: { min: '', max: '' },
+        salary: { min: '', max: '' },
+        location: '',
+        skills: [],
+        status: ''
+    });
     const navigate = useNavigate();
 
     // Ensure jobs is always an array
     const jobsArray = Array.isArray(jobs) ? jobs : [];
 
-    // Define tabs
-    const tabs = [
-        { id: 'all', label: 'All Jobs', count: jobsArray.length },
-        { id: 'active', label: 'Active', count: jobsArray.filter(job => job.status === 'active').length },
-        { id: 'draft', label: 'Draft', count: jobsArray.filter(job => job.status === 'draft').length },
-        { id: 'closed', label: 'Closed', count: jobsArray.filter(job => job.status === 'closed').length },
-        { id: 'archived', label: 'Archived', count: jobsArray.filter(job => job.status === 'archived').length },
-        { id: 'expired', label: 'Expired', count: jobsArray.filter(job => job.status === 'expired').length },
+    const filterConfig = [
+        {
+            key: 'type',
+            label: 'Job Type',
+            type: 'select',
+            options: [
+                { value: 'Full-time', label: 'Full-time' },
+                { value: 'Part-time', label: 'Part-time' },
+                { value: 'Contract', label: 'Contract' },
+                { value: 'Internship', label: 'Internship' }
+            ]
+        },
+        {
+            key: 'salary',
+            label: 'CTC Range (LPA)',
+            type: 'range',
+            min: 0,
+            max: 100,
+            step: 1
+        },
+        {
+            key: 'location',
+            label: 'Location',
+            type: 'search',
+            placeholder: 'Search city or state'
+        },
+        {
+            key: 'skills',
+            label: 'Required Skills',
+            type: 'multiSelect',
+            options: [
+                'JavaScript',
+                'React',
+                'Node.js',
+                'Python',
+                'Java',
+                'SQL',
+                'AWS',
+                'Docker',
+                'TypeScript',
+                'Spring',
+                'Kubernetes'
+            ].map(skill => ({
+                value: skill,
+                label: skill
+            }))
+        },
+        {
+            key: 'status',
+            label: 'Job Status',
+            type: 'select',
+            options: [
+                { value: 'active', label: 'Active' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'closed', label: 'Closed' },
+                { value: 'archived', label: 'Archived' }
+            ]
+        }
     ];
+
+    // Update the filtering logic to handle both tab and other filters
+    const filteredJobs = jobsArray.filter((job) => {
+        // First check tab filter
+        const matchesTab = activeTab === 'all' || job.status === activeTab;
+        if (!matchesTab) return false;
+
+        // Then check search term
+        const matchesSearch = !searchTerm ||
+            job?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            job?.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        if (!matchesSearch) return false;
+
+        // Then check other filters
+        const matchesType = !filters.type || job.type === filters.type;
+        const matchesSalary = (!filters.salary.min || job.minSalary >= filters.salary.min) &&
+            (!filters.salary.max || job.maxSalary <= filters.salary.max);
+        const matchesLocation = !filters.location ||
+            job.city.toLowerCase().includes(filters.location.toLowerCase()) ||
+            job.state.toLowerCase().includes(filters.location.toLowerCase());
+        const matchesSkills = !filters.skills.length ||
+            filters.skills.every(skill => job.skills.includes(skill));
+
+        return matchesType && matchesSalary && matchesLocation && matchesSkills;
+    });
+
+    // Update the tabs definition to use the filtered count
+    const tabs = [
+        {
+            id: 'all',
+            label: 'All Jobs',
+            icon: FaBriefcase,
+            count: jobsArray.length
+        },
+        {
+            id: 'active',
+            label: 'Active',
+            icon: FaUsers,
+            count: jobsArray.filter(job => job.status === 'active').length
+        },
+        {
+            id: 'draft',
+            label: 'Draft',
+            icon: FaRegEdit,
+            count: jobsArray.filter(job => job.status === 'draft').length
+        },
+        {
+            id: 'closed',
+            label: 'Closed',
+            icon: FaRegClock,
+            count: jobsArray.filter(job => job.status === 'closed').length
+        },
+        {
+            id: 'archived',
+            label: 'Archived',
+            icon: FaArchive,
+            count: jobsArray.filter(job => job.status === 'archived').length
+        },
+        {
+            id: 'expired',
+            label: 'Expired',
+            icon: FaExclamationTriangle,
+            count: jobsArray.filter(job => job.status === 'expired').length
+        }
+    ];
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab, searchTerm, filters]);
 
     const loadJobs = useCallback(async () => {
         const loadingToast = toast.loading('Loading jobs...');
@@ -59,13 +190,6 @@ const JobList = () => {
             window.history.replaceState({}, document.title);
         }
     }, [location]);
-
-    const filteredJobs = jobsArray.filter((job) => {
-        const matchesSearch = job?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job?.description?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesTab = activeTab === 'all' || job?.status === activeTab;
-        return matchesSearch && matchesTab;
-    });
 
     const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -148,6 +272,14 @@ const JobList = () => {
                         </div>
 
                         <button
+                            onClick={() => setShowFilterModal(true)}
+                            className="inline-flex items-center justify-center gap-2.5 rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90"
+                        >
+                            <FaFilter />
+                            Filters
+                        </button>
+
+                        <button
                             onClick={handleDownloadExcel}
                             disabled={filteredJobs.length === 0}
                             className="inline-flex items-center justify-center gap-2.5 rounded-md bg-success py-2 px-6 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -159,31 +291,35 @@ const JobList = () => {
                 </div>
             </div>
 
-            <div className="mb-6 border-b border-stroke dark:border-strokedark">
-                <div className="flex flex-wrap -mb-px">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => {
-                                setActiveTab(tab.id);
-                                setCurrentPage(1);
-                            }}
-                            className={`inline-flex items-center px-4 py-3 text-sm font-medium border-b-2 rounded-t-lg hover:text-primary
-                                ${activeTab === tab.id
-                                    ? 'border-primary text-primary'
-                                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300'
-                                }`}
-                        >
-                            {tab.label}
-                            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs
-                                ${activeTab === tab.id
-                                    ? 'bg-primary/10 text-primary'
-                                    : 'bg-gray-100 dark:bg-meta-4 text-gray-600 dark:text-gray-400'
-                                }`}>
-                                {tab.count}
-                            </span>
-                        </button>
-                    ))}
+            <div className="mb-6 bg-white dark:bg-boxdark rounded-lg shadow-sm">
+                <div className="flex flex-wrap gap-2 p-2">
+                    {tabs.map((tab) => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => {
+                                    setActiveTab(tab.id);
+                                    setCurrentPage(1);
+                                }}
+                                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all
+                                    ${activeTab === tab.id
+                                        ? 'bg-primary text-white shadow-lg scale-105'
+                                        : 'hover:bg-gray-100 dark:hover:bg-meta-4 text-gray-600 dark:text-gray-300'
+                                    }`}
+                            >
+                                <Icon className={activeTab === tab.id ? 'text-white' : 'text-primary'} />
+                                <span>{tab.label}</span>
+                                <span className={`px-2 py-0.5 rounded-full text-xs
+                                    ${activeTab === tab.id
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-gray-100 dark:bg-meta-4 text-gray-600 dark:text-gray-400'
+                                    }`}>
+                                    {tab.count}
+                                </span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -263,6 +399,28 @@ const JobList = () => {
                     message="Are you sure you want to delete this job? This action cannot be undone."
                 />
             )}
+
+            <FilterModal
+                isOpen={showFilterModal}
+                onClose={() => setShowFilterModal(false)}
+                onApply={(newFilters) => {
+                    setFilters(newFilters);
+                    setShowFilterModal(false);
+                }}
+                onReset={() => {
+                    setFilters({
+                        type: '',
+                        experience: { min: '', max: '' },
+                        salary: { min: '', max: '' },
+                        location: '',
+                        skills: [],
+                        status: ''
+                    });
+                }}
+                filters={filters}
+                setFilters={setFilters}
+                config={filterConfig}
+            />
         </DefaultLayoutAdmin>
     );
 };

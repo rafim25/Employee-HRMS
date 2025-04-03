@@ -9,10 +9,12 @@ import toast from 'react-hot-toast';
 import {
   FaBriefcase, FaMapMarkerAlt, FaUsers, FaRegClock, FaBuilding,
   FaEnvelope, FaLocationArrow, FaMoneyBillWave, FaUserClock,
-  FaListUl, FaQuestionCircle, FaCheckCircle, FaUserTie, FaArrowLeft
+  FaListUl, FaQuestionCircle, FaCheckCircle, FaArrowLeft, FaDownload, FaShare, FaFilter, FaExclamationTriangle
 } from 'react-icons/fa';
 import InterviewProcessMilestone from '../../../../components/molecules/Milestones/InterviewProcessMilestones';
 import DataTable from '../../../../components/molecules/DataTable/DataTable';
+import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
+import ConfirmationModal from '../../../../components/molecules/Modal/ConfirmationModal';
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -23,6 +25,20 @@ const JobDetails = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedCandidates, setSelectedCandidates] = useState([]);
+  const [filters, setFilters] = useState({
+    status: '',
+    source: '',
+    experience: { min: '', max: '' },
+    location: '',
+    dateRange: {
+      start: '',
+      end: ''
+    }
+  });
+  const [showShareConfirmation, setShowShareConfirmation] = useState(false);
 
   useEffect(() => {
     const loadJob = async () => {
@@ -94,7 +110,76 @@ const JobDetails = () => {
     return isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date';
   };
 
-  // Add this columns configuration
+  // Add filter configuration
+  const filterConfig = [
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'applied', label: 'Applied' },
+        { value: 'screening', label: 'Screening' },
+        { value: 'shortlisted', label: 'Shortlisted' },
+        { value: 'interviewed', label: 'Interviewed' },
+        { value: 'selected', label: 'Selected' },
+        { value: 'rejected', label: 'Rejected' },
+        { value: 'hold', label: 'Hold' }
+      ]
+    },
+    {
+      key: 'source',
+      label: 'Source',
+      type: 'select',
+      options: [
+        { value: 'Direct', label: 'Direct' },
+        { value: 'Referral', label: 'Referral' },
+        { value: 'LinkedIn', label: 'LinkedIn' },
+        { value: 'Agency', label: 'Agency' }
+      ]
+    },
+    {
+      key: 'experience',
+      label: 'Experience',
+      type: 'range',
+      min: 0,
+      max: 20,
+      step: 1,
+      placeholder: 'Years of experience'
+    },
+    {
+      key: 'dateRange',
+      label: 'Applied Date',
+      type: 'dateRange'
+    },
+    {
+      key: 'location',
+      label: 'Location',
+      type: 'search',
+      placeholder: 'Search location'
+    }
+  ];
+
+  // Add status options
+  const statusOptions = [
+    { value: 'applied', label: 'Applied' },
+    { value: 'screening', label: 'Screening' },
+    { value: 'shortlisted', label: 'Shortlisted' },
+    { value: 'interviewed', label: 'Interviewed' },
+    { value: 'selected', label: 'Selected' },
+    { value: 'rejected', label: 'Rejected' }
+  ];
+
+  // Add status colors
+  const statusColors = {
+    applied: 'bg-warning/10 text-warning',
+    screening: 'bg-info/10 text-info',
+    shortlisted: 'bg-success/10 text-success',
+    interviewed: 'bg-primary/10 text-primary',
+    selected: 'bg-success/10 text-success',
+    rejected: 'bg-danger/10 text-danger'
+  };
+
+  // Update the columns configuration
   const columns = [
     {
       key: 'name',
@@ -141,27 +226,128 @@ const JobDetails = () => {
       className: 'min-w-[120px]',
       type: 'date',
       format: 'MMM dd, yyyy'
+    },
+    {
+      key: 'resume',
+      header: 'Resume',
+      className: 'min-w-[120px]',
+      render: (candidate) => (
+        <div>
+          {candidate.resume_url ? (
+            <button
+              onClick={() => window.open(candidate.resume_url, '_blank')}
+              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200"
+            >
+              <FaDownload className="text-base" />
+              <span className="text-sm font-medium">Download CV</span>
+            </button>
+          ) : (
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              No resume uploaded
+            </span>
+          )}
+        </div>
+      )
     }
   ];
 
-  // Add status options
-  const statusOptions = [
-    { value: 'applied', label: 'Applied' },
-    { value: 'screening', label: 'Screening' },
-    { value: 'shortlisted', label: 'Shortlisted' },
-    { value: 'interviewed', label: 'Interviewed' },
-    { value: 'selected', label: 'Selected' },
-    { value: 'rejected', label: 'Rejected' }
-  ];
+  // Add share functionality
+  const handleShareWithClient = async () => {
+    try {
+      const loadingToast = toast.loading('Sharing shortlisted candidates...');
 
-  // Add status colors
-  const statusColors = {
-    applied: 'bg-warning/10 text-warning',
-    screening: 'bg-info/10 text-info',
-    shortlisted: 'bg-success/10 text-success',
-    interviewed: 'bg-primary/10 text-primary',
-    selected: 'bg-success/10 text-success',
-    rejected: 'bg-danger/10 text-danger'
+      // Filter only shortlisted candidates
+      const shortlistedCandidates = candidates.filter(c => c.status === 'shortlisted');
+
+      if (shortlistedCandidates.length === 0) {
+        toast.error('No shortlisted candidates to share');
+        return;
+      }
+
+      const response = await fetch('/api/candidates/share', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          jobId: id,
+          clientEmail: job.clientEmail,
+          clientName: job.clientName,
+          jobTitle: job.title,
+          candidates: shortlistedCandidates // Send only shortlisted candidates
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to share candidates');
+      }
+
+      toast.success(`Successfully shared ${shortlistedCandidates.length} shortlisted candidates`, {
+        id: loadingToast,
+        duration: 4000,
+        icon: '✉️'
+      });
+
+      // Update local state for shared candidates
+      setCandidates(prev => prev.map(candidate =>
+        candidate.status === 'shortlisted'
+          ? { ...candidate, shared_with_client: true, shared_at: new Date() }
+          : candidate
+      ));
+
+      setShowShareConfirmation(false);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  // Add filter handling functions
+  const handleApplyFilters = () => {
+    const filteredCandidates = candidates.filter(candidate => {
+      const matchesStatus = !filters.status || candidate.status === filters.status;
+      const matchesSource = !filters.source || candidate.source === filters.source;
+      const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
+        (!filters.experience.max || candidate.experience <= Number(filters.experience.max));
+      const matchesLocation = !filters.location ||
+        candidate.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
+        candidate.state?.toLowerCase().includes(filters.location.toLowerCase());
+      const matchesDateRange = (!filters.dateRange.start || new Date(candidate.createdAt) >= new Date(filters.dateRange.start)) &&
+        (!filters.dateRange.end || new Date(candidate.createdAt) <= new Date(filters.dateRange.end));
+
+      return matchesStatus &&
+        matchesSource &&
+        matchesExperience &&
+        matchesLocation &&
+        matchesDateRange;
+    });
+
+    setCandidates(filteredCandidates);
+    setShowFilterModal(false);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      status: '',
+      source: '',
+      experience: { min: '', max: '' },
+      location: '',
+      dateRange: { start: '', end: '' }
+    });
+    // Reload original candidates
+    fetchCandidates();
+  };
+
+  // Update the share button click handler
+  const handleShareClick = () => {
+    const shortlistedCount = candidates.filter(c => c.status === 'shortlisted').length;
+    if (shortlistedCount === 0) {
+      toast.error('No shortlisted candidates to share');
+      return;
+    }
+    setShowShareConfirmation(true);
   };
 
   if (loading) {
@@ -237,7 +423,7 @@ const JobDetails = () => {
             onClick={() => setActiveTab('candidates')}
           >
             <span className="flex items-center">
-              <FaUserTie className="mr-2" />
+              <FaUsers className="mr-2" />
               Candidates
             </span>
           </button>
@@ -315,7 +501,7 @@ const JobDetails = () => {
                   <div>
                     <p className="text-sm font-medium">Salary Range</p>
                     <p className="text-success font-semibold">
-                      CTC: {job?.minSalary} - {job?.maxSalary} LPA
+                      CTC: ₹ {job?.minSalary} - ₹ {job?.maxSalary} LPA
                     </p>
                   </div>
                 </div>
@@ -373,6 +559,28 @@ const JobDetails = () => {
         </div>
       ) : (
         <div className="bg-white dark:bg-boxdark rounded-sm border border-stroke dark:border-strokedark p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowFilterModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-opacity-90"
+              >
+                <FaFilter />
+                Filters
+              </button>
+
+              {candidates.some(c => c.status === 'shortlisted') && (
+                <button
+                  onClick={handleShareClick}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-opacity-90"
+                >
+                  <FaShare />
+                  Share Shortlisted
+                </button>
+              )}
+            </div>
+          </div>
+
           {candidates.length > 0 ? (
             <DataTable
               data={candidates}
@@ -395,6 +603,30 @@ const JobDetails = () => {
               </p>
             </div>
           )}
+
+          {/* Filter Modal */}
+          <FilterModal
+            isOpen={showFilterModal}
+            onClose={() => setShowFilterModal(false)}
+            onApply={handleApplyFilters}
+            onReset={handleResetFilters}
+            filters={filters}
+            setFilters={setFilters}
+            config={filterConfig}
+          />
+
+          {/* Share Confirmation Modal */}
+          <ConfirmationModal
+            isOpen={showShareConfirmation}
+            onClose={() => setShowShareConfirmation(false)}
+            onConfirm={handleShareWithClient}
+            title="Share Shortlisted Candidates"
+            message={`Are you sure you want to share ${candidates.filter(c => c.status === 'shortlisted').length} shortlisted candidate(s) with ${job?.clientName}? An email will be sent with the candidates' details and resumes.`}
+            confirmText="Share Candidates"
+            cancelText="Cancel"
+            confirmButtonClass="bg-primary"
+            icon={<FaExclamationTriangle className="text-2xl text-warning" />}
+          />
         </div>
       )}
     </DefaultLayoutAdmin>

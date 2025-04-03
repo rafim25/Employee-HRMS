@@ -1,5 +1,6 @@
-// Backend/controllers/jobController.js
-import Job from '../models/Job.js';
+import { Sequelize } from "sequelize";// Backend/controllers/jobController.js
+
+import { Job, Candidate } from '../models/index.js';
 
 export const createJob = async (req, res) => {
   try {
@@ -12,10 +13,31 @@ export const createJob = async (req, res) => {
 
 export const getJobs = async (req, res) => {
   try {
-    const jobs = await Job.findAll();
-    res.status(200).json(jobs);
+    const jobs = await Job.findAll({
+      include: [{
+        model: Candidate,
+        as: 'candidates',
+        attributes: ['id'] // Only include id for counting
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+
+    // Transform the response to include candidate count
+    const jobsWithCount = jobs.map(job => {
+      const plainJob = job.get({ plain: true });
+      return {
+        ...plainJob,
+        candidateCount: plainJob.candidates?.length || 0,
+        candidates: undefined // Remove the candidates array
+      };
+    });
+
+    res.status(200).json(jobsWithCount);
   } catch (error) {
-    res.status(400).json({ message: 'Failed to fetch jobs', error });
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ 
+      msg: error.message || 'Failed to fetch jobs'
+    });
   }
 };
 
@@ -51,4 +73,9 @@ export const deleteJob = async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: 'Failed to delete job', error });
   }
+};
+
+export default {
+  getJobs
+  // ... other controller methods
 };

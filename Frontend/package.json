@@ -16,11 +16,16 @@
     "@mui/material": "^6.4.2",
     "apexcharts": "^4.4.0",
     "axios": "^1.6.7",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
     "framer-motion": "^12.0.6",
     "icons": "^1.0.0",
+    "install": "^0.13.0",
     "jsvectormap": "^1.5.1",
     "localforage": "^1.10.0",
     "match-sorter": "^6.3.1",
+    "npm": "^10.9.2",
+    "pdfkit": "^0.16.0",
     "rc-slider": "^11.1.8",
     "react": "^18.2.0",
     "react-apexcharts": "^1.7.0",
@@ -32,7 +37,8 @@
     "react-slider": "^2.0.6",
     "react-table": "^7.8.0",
     "sort-by": "^1.2.0",
-    "swiper": "^11.2.1"
+    "swiper": "^11.2.1",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.27",

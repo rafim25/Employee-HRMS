@@ -57,7 +57,7 @@ const Candidate = db.define('candidates', {
         allowNull: true
     },
     status: {
-        type: DataTypes.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected'),
+        type: DataTypes.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'hold'),
         defaultValue: 'applied'
     },
     notes: {

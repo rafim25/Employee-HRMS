@@ -12,7 +12,14 @@ export const AUTH_ENDPOINTS_V2 = {
 };
 
 // User/Customer endpoints
-export const USER_ENDPOINTS = 'http://localhost:5000/api';
+export const USER_ENDPOINTS = {
+  LIST: "/api/users",
+  DETAILS: (id) => `/api/users/${id}`,
+  CREATE: "/api/users",
+  UPDATE: (id) => `/api/users/${id}`,
+  DELETE: (id) => `/api/users/${id}`,
+  FILTER_BY_ROLE: (role) => `/api/users/filter?role=${role}`,
+};
 
 // Dashboard endpoints
 export const DASHBOARD_ENDPOINTS = {
