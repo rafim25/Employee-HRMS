@@ -3,6 +3,7 @@ import db from '../config/Database.js';
 import Job from './Job.js';
 import Candidate from './Candidate.js';
 import CandidateStatusHistory from "./CandidateStatusHistory.js";
+import User from "./User.js";
 
 // Remove any existing associations first
 Job.associations = {};
@@ -18,6 +19,18 @@ Job.hasMany(Candidate, {
 Candidate.belongsTo(Job, {
     foreignKey: 'job_id',
     as: 'job'
+});
+
+Candidate.belongsTo(User, {
+    foreignKey: 'created_by_id',
+    targetKey: 'user_id',
+    as: 'creator'
+});
+
+User.hasMany(Candidate, {
+    foreignKey: 'created_by_id',
+    sourceKey: 'user_id',
+    as: 'candidates'
 });
 
 Candidate.hasMany(CandidateStatusHistory, {
@@ -52,5 +65,6 @@ export {
     Job,
     Candidate,
     CandidateStatusHistory,
-    syncModels
+    syncModels,
+    User
 };

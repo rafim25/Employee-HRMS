@@ -14,7 +14,7 @@ import { USER_ENDPOINTS } from '../../../../constants/apiEndpoints';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 import * as XLSX from 'xlsx';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 
 const CustomerData = () => {
     const { state, dispatch } = useAuth();
@@ -191,7 +191,7 @@ const CustomerData = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Customer Data' />
+            <BreadcrumbAdmin pageName='Employee Details' />
 
             <div className="flex flex-wrap items-center justify-between gap-2.5 mb-6">
                 <div className="flex items-center gap-3 flex-1 justify-between">

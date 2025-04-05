@@ -12,7 +12,9 @@ import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import JobCard from '../../../../components/molecules/JobCard';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
+import Pagination from '../../../../components/molecules/Pagination/Pagination';
 import { skillIcons } from '../../../../config/skillIcons';
+import DeleteConfirmationModal from '../../../../components/molecules/DeleteConfirmationModal/DeleteConfirmationModal';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -248,148 +250,141 @@ const JobList = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Job List' />
+            <BreadcrumbAdmin pageName='Job Management' icon={FaBriefcase} backButton={false} />
 
-            <div className="flex flex-wrap items-center justify-between gap-2.5 mb-6">
-                <div className="flex items-center gap-3 flex-1 justify-between">
-                    <Link to="/admin/recruitments/job-management/form-job">
-                        <ButtonOne>
-                            <span>Add Job</span>
-                            <span><FaPlus /></span>
-                        </ButtonOne>
-                    </Link>
-
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search jobs..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="rounded-lg border-[1.5px] border-stroke bg-transparent py-3 pl-10 pr-4 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary w-full"
-                            />
-                            <BiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
+            {/* Main Container with better spacing */}
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                {/* Header Section with Actions */}
+                <div className="p-4 md:p-6 xl:p-7.5">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                        {/* Add Job Button */}
+                        <div className="w-full sm:w-auto">
+                            <Link to="/admin/recruitments/job-management/form-job">
+                                <ButtonOne className="w-full sm:w-auto">
+                                    <span className="mr-2">Add New Job</span>
+                                    <FaPlus />
+                                </ButtonOne>
+                            </Link>
                         </div>
 
-                        <button
-                            onClick={() => setShowFilterModal(true)}
-                            className="inline-flex items-center justify-center gap-2.5 rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90"
-                        >
-                            <FaFilter />
-                            Filters
-                        </button>
+                        {/* Search and Actions */}
+                        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                            {/* Search Box */}
+                            <div className="relative flex-grow sm:flex-grow-0 sm:w-72">
+                                <input
+                                    type="text"
+                                    placeholder="Search jobs..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-12 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary dark:border-strokedark dark:bg-meta-4 dark:focus:border-primary"
+                                />
+                                <BiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
+                            </div>
 
-                        <button
-                            onClick={handleDownloadExcel}
-                            disabled={filteredJobs.length === 0}
-                            className="inline-flex items-center justify-center gap-2.5 rounded-md bg-success py-2 px-6 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <FaFileExcel className="text-lg" />
-                            Download Excel
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="mb-6 bg-white dark:bg-boxdark rounded-lg shadow-sm">
-                <div className="flex flex-wrap gap-2 p-2">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
+                            {/* Filter Button */}
                             <button
-                                key={tab.id}
-                                onClick={() => {
-                                    setActiveTab(tab.id);
-                                    setCurrentPage(1);
-                                }}
-                                className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all
-                                    ${activeTab === tab.id
-                                        ? 'bg-primary text-white shadow-lg scale-105'
-                                        : 'hover:bg-gray-100 dark:hover:bg-meta-4 text-gray-600 dark:text-gray-300'
-                                    }`}
+                                onClick={() => setShowFilterModal(true)}
+                                className="inline-flex items-center justify-center rounded-lg border border-primary bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out"
                             >
-                                <Icon className={activeTab === tab.id ? 'text-white' : 'text-primary'} />
-                                <span>{tab.label}</span>
-                                <span className={`px-2 py-0.5 rounded-full text-xs
-                                    ${activeTab === tab.id
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-gray-100 dark:bg-meta-4 text-gray-600 dark:text-gray-400'
-                                    }`}>
-                                    {tab.count}
-                                </span>
+                                <FaFilter className="mr-2" />
+                                Filters
                             </button>
-                        );
-                    })}
-                </div>
-            </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                {loading ? (
-                    <div className="col-span-full flex justify-center items-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            {/* Excel Download Button */}
+                            <button
+                                onClick={handleDownloadExcel}
+                                disabled={filteredJobs.length === 0}
+                                className="inline-flex items-center justify-center rounded-lg border border-success bg-success py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <FaFileExcel className="mr-2" />
+                                Export Excel
+                            </button>
+                        </div>
                     </div>
-                ) : filteredJobs.length === 0 ? (
-                    <div className="col-span-full flex flex-col items-center justify-center py-12">
-                        <FaRegClock className="text-4xl text-gray-400 mb-4" />
-                        <p className="text-lg text-gray-500 dark:text-gray-400 mb-2">No jobs found</p>
-                        <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
-                            {searchTerm
-                                ? 'Try adjusting your search to find what you\'re looking for.'
-                                : activeTab === 'all'
-                                    ? 'Get started by adding your first job.'
-                                    : `No ${activeTab} jobs available.`
-                            }
-                        </p>
+
+                    {/* Status Tabs with enhanced styling */}
+                    <div className="bg-white dark:bg-boxdark rounded-lg shadow-default p-2 mb-6 border border-stroke dark:border-strokedark">
+                        <div className="flex flex-wrap gap-3">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => {
+                                            setActiveTab(tab.id);
+                                            setCurrentPage(1);
+                                        }}
+                                        className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-300
+                                            ${activeTab === tab.id
+                                                ? 'bg-primary text-white shadow-md transform scale-105'
+                                                : 'bg-gray-50 dark:bg-meta-4 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-meta-3 hover:shadow-sm'
+                                            }`}
+                                    >
+                                        <Icon
+                                            className={`text-lg ${activeTab === tab.id
+                                                ? 'text-white'
+                                                : 'text-primary'
+                                                }`}
+                                        />
+                                        <span className="font-medium">{tab.label}</span>
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium
+                                            ${activeTab === tab.id
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-white dark:bg-boxdark text-gray-600 dark:text-gray-400'
+                                            }`}>
+                                            {tab.count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
-                ) : (
-                    paginatedJobs.map((job) => (
-                        <JobCard
-                            key={job.id || job.job_id}
-                            job={job}
-                            onEdit={(jobId) => navigate(`/admin/recruitments/job-management/edit/${job.id}`)}
-                            onDelete={handleDelete}
+
+                    {/* Jobs Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {loading ? (
+                            <div className="col-span-full flex justify-center items-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            </div>
+                        ) : filteredJobs.length === 0 ? (
+                            <div className="col-span-full flex flex-col items-center justify-center py-12">
+                                <FaRegClock className="text-4xl text-gray-400 mb-4" />
+                                <p className="text-lg text-gray-500 dark:text-gray-400 mb-2">No jobs found</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
+                                    {searchTerm
+                                        ? 'Try adjusting your search to find what you\'re looking for.'
+                                        : activeTab === 'all'
+                                            ? 'Get started by adding your first job.'
+                                            : `No ${activeTab} jobs available.`
+                                    }
+                                </p>
+                            </div>
+                        ) : (
+                            paginatedJobs.map((job) => (
+                                <JobCard
+                                    key={job.id || job.job_id}
+                                    job={job}
+                                    onEdit={() => navigate(`/admin/recruitments/job-management/edit/${job.id}`)}
+                                    onDelete={handleDelete}
+                                />
+                            ))
+                        )}
+                    </div>
+
+                    {/* Pagination Section */}
+                    <div className="mt-6 border-t border-stroke pt-4 dark:border-strokedark">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalItems={filteredJobs.length}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            onPageChange={setCurrentPage}
+                            showingText={`Showing ${filteredJobs.length > 0 ? startIndex + 1 : 0}-${Math.min(endIndex, filteredJobs.length)} of ${filteredJobs.length} Jobs`}
                         />
-                    ))
-                )}
-            </div>
-
-            <div className='flex justify-between items-center mt-6 flex-col md:flex-row'>
-                <div className='text-sm text-gray-500 dark:text-gray-400'>
-                    Showing {startIndex + 1}-{Math.min(endIndex, filteredJobs.length)} of {filteredJobs.length} Jobs
-                </div>
-                {filteredJobs.length > 0 && (
-                    <div className='flex gap-2 mt-4 md:mt-0'>
-                        <button
-                            disabled={currentPage === 1}
-                            onClick={() => setCurrentPage(prev => prev - 1)}
-                            className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50'
-                        >
-                            Previous
-                        </button>
-                        {[...Array(totalPages)].map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrentPage(i + 1)}
-                                className={`py-2 px-4 rounded-lg border transition-colors
-                                    ${currentPage === i + 1
-                                        ? 'bg-primary text-white border-primary'
-                                        : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary'
-                                    }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                        <button
-                            disabled={currentPage === totalPages}
-                            onClick={() => setCurrentPage(prev => prev + 1)}
-                            className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50'
-                        >
-                            Next
-                        </button>
                     </div>
-                )}
+                </div>
             </div>
 
+            {/* Modals */}
             {showDeleteModal && (
                 <DeleteConfirmationModal
                     isOpen={showDeleteModal}

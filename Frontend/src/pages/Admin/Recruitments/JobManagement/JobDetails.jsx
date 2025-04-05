@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
-import { BreadcrumbAdmin } from '../../../../components';
+import { BreadcrumbAdmin, Pagination } from '../../../../components';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchJobById } from '../../../../context/actions/jobActions';
 import { format, isValid, parseISO } from 'date-fns';
@@ -15,6 +15,9 @@ import InterviewProcessMilestone from '../../../../components/molecules/Mileston
 import DataTable from '../../../../components/molecules/DataTable/DataTable';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
 import ConfirmationModal from '../../../../components/molecules/Modal/ConfirmationModal';
+import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
+import { BiSearch } from 'react-icons/bi';
+
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -39,6 +42,11 @@ const JobDetails = () => {
     }
   });
   const [showShareConfirmation, setShowShareConfirmation] = useState(false);
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
 
   useEffect(() => {
     const loadJob = async () => {
@@ -73,6 +81,12 @@ const JobDetails = () => {
   }, [activeTab]);
 
   const handleStatusChange = async (candidateId, newStatus) => {
+    if (newStatus === 'rejected') {
+      setSelectedCandidate(candidates.find(c => c.uuid === candidateId));
+      setShowRejectionModal(true);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/candidates/${candidateId}/status`, {
         method: 'PATCH',
@@ -99,6 +113,55 @@ const JobDetails = () => {
       );
 
       toast.success(`Status updated to ${newStatus}`);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleRejectionConfirm = async (rejectionDetails) => {
+    try {
+      const response = await fetch(`/api/candidates/${selectedCandidate.uuid}/reject`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          status: 'rejected',
+          rejection_reason: rejectionDetails.reason,
+          rejection_details: {
+            ...rejectionDetails,
+            rejected_by: authState?.user?.username,
+            rejected_at: new Date().toISOString()
+          },
+          changed_by: userId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update rejection details');
+      }
+
+      setCandidates(prev =>
+        prev.map(candidate =>
+          candidate.uuid === selectedCandidate.uuid
+            ? {
+              ...candidate,
+              status: 'rejected',
+              rejection_reason: rejectionDetails.reason,
+              rejection_details: {
+                ...rejectionDetails,
+                rejected_by: authState?.user?.username,
+                rejected_at: new Date().toISOString()
+              }
+            }
+            : candidate
+        )
+      );
+
+      toast.success('Candidate rejected successfully');
+      setShowRejectionModal(false);
+      setSelectedCandidate(null);
     } catch (error) {
       toast.error(error.message);
     }
@@ -131,6 +194,7 @@ const JobDetails = () => {
       label: 'Source',
       type: 'select',
       options: [
+        { value: 'Naukri', label: 'Naukri' },
         { value: 'Direct', label: 'Direct' },
         { value: 'Referral', label: 'Referral' },
         { value: 'LinkedIn', label: 'LinkedIn' },
@@ -171,12 +235,12 @@ const JobDetails = () => {
 
   // Add status colors
   const statusColors = {
-    applied: 'bg-warning/10 text-warning',
-    screening: 'bg-info/10 text-info',
-    shortlisted: 'bg-success/10 text-success',
-    interviewed: 'bg-primary/10 text-primary',
-    selected: 'bg-success/10 text-success',
-    rejected: 'bg-danger/10 text-danger'
+    applied: 'bg-warning/10 text-warning hover:bg-warning hover:text-white cursor-pointer',
+    screening: 'bg-info/10 text-info hover:bg-info hover:text-white cursor-pointer',
+    shortlisted: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+    interviewed: 'bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer',
+    selected: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+    rejected: 'bg-danger/10 text-danger pointer-events-none opacity-75'
   };
 
   // Update the columns configuration
@@ -184,9 +248,9 @@ const JobDetails = () => {
     {
       key: 'name',
       header: 'Candidate Details',
-      className: 'min-w-[220px] xl:pl-11',
+      className: 'min-w-[220px] py-4.5 px-4 xl:pl-11',
       render: (candidate) => (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <h5 className="font-medium text-black dark:text-white">
             {candidate.name}
           </h5>
@@ -200,16 +264,23 @@ const JobDetails = () => {
     {
       key: 'status',
       header: 'Status',
-      className: 'min-w-[120px]',
-      type: 'status'
+      className: 'min-w-[120px] py-4.5 px-4',
+      render: (candidate) => (
+        <span
+          className={`inline-flex rounded-full py-1 px-3 text-sm font-medium transition-all duration-200 ${statusColors[candidate.status] || 'bg-gray-100 text-gray-500'
+            }`}
+        >
+          {candidate.status}
+        </span>
+      )
     },
     {
       key: 'source',
       header: 'Source',
-      className: 'min-w-[120px]',
+      className: 'min-w-[120px] py-4.5 px-4',
       render: (candidate) => (
-        <>
-          <p className="text-black dark:text-white">
+        <div className="flex flex-col gap-1">
+          <p className="text-black dark:text-white font-medium">
             {candidate.source || 'Direct'}
           </p>
           {candidate.referred_by && (
@@ -217,20 +288,26 @@ const JobDetails = () => {
               Ref: {candidate.referred_by}
             </p>
           )}
-        </>
+          <p className="text-sm text-gray-500">
+            Created by: {candidate.created_by || 'N/A'}
+          </p>
+        </div>
       )
     },
     {
       key: 'createdAt',
       header: 'Applied Date',
-      className: 'min-w-[120px]',
-      type: 'date',
-      format: 'MMM dd, yyyy'
+      className: 'min-w-[120px] py-4.5 px-4',
+      render: (candidate) => (
+        <p className="text-black dark:text-white">
+          {format(new Date(candidate.createdAt), 'MMM dd, yyyy')}
+        </p>
+      )
     },
     {
       key: 'resume',
       header: 'Resume',
-      className: 'min-w-[120px]',
+      className: 'min-w-[120px] py-4.5 px-4',
       render: (candidate) => (
         <div>
           {candidate.resume_url ? (
@@ -350,6 +427,43 @@ const JobDetails = () => {
     setShowShareConfirmation(true);
   };
 
+  // Add this function to filter candidates
+  const getFilteredCandidates = () => {
+    return candidates.filter(candidate => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm ||
+        candidate.name?.toLowerCase().includes(searchLower) ||
+        candidate.email?.toLowerCase().includes(searchLower) ||
+        candidate.phone?.includes(searchTerm) ||
+        candidate.source?.toLowerCase().includes(searchLower) ||
+        candidate.created_by?.toLowerCase().includes(searchLower);
+
+      const matchesStatus = !filters.status || candidate.status === filters.status;
+      const matchesSource = !filters.source || candidate.source === filters.source;
+      const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
+        (!filters.experience.max || candidate.experience <= Number(filters.experience.max));
+      const matchesLocation = !filters.location ||
+        candidate.current_location?.toLowerCase().includes(filters.location.toLowerCase());
+      const matchesDateRange = (!filters.dateRange.start || new Date(candidate.createdAt) >= new Date(filters.dateRange.start)) &&
+        (!filters.dateRange.end || new Date(candidate.createdAt) <= new Date(filters.dateRange.end));
+
+      return matchesSearch &&
+        matchesStatus &&
+        matchesSource &&
+        matchesExperience &&
+        matchesLocation &&
+        matchesDateRange;
+    });
+  };
+
+  // Add this to get paginated data
+  const getPaginatedData = () => {
+    const filteredCandidates = getFilteredCandidates();
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredCandidates.slice(startIndex, endIndex);
+  };
+
   if (loading) {
     return (
       <DefaultLayoutAdmin>
@@ -362,18 +476,7 @@ const JobDetails = () => {
 
   return (
     <DefaultLayoutAdmin>
-      <div className="flex items-center justify-between mb-4">
-        <BreadcrumbAdmin pageName='Job Details' />
-        <button
-          onClick={() => navigate('/admin/recruitments/job-management')}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors"
-        >
-          <FaArrowLeft />
-          Back to Jobs
-        </button>
-      </div>
-
-      {/* Header Card */}
+      <BreadcrumbAdmin pageName='Job Details' icon={FaBriefcase} backUrl="/admin/recruitments/job-management" />
       <div className="bg-white dark:bg-boxdark rounded-sm border border-stroke dark:border-strokedark p-6 mb-4">
         <div className="flex justify-between items-start mb-4">
           <div>
@@ -559,8 +662,25 @@ const JobDetails = () => {
         </div>
       ) : (
         <div className="bg-white dark:bg-boxdark rounded-sm border border-stroke dark:border-strokedark p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            {/* Search and Filter Controls */}
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              {/* Search Box */}
+              <div className="relative flex-grow sm:flex-grow-0 sm:w-72">
+                <input
+                  type="text"
+                  placeholder="Search by name, email, phone..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1); // Reset to first page on search
+                  }}
+                  className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-12 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary dark:border-strokedark dark:bg-meta-4 dark:focus:border-primary"
+                />
+                <BiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
+              </div>
+
+              {/* Filter Button */}
               <button
                 onClick={() => setShowFilterModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-opacity-90"
@@ -569,7 +689,8 @@ const JobDetails = () => {
                 Filters
               </button>
 
-              {candidates.some(c => c.status === 'shortlisted') && (
+              {/* Share Button */}
+              {getFilteredCandidates().some(c => c.status === 'shortlisted') && (
                 <button
                   onClick={handleShareClick}
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-opacity-90"
@@ -581,25 +702,42 @@ const JobDetails = () => {
             </div>
           </div>
 
-          {candidates.length > 0 ? (
-            <DataTable
-              data={candidates}
-              columns={columns}
-              actions={true}
-              statusOptions={statusOptions}
-              onStatusChange={handleStatusChange}
-              onView={(candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`)}
-              onDownload={(candidate) => window.open(candidate.resume_url, '_blank')}
-              statusColors={statusColors}
-            />
+          {getFilteredCandidates().length > 0 ? (
+            <>
+              <div className="rounded-lg border border-stroke dark:border-strokedark">
+                <div className="max-w-full overflow-x-auto">
+                  <DataTable
+                    data={getPaginatedData()}
+                    columns={columns}
+                    actions={true}
+                    statusOptions={statusOptions}
+                    onStatusChange={handleStatusChange}
+                    onView={(candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`)}
+                    onEdit={(candidate) => navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`)}
+                    onDownload={(candidate) => window.open(candidate.resume_url, '_blank')}
+                    statusColors={statusColors}
+                    className="w-full table-auto"
+                  />
+                </div>
+              </div>
+
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalItems={getFilteredCandidates().length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                showingText="Showing"
+              />
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">
               <FaUsers className="text-5xl text-gray-400 mb-4" />
               <h3 className="text-xl font-medium text-gray-500 dark:text-gray-400">
-                No candidates have applied yet
+                No candidates found
               </h3>
               <p className="text-gray-400 dark:text-gray-500 mt-2">
-                Candidates who apply for this position will appear here
+                Try adjusting your search or filter criteria
               </p>
             </div>
           )}
@@ -626,6 +764,17 @@ const JobDetails = () => {
             cancelText="Cancel"
             confirmButtonClass="bg-primary"
             icon={<FaExclamationTriangle className="text-2xl text-warning" />}
+          />
+
+          {/* Rejection Modal */}
+          <RejectionModal
+            isOpen={showRejectionModal}
+            onClose={() => {
+              setShowRejectionModal(false);
+              setSelectedCandidate(null);
+            }}
+            onConfirm={handleRejectionConfirm}
+            currentStage={selectedCandidate?.current_round}
           />
         </div>
       )}

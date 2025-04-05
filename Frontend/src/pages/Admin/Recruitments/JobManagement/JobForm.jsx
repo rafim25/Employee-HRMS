@@ -10,7 +10,7 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaBriefcase, FaMapMarkerAlt, FaDollarSign, FaInfoCircle, FaUser, FaQuestionCircle, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaBriefcase, FaMapMarkerAlt, FaDollarSign, FaInfoCircle, FaUser, FaQuestionCircle, FaPlus, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import axios from 'axios';
 
@@ -48,10 +48,16 @@ const JobForm = () => {
                 const response = await axios.get('/api/skills', {
                     withCredentials: true
                 });
-                const skillsList = response.data.map(skill => ({
-                    value: skill.name,
-                    label: skill.name
-                }));
+
+                // Remove duplicates using Set and create unique skills list
+                const uniqueSkills = [...new Set(response.data.map(skill => skill.name))];
+
+                // Create options list with unique values
+                const skillsList = uniqueSkills.map(skill => ({
+                    value: skill,
+                    label: skill
+                })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically
+
                 setSkillOptions(skillsList);
             } catch (error) {
                 console.error('Error fetching skills:', error);
@@ -128,10 +134,29 @@ const JobForm = () => {
         }));
     };
 
+    const formatCurrency = (value) => {
+        if (!value) return '';
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(value);
+    };
+
     const handleMultiSelectChange = (name, selectedOptions) => {
+        if (!selectedOptions) {
+            setJobData(prev => ({
+                ...prev,
+                [name]: []
+            }));
+            return;
+        }
+
+        const uniqueValues = Array.from(new Set(selectedOptions.map(option => option.value)));
+
         setJobData(prev => ({
             ...prev,
-            [name]: selectedOptions ? selectedOptions.map(option => option.value) : []
+            [name]: uniqueValues
         }));
     };
 
@@ -154,7 +179,8 @@ const JobForm = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Add Job' />
+            <BreadcrumbAdmin pageName="Add Job" icon={FaBriefcase} />
+
             <div className='sm:grid-cols-2'>
                 <div className='flex flex-col gap-9'>
                     <div className='rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark'>
@@ -274,32 +300,52 @@ const JobForm = () => {
                                     <div className='mb-4.5 flex flex-col xl:flex-row gap-6'>
                                         <div className='w-full xl:w-1/2'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
-                                                Minimum Salary <span className='text-meta-1'>*</span>
+                                                Minimum CTC (LPA) <span className='text-meta-1'>*</span>
                                             </label>
-                                            <input
-                                                type='number'
-                                                name='minSalary'
-                                                value={jobData.minSalary}
-                                                onChange={handleChange}
-                                                required
-                                                placeholder='Enter minimum salary'
-                                                className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
-                                            />
+                                            <div className='relative'>
+                                                <input
+                                                    type='number'
+                                                    name='minSalary'
+                                                    value={jobData.minSalary}
+                                                    onChange={handleChange}
+                                                    required
+                                                    placeholder='Enter minimum CTC'
+                                                    className='w-full rounded border-[1.5px] border-stroke bg-transparent pl-12 pr-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                                />
+                                                <span className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-500'>
+                                                    ₹
+                                                </span>
+                                            </div>
+                                            {jobData.minSalary && (
+                                                <span className='text-sm text-gray-500 mt-1 block'>
+                                                    {formatCurrency(jobData.minSalary)} LPA
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className='w-full xl:w-1/2'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
-                                                Maximum Salary <span className='text-meta-1'>*</span>
+                                                Maximum CTC (LPA) <span className='text-meta-1'>*</span>
                                             </label>
-                                            <input
-                                                type='number'
-                                                name='maxSalary'
-                                                value={jobData.maxSalary}
-                                                onChange={handleChange}
-                                                required
-                                                placeholder='Enter maximum salary'
-                                                className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
-                                            />
+                                            <div className='relative'>
+                                                <input
+                                                    type='number'
+                                                    name='maxSalary'
+                                                    value={jobData.maxSalary}
+                                                    onChange={handleChange}
+                                                    required
+                                                    placeholder='Enter maximum CTC'
+                                                    className='w-full rounded border-[1.5px] border-stroke bg-transparent pl-12 pr-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
+                                                />
+                                                <span className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-500'>
+                                                    ₹
+                                                </span>
+                                            </div>
+                                            {jobData.maxSalary && (
+                                                <span className='text-sm text-gray-500 mt-1 block'>
+                                                    {formatCurrency(jobData.maxSalary)} LPA
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
 
@@ -349,10 +395,18 @@ const JobForm = () => {
                                             <Select
                                                 isMulti
                                                 options={interviewOptions}
-                                                value={interviewOptions.filter(option => jobData.interviewRounds.includes(option.value))}
+                                                value={interviewOptions.filter(option =>
+                                                    jobData.interviewRounds.includes(option.value)
+                                                )}
                                                 onChange={(selected) => handleMultiSelectChange('interviewRounds', selected)}
-                                                className='basic-multi-select'
-                                                classNamePrefix='select'
+                                                className="basic-multi-select"
+                                                classNamePrefix="select"
+                                                isClearable={true}
+                                                isSearchable={true}
+                                                placeholder="Select interview rounds..."
+                                                noOptionsMessage={() => "No options available"}
+                                                closeMenuOnSelect={false}
+                                                hideSelectedOptions={true}
                                             />
                                         </div>
 
@@ -363,12 +417,18 @@ const JobForm = () => {
                                             <Select
                                                 isMulti
                                                 options={skillOptions}
-                                                value={skillOptions.filter(option => jobData.skills.includes(option.value))}
+                                                value={skillOptions.filter(option =>
+                                                    jobData.skills.includes(option.value)
+                                                )}
                                                 onChange={(selected) => handleMultiSelectChange('skills', selected)}
-                                                className='basic-multi-select'
-                                                classNamePrefix='select'
+                                                className="basic-multi-select"
+                                                classNamePrefix="select"
                                                 isClearable={true}
+                                                isSearchable={true}
                                                 placeholder="Select skills..."
+                                                noOptionsMessage={() => "No skills available"}
+                                                closeMenuOnSelect={false}
+                                                hideSelectedOptions={true}
                                             />
                                         </div>
                                     </div>
@@ -512,7 +572,7 @@ const JobForm = () => {
                     </div>
                 </div>
             </div>
-        </DefaultLayoutAdmin>
+        </DefaultLayoutAdmin >
     );
 };
 

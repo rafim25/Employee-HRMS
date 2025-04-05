@@ -1,6 +1,8 @@
 import React from 'react';
 import { ButtonOne, ButtonTwo, ButtonThree } from '../../../components';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaCalendarAlt, FaMoneyBillWave, FaMapMarkerAlt, FaBriefcase, FaUser } from 'react-icons/fa';
+import { MdSource, MdWorkHistory } from 'react-icons/md';
+import { BiSearchAlt } from 'react-icons/bi';
 
 const FilterModal = ({
   isOpen,
@@ -13,83 +15,156 @@ const FilterModal = ({
 }) => {
   if (!isOpen) return null;
 
+  // Add default icons for filter types
+  const getDefaultIcon = (type, label) => {
+    switch (type) {
+      case 'dateRange':
+        return <FaCalendarAlt className="text-lg" />;
+      case 'range':
+        if (label.toLowerCase().includes('salary') || label.toLowerCase().includes('ctc')) {
+          return <FaMoneyBillWave className="text-lg" />;
+        }
+        if (label.toLowerCase().includes('experience')) {
+          return <MdWorkHistory className="text-lg" />;
+        }
+        return null;
+      case 'search':
+        if (label.toLowerCase().includes('location')) {
+          return <FaMapMarkerAlt className="text-lg" />;
+        }
+        return <BiSearchAlt className="text-lg" />;
+      case 'select':
+        if (label.toLowerCase().includes('job')) {
+          return <FaBriefcase className="text-lg" />;
+        }
+        if (label.toLowerCase().includes('source')) {
+          return <MdSource className="text-lg" />;
+        }
+        if (label.toLowerCase().includes('created by')) {
+          return <FaUser className="text-lg" />;
+        }
+        return null;
+      default:
+        return null;
+    }
+  };
+
   const renderFilterInput = (filter) => {
+    // Get icon from filter config or use default based on type
+    const icon = filter.icon || getDefaultIcon(filter.type, filter.label);
+
     switch (filter.type) {
       case 'select':
         return (
-          <select
-            value={filters[filter.key]}
-            onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
-            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-          >
-            <option value="">{filter.placeholder || `All ${filter.label}`}</option>
-            {filter.options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-black dark:text-white">
+              {icon}
+              <span>{filter.label}</span>
+            </label>
+            <select
+              value={filters[filter.key]}
+              onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
+            >
+              <option value="">{filter.placeholder || `All ${filter.label}`}</option>
+              {filter.options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         );
 
       case 'dateRange':
         return (
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={filters[filter.key].start}
-              onChange={(e) => setFilters({
-                ...filters,
-                [filter.key]: { ...filters[filter.key], start: e.target.value }
-              })}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-            />
-            <input
-              type="date"
-              value={filters[filter.key].end}
-              onChange={(e) => setFilters({
-                ...filters,
-                [filter.key]: { ...filters[filter.key], end: e.target.value }
-              })}
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-            />
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-black dark:text-white">
+              {icon}
+              <span>{filter.label}</span>
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-xs text-gray-500 mb-1 block">From</label>
+                <input
+                  type="date"
+                  value={filters[filter.key].start}
+                  onChange={(e) => setFilters({
+                    ...filters,
+                    [filter.key]: { ...filters[filter.key], start: e.target.value }
+                  })}
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs text-gray-500 mb-1 block">To</label>
+                <input
+                  type="date"
+                  value={filters[filter.key].end}
+                  onChange={(e) => setFilters({
+                    ...filters,
+                    [filter.key]: { ...filters[filter.key], end: e.target.value }
+                  })}
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
+                />
+              </div>
+            </div>
           </div>
         );
 
       case 'range':
         return (
-          <div className="flex gap-2">
-            <input
-              type="number"
-              value={filters[filter.key].min}
-              onChange={(e) => setFilters({
-                ...filters,
-                [filter.key]: { ...filters[filter.key], min: e.target.value }
-              })}
-              placeholder="Min"
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-            />
-            <input
-              type="number"
-              value={filters[filter.key].max}
-              onChange={(e) => setFilters({
-                ...filters,
-                [filter.key]: { ...filters[filter.key], max: e.target.value }
-              })}
-              placeholder="Max"
-              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-            />
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-black dark:text-white">
+              {icon}
+              <span>{filter.label}</span>
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-xs text-gray-500 mb-1 block">Min</label>
+                <input
+                  type="number"
+                  value={filters[filter.key].min}
+                  onChange={(e) => setFilters({
+                    ...filters,
+                    [filter.key]: { ...filters[filter.key], min: e.target.value }
+                  })}
+                  placeholder="Min"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs text-gray-500 mb-1 block">Max</label>
+                <input
+                  type="number"
+                  value={filters[filter.key].max}
+                  onChange={(e) => setFilters({
+                    ...filters,
+                    [filter.key]: { ...filters[filter.key], max: e.target.value }
+                  })}
+                  placeholder="Max"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
+                />
+              </div>
+            </div>
           </div>
         );
 
       case 'search':
         return (
-          <input
-            type="text"
-            value={filters[filter.key]}
-            onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
-            placeholder={filter.placeholder}
-            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
-          />
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 text-black dark:text-white">
+              {icon}
+              <span>{filter.label}</span>
+            </label>
+            <input
+              type="text"
+              value={filters[filter.key]}
+              onChange={(e) => setFilters({ ...filters, [filter.key]: e.target.value })}
+              placeholder={filter.placeholder}
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 dark:border-form-strokedark dark:bg-form-input"
+            />
+          </div>
         );
 
       default:
@@ -114,9 +189,6 @@ const FilterModal = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {config.map((filter) => (
               <div key={filter.key} className={`${filter.type === 'dateRange' ? 'col-span-2' : ''}`}>
-                <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                  {filter.label}
-                </label>
                 {renderFilterInput(filter)}
               </div>
             ))}

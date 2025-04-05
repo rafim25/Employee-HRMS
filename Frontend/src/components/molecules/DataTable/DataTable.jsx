@@ -58,6 +58,7 @@ const DataTable = ({
   };
 
   const ActionMenu = ({ item }) => {
+
     const [showActions, setShowActions] = useState(false);
     const actionMenuRef = useRef(null);
     const buttonRef = useRef(null);
@@ -139,33 +140,39 @@ const DataTable = ({
           >
             {statusOptions && (
               <div className="border-t border-stroke dark:border-strokedark">
-                {statusOptions.map((status) => (
-                  <button
-                    key={status.value}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onStatusChange(item.uuid, status.value);
-                      setShowActions(false);
-                    }}
-                    className={`
-                      relative w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 
-                      transition-colors duration-200 flex items-center gap-2 text-sm font-medium
-                      ${item.status === status.value
-                        ? 'text-success bg-success/10'
-                        : 'text-black dark:text-white'}
+                {statusOptions.map((status) => {
+
+                  const isDisabled = item.status === 'rejected';
+
+                  return (
+                    <button
+                      key={status.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (item.status !== 'rejected') {
+                          onStatusChange(item.uuid, status.value);
+                          setShowActions(false);
+                        }
+                      }}
+                      className={`
+                      relative w-full text-left px-4 py-3 transition-colors duration-200 
+                      flex items-center gap-2 text-sm font-medium
+                      ${item.status === 'rejected' ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-200 dark:hover:bg-gray-700 !important'}
+                      ${item.status === status.value ? 'text-success bg-success/10' : 'text-black dark:text-white'}
                     `}
-                    disabled={item.status === status.value}
-                  >
-                    <span className={`
-                      w-2 h-2 rounded-full
-                      ${item.status === status.value ? 'bg-success' : 'bg-gray-400'}
-                    `} />
-                    {status.label}
-                    {getCurrentStatusMark(status.value)}
-                  </button>
-                ))}
+                      disabled={item.status === 'rejected'}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${item.status === status.value ? 'bg-success' : 'bg-gray-400'}`} />
+                      {status.label}
+                      {getCurrentStatusMark(status.value)}
+                    </button>
+
+
+                  );
+                })}
               </div>
             )}
+
           </div>
         )}
       </div>

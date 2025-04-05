@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../../components';
 import { FaDownload, FaEnvelope, FaPhone, FaBuilding, FaMapMarkerAlt, FaMoneyBillWave, FaClock, FaArrowLeft, FaUserTie, FaMapMarked, FaFileAlt, FaInfoCircle, FaUserFriends, FaCalendarAlt, FaBriefcase, FaFileUpload, FaUserCircle } from 'react-icons/fa';
-import { MdSource } from 'react-icons/md';
+import { MdSource, MdWork, MdSchool } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { BiTimeFive } from 'react-icons/bi';
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -75,6 +76,23 @@ const CandidateDetails = () => {
     }
   };
 
+  const renderStatusBadge = (status) => {
+    const statusColors = {
+      applied: 'bg-warning/10 text-warning',
+      screening: 'bg-info/10 text-info',
+      shortlisted: 'bg-success/10 text-success',
+      interviewed: 'bg-primary/10 text-primary',
+      selected: 'bg-success/10 text-success',
+      rejected: 'bg-danger/10 text-danger'
+    };
+
+    return (
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[status] || 'bg-gray-100 text-gray-500'}`}>
+        {status.toUpperCase()}
+      </span>
+    );
+  };
+
   if (loading) {
     return (
       <DefaultLayoutAdmin>
@@ -105,190 +123,139 @@ const CandidateDetails = () => {
 
   return (
     <DefaultLayoutAdmin>
-      <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-        <div className="flex justify-between items-center mb-6">
-          <BreadcrumbAdmin pageName="Candidate Details" />
-          <button
-            onClick={() => navigate('/admin/recruitments/candidates')}
-            className="flex items-center gap-2 text-primary hover:text-primary/80"
-          >
-            <FaArrowLeft /> Back to Candidates
-          </button>
-        </div>
+      <BreadcrumbAdmin pageName="Candidate Details" />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
-          {/* Profile Card */}
-          <div className="col-span-4 xl:col-span-1">
-            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="border-b border-stroke py-4 px-7 dark:border-strokedark">
-                <h3 className="font-medium text-black dark:text-white">
-                  Profile Information
-                </h3>
-              </div>
-              <div className="p-7">
-                <div className="mb-4 flex flex-col items-center">
-                  <div className="relative mb-4">
-                    {candidate.image_url ? (
-                      <img
-                        src={candidate.image_url}
-                        alt={candidate.name}
-                        className="rounded-full w-32 h-32 object-cover border-4 border-primary/30"
-                      />
-                    ) : (
-                      <FaUserCircle
-                        className="w-32 h-32 text-gray-500 dark:text-gray-400"
-                      />
-                    )}
-                    <label className="absolute bottom-0 right-0 cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleFileUpload(e, 'image')}
-                        disabled={uploading}
-                      />
-                      <div className="rounded-full bg-primary p-2 text-white hover:bg-primary/80">
-                        <FaFileUpload size={16} />
-                      </div>
-                    </label>
-                  </div>
-                  <h5 className="mb-1 text-xl font-medium text-black dark:text-white">
-                    {candidate.name}
-                  </h5>
-                  <p className="text-sm text-gray-500">{candidate.job?.title}</p>
-                </div>
 
-                {/* Resume Upload/Download Section */}
-                <div className="mb-4 p-4 bg-gray-1 dark:bg-meta-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-black dark:text-white">Resume</span>
-                    {candidate.resume_url ? (
-                      <button
-                        onClick={() => window.open(candidate.resume_url, '_blank')}
-                        className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
-                      >
-                        <FaDownload size={14} /> Download
-                      </button>
-                    ) : null}
-                  </div>
-                  <label className="flex items-center justify-center gap-2 p-2 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:bg-primary/5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+        {/* Left Column - Profile Card */}
+        <div className="md:col-span-4">
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke py-4 px-7 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                Profile Information
+              </h3>
+            </div>
+            <div className="p-7">
+              <div className="mb-4 flex flex-col items-center">
+                <div className="relative mb-4">
+                  {candidate.image_url ? (
+                    <img
+                      src={candidate.image_url}
+                      alt={candidate.name}
+                      className="rounded-full w-32 h-32 object-cover border-4 border-primary/30"
+                    />
+                  ) : (
+                    <FaUserCircle
+                      className="w-32 h-32 text-gray-500 dark:text-gray-400"
+                    />
+                  )}
+                  <label className="absolute bottom-0 right-0 cursor-pointer">
                     <input
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      accept="image/*"
                       className="hidden"
-                      onChange={(e) => handleFileUpload(e, 'resume')}
+                      onChange={(e) => handleFileUpload(e, 'image')}
                       disabled={uploading}
                     />
-                    <FaFileUpload className="text-primary" />
-                    <span className="text-sm text-gray-500">
-                      {uploading ? 'Uploading...' : 'Upload Resume'}
-                    </span>
+                    <div className="rounded-full bg-primary p-2 text-white hover:bg-primary/80">
+                      <FaFileUpload size={16} />
+                    </div>
                   </label>
                 </div>
+                <h5 className="mb-1 text-xl font-medium text-black dark:text-white">
+                  {candidate.name}
+                </h5>
+                <p className="text-sm text-gray-500">{candidate.job?.title}</p>
+              </div>
 
-                <div className="mb-5.5">
-                  <h5 className="mb-3 text-xl font-medium text-black dark:text-white">
-                    {candidate.name}
-                  </h5>
-                  <div className="flex flex-col gap-4 text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center">
-                      <FaEnvelope className="mr-2" />
-                      <span>{candidate.email}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FaPhone className="mr-2" />
-                      <span>{candidate.phone}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FaBuilding className="mr-2" />
-                      <span>{candidate.current_company || 'Not specified'}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FaMapMarkerAlt className="mr-2" />
-                      <span>Current: {candidate.current_location}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FaMapMarked className="mr-2" />
-                      <span>Preferred: {candidate.preferred_location}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <MdSource className="mr-2" />
-                      <span>Source: {candidate.source}</span>
-                    </div>
-                    {candidate.referred_by && (
-                      <div className="flex items-center">
-                        <FaUserFriends className="mr-2" />
-                        <span>Referred by: {candidate.referred_by}</span>
-                      </div>
-                    )}
+              {/* Resume Upload/Download Section */}
+              <div className="mb-4 p-4 bg-gray-1 dark:bg-meta-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-black dark:text-white">Resume</span>
+                  {candidate.resume_url ? (
+                    <button
+                      onClick={() => window.open(candidate.resume_url, '_blank')}
+                      className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
+                    >
+                      <FaDownload size={14} /> Download
+                    </button>
+                  ) : null}
+                </div>
+                <label className="flex items-center justify-center gap-2 p-2 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:bg-primary/5">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, 'resume')}
+                    disabled={uploading}
+                  />
+                  <FaFileUpload className="text-primary" />
+                  <span className="text-sm text-gray-500">
+                    {uploading ? 'Uploading...' : 'Upload Resume'}
+                  </span>
+                </label>
+              </div>
+
+              <div className="mb-5.5">
+                <h5 className="mb-3 text-xl font-medium text-black dark:text-white">
+                  {candidate.name}
+                </h5>
+                <div className="flex flex-col gap-4 text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center">
+                    <FaEnvelope className="mr-2" />
+                    <span>{candidate.email}</span>
                   </div>
+                  <div className="flex items-center">
+                    <FaPhone className="mr-2" />
+                    <span>{candidate.phone}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FaBuilding className="mr-2" />
+                    <span>{candidate.current_company || 'Not specified'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FaMapMarkerAlt className="mr-2" />
+                    <span>Current: {candidate.current_location}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FaMapMarked className="mr-2" />
+                    <span>Preferred: {candidate.preferred_location}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <MdSource className="mr-2" />
+                    <span>Source: {candidate.source}</span>
+                  </div>
+                  {candidate.referred_by && (
+                    <div className="flex items-center">
+                      <FaUserFriends className="mr-2" />
+                      <span>Referred by: {candidate.referred_by}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Details Cards */}
-          <div className="col-span-4 xl:col-span-3">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {/* Professional Details Card */}
-              <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-                <h4 className="mb-4 text-xl font-semibold text-black dark:text-white">
-                  Professional Details
-                </h4>
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center">
-                    <FaUserTie className="mr-2 text-gray-500" />
-                    <div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Experience</span>
-                      <p className="text-black dark:text-white">{candidate.experience} years</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <FaMoneyBillWave className="mr-2 text-gray-500" />
-                    <div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Current CTC</span>
-                      <p className="text-black dark:text-white">{candidate.current_ctc} LPA</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <FaMoneyBillWave className="mr-2 text-gray-500" />
-                    <div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Expected CTC</span>
-                      <p className="text-black dark:text-white">{candidate.expected_ctc} LPA</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <FaClock className="mr-2 text-gray-500" />
-                    <div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Notice Period</span>
-                      <p className="text-black dark:text-white">{candidate.notice_period} days</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Application Status Card */}
-              <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-                <h4 className="mb-4 text-xl font-semibold text-black dark:text-white">
+        {/* Right Column - Details */}
+        <div className="md:col-span-8">
+          <div className="grid grid-cols-1 gap-4">
+            {/* Status and Job Details Card */}
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke p-4 dark:border-strokedark">
+                <h4 className="text-xl font-semibold text-black dark:text-white">
                   Application Status
                 </h4>
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center">
-                    <FaInfoCircle className="mr-2 text-gray-500" />
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-4">
                     <div>
                       <span className="text-sm text-gray-500 dark:text-gray-400">Current Status</span>
-                      <p className="mt-1">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium
-                          ${candidate.status === 'selected' ? 'bg-success/10 text-success' :
-                            candidate.status === 'rejected' ? 'bg-danger/10 text-danger' :
-                              'bg-warning/10 text-warning'}`}>
-                          {candidate.status.toUpperCase()}
-                        </span>
-                      </p>
+                      <div className="mt-1">
+                        {renderStatusBadge(candidate.status)}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center">
-                    <FaCalendarAlt className="mr-2 text-gray-500" />
                     <div>
                       <span className="text-sm text-gray-500 dark:text-gray-400">Applied Date</span>
                       <p className="text-black dark:text-white">
@@ -296,30 +263,131 @@ const CandidateDetails = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center">
-                    <FaBriefcase className="mr-2 text-gray-500" />
+                  <div className="flex flex-col gap-4">
                     <div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Job Details</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Job Position</span>
+                      <p className="text-black dark:text-white">{candidate.job?.title}</p>
+                      <p className="text-sm text-gray-500">{candidate.job?.type}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Location</span>
                       <p className="text-black dark:text-white">
-                        {candidate.job?.title} ({candidate.job?.type})
-                      </p>
-                      <p className="text-sm text-gray-500">
                         {candidate.job?.city}, {candidate.job?.state}
                       </p>
                     </div>
                   </div>
-                  {candidate.notes && (
-                    <div className="flex items-start">
-                      <FaFileAlt className="mr-2 mt-1 text-gray-500" />
-                      <div>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Notes</span>
-                        <p className="text-black dark:text-white">{candidate.notes}</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
+
+            {/* Rejection Details Card - Show only if rejected */}
+            {candidate.status === 'rejected' && candidate.rejection_information && (
+              <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="border-b border-stroke p-4 dark:border-strokedark">
+                  <h4 className="text-xl font-semibold text-danger">
+                    Rejection Details
+                  </h4>
+                </div>
+                <div className="p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm text-gray-500">Reason</span>
+                      <p className="text-black dark:text-white">{candidate.rejection_information.reason}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Stage</span>
+                      <p className="text-black dark:text-white">{candidate.rejection_information.stage}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-sm text-gray-500">Comments</span>
+                      <p className="text-black dark:text-white">{candidate.rejection_information.comments}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Rejected By</span>
+                      <p className="text-black dark:text-white">{candidate.rejection_information.rejected_by}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Rejected On</span>
+                      <p className="text-black dark:text-white">
+                        {format(new Date(candidate.rejection_information.rejected_at), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Job Questions and Answers */}
+            {candidate.questionnaire && candidate.questionnaire.length > 0 && (
+              <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="border-b border-stroke p-4 dark:border-strokedark">
+                  <h4 className="text-xl font-semibold text-black dark:text-white">
+                    Job-Specific Questions
+                  </h4>
+                </div>
+                <div className="p-4">
+                  <div className="space-y-4">
+                    {candidate.questionnaire.map((qa, index) => (
+                      <div key={index} className="border-b border-stroke pb-4 last:border-0 last:pb-0">
+                        <p className="text-sm font-medium text-gray-500 mb-2">{qa.question}</p>
+                        <p className="text-black dark:text-white">{qa.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Professional Details */}
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke p-4 dark:border-strokedark">
+                <h4 className="text-xl font-semibold text-black dark:text-white">
+                  Professional Details
+                </h4>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-500">Experience</span>
+                    <p className="text-black dark:text-white">{candidate.experience} years</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Current CTC</span>
+                    <p className="text-black dark:text-white">{candidate.current_ctc} LPA</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Expected CTC</span>
+                    <p className="text-black dark:text-white">{candidate.expected_ctc} LPA</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Notice Period</span>
+                    <p className="text-black dark:text-white">{candidate.notice_period} days</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Current Location</span>
+                    <p className="text-black dark:text-white">{candidate.current_location}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Preferred Location</span>
+                    <p className="text-black dark:text-white">{candidate.preferred_location}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            {candidate.notes && (
+              <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="border-b border-stroke p-4 dark:border-strokedark">
+                  <h4 className="text-xl font-semibold text-black dark:text-white">
+                    Additional Notes
+                  </h4>
+                </div>
+                <div className="p-4">
+                  <p className="text-black dark:text-white">{candidate.notes}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

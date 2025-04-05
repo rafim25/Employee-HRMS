@@ -124,7 +124,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                         }}
                       >
                         <FiDatabase />
-                        Customer Data
+                        Employee Data
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
@@ -143,11 +143,11 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                             >
                               <div className="flex items-center gap-2">
                                 <FaUsers className="w-4 h-4" />
-                                Customer Details
+                                Employee Details
                               </div>
                             </NavLink>
                           </li>
-                          <li>
+                          {/* <li>
                             <NavLink
                               to='/admin/master-data/data-jabatan'
                               className={({ isActive }) =>
@@ -160,7 +160,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                                 Purchase Details
                               </div>
                             </NavLink>
-                          </li>
+                          </li> */}
                         </ul>
                       </div>
                       {/* <!-- Dropdown Menu End --> */}
@@ -171,7 +171,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
               {/* <!-- Master Data Admin --> */}
 
               {/* <!-- Expense Management --> */}
-              <SidebarLinkGroup
+              {/* <SidebarLinkGroup
                 activeCondition={
                   pathname.includes('expense')
                 }
@@ -193,7 +193,6 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
                       <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
                         <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
                           <li>
@@ -226,12 +225,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                           </li>
                         </ul>
                       </div>
-                      {/* <!-- Dropdown Menu End --> */}
                     </React.Fragment>
                   );
                 }}
               </SidebarLinkGroup>
-              {/* <!-- Reports --> */}
               <SidebarLinkGroup
                 activeCondition={
                   pathname.includes('reports')
@@ -254,7 +251,6 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                         <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
                           }`} />
                       </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
                       <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
                         <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
                           <li>
@@ -273,11 +269,10 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                           </li>
                         </ul>
                       </div>
-                      {/* <!-- Dropdown Menu End --> */}
                     </React.Fragment>
                   );
                 }}
-              </SidebarLinkGroup>
+              </SidebarLinkGroup> */}
               {/* <!-- Reports End --> */}
 
               {/* <!-- Recruitments --> */}

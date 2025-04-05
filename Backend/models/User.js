@@ -1,14 +1,19 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
+import { v4 as uuidv4 } from 'uuid';
 
 const { DataTypes } = Sequelize;
 
 const User = db.define(
   "users",
   {
+    uuid: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+    },
     user_id: {
       type: DataTypes.STRING,
-      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
     },
     username: {
@@ -61,10 +66,46 @@ const User = db.define(
       type: DataTypes.STRING,
       defaultValue: "limited",
     },
+    department: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    designation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    alt_mobile_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    pan_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        is: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+      },
+    },
+    aadhar_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        is: /^[0-9]{12}$/,
+      },
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    }
   },
   {
     freezeTableName: true,
-    timestamps: false, // Set to false since we're not using Sequelize's default timestamp columns
+    timestamps: true,
   }
 );
 

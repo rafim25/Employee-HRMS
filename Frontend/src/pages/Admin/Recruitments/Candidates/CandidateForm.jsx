@@ -29,12 +29,26 @@ const CandidateForm = () => {
     notes: '',
     source: 'Direct',
     referred_by: '',
+    created_by: state?.user?.username || '',
+    created_by_id: state?.user?.user_id || null,
+    answers: {},
+    job_answers: {},
+    rejection_reason: '',
+    rejection_details: {
+      reason: '',
+      stage: '',
+      rejected_by: '',
+      rejected_at: null,
+      comments: ''
+    }
   });
   const [selectedTab, setSelectedTab] = useState('single');
   const [bulkFile, setBulkFile] = useState(null);
   const [resume, setResume] = useState(null);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   const sourceOptions = [
+    'Naukri',
     'Direct',
     'LinkedIn',
     'Indeed',
@@ -80,10 +94,19 @@ const CandidateForm = () => {
       current_location: formData.currentLocation,
       preferred_location: formData.preferredLocation,
       job_id: parseInt(formData.jobId),
+      job_answers: formData.job_answers,
+      rejection_reason: formData.rejection_reason,
+      rejection_details: {
+        ...formData.rejection_details,
+        rejected_by: state?.user?.username || '',
+        rejected_at: formData.rejection_reason ? new Date().toISOString() : null
+      },
       notes: formData.notes,
       source: formData.source,
       referred_by: formData.referred_by,
-      resume_url: formData.resumeUrl
+      resume_url: formData.resumeUrl,
+      created_by: state?.user?.username || '',
+      created_by_id: state?.user?.user_id || null,
     };
 
     try {
@@ -112,16 +135,63 @@ const CandidateForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'jobId') {
+      const job = jobs.find(j => j.id === parseInt(value));
+      setSelectedJob(job);
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        answers: {}
+      }));
+    } else if (name.startsWith('question_')) {
+      setFormData(prev => ({
+        ...prev,
+        answers: {
+          ...prev.answers,
+          [name.replace('question_', '')]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleDownloadTemplate = async () => {
     try {
       const data = [
-        { Code: 'CAND001', 'First Name': 'John', 'Last Name': 'Doe', Email: 'john.doe@email.com', Mobile: '1234567890', 'Job Title': 'Software Engineer', Experience: '5', State: 'Karnataka', City: 'Bangalore', 'Expected Salary': '10', 'Current Salary': '8', Resume: 'john_resume.pdf', Source: 'Direct', Status: 'Applied' }
+        {
+          name: 'MOHAMMAD RAFEE RAFEE',
+          email: 'mrafee19109@gmail.com',
+          phone: '7899089590',
+          experience: '45',
+          current_location: 'Bangalore',
+          preferred_location: 'Bangalore',
+          current_ctc: '200000',
+          expected_ctc: '300000',
+          current_company: 'TCS',
+          notice_period: '20',
+          source: 'Indeed',
+          referred_by: '',
+          notes: 'dsdaf',
+          resume_url: '',
+          job_id: 2,
+          created_by: 'admin',
+          created_by_id: 'a123',
+          rejection_reason: '',
+          rejection_details: {
+            reason: '',
+            stage: '',
+            rejected_by: 'admin',
+            rejected_at: null,
+            comments: ''
+          },
+          job_answers: {
+            'How Many experiebce injave': '10 yesr'
+          }
+        }
       ];
 
       const success = await downloadCandidateTemplate({ data1: data, fileName: "candidate-upload-template" });
@@ -176,17 +246,8 @@ const CandidateForm = () => {
 
   return (
     <DefaultLayoutAdmin>
+      <BreadcrumbAdmin pageName="Add Candidate" icon={FaUser} />
       <div className="mx-auto max-w-screen-2xl  ">
-        <div className="flex justify-between items-center mb-6">
-          <BreadcrumbAdmin pageName="Add Candidate" />
-          <button
-            onClick={() => navigate('/admin/recruitments/candidates')}
-            className="flex items-center gap-2 text-primary hover:text-primary/80"
-          >
-            <FaArrowLeft /> Back to Candidates
-          </button>
-        </div>
-
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <Tab.Group>
             <Tab.List className="flex border-b border-stroke dark:border-strokedark">
@@ -398,6 +459,64 @@ const CandidateForm = () => {
                       </select>
                     </div>
 
+                    {selectedJob && (
+                      <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <h4 className="font-semibold mb-2">Required Skills:</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedJob.skills.map((skill, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2">Experience Range:</h4>
+                            <p className="text-gray-600">
+                              {selectedJob.experienceRange[0]} - {selectedJob.experienceRange[1]} years
+                            </p>
+                          </div>
+                        </div>
+
+                        {selectedJob.questions && selectedJob.questions.length > 0 && (
+                          <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
+                            <h4 className="font-semibold mb-4">Job-Specific Questions:</h4>
+                            <div className="space-y-4">
+                              {selectedJob.questions.map((question, index) => (
+                                <div key={index} className="border border-stroke rounded-lg p-4 bg-white dark:bg-boxdark">
+                                  <label className="block text-black dark:text-white mb-2">
+                                    {question} <span className="text-meta-1">*</span>
+                                  </label>
+                                  <textarea
+                                    name={`job_answer_${index}`}
+                                    value={formData.job_answers[question] || ''}
+                                    onChange={(e) => {
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        job_answers: {
+                                          ...prev.job_answers,
+                                          [question]: e.target.value
+                                        }
+                                      }));
+                                    }}
+                                    required
+                                    placeholder="Enter your answer..."
+                                    rows="3"
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div>
                       <label className="mb-2.5 block text-black dark:text-white">
                         <FaFileUpload className="inline mr-2" />
@@ -453,6 +572,20 @@ const CandidateForm = () => {
                         />
                       </div>
                     )}
+
+                    <div>
+                      <label className="mb-2.5 block text-black dark:text-white text-sm">
+                        <FaUser className="inline mr-2" />
+                        Created By
+                      </label>
+                      <input
+                        type="text"
+                        name="created_by"
+                        value={state?.user?.username || 'N/A'}
+                        disabled
+                        className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-form-strokedark dark:bg-form-input"
+                      />
+                    </div>
 
                     <div className="md:col-span-2 mt-4">
                       <label className="mb-2.5 block text-black dark:text-white text-sm">

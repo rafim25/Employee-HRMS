@@ -60,7 +60,10 @@ const JobCard = ({ job, onEdit, onDelete }) => {
 
   return (
     <div className="bg-white dark:bg-boxdark rounded-xl border border-stroke dark:border-strokedark p-5 
-                    hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 relative">
+                    shadow-default hover:shadow-lg dark:hover:shadow-gray-700/40
+                    transform hover:-translate-y-1
+                    transition-all duration-300 relative
+                    hover:border-primary/20 dark:hover:border-primary/20">
       {/* Action Menu */}
       <div className="absolute top-4 right-4 z-20" ref={actionMenuRef}>
         <button
@@ -74,7 +77,8 @@ const JobCard = ({ job, onEdit, onDelete }) => {
         </button>
 
         {showActions && (
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-boxdark rounded-xl shadow-[0_4px_20px_rgb(0,0,0,0.15)] 
+          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-boxdark rounded-xl 
+                         shadow-[0_8px_24px_rgb(0,0,0,0.12)] 
                          border border-stroke dark:border-strokedark overflow-hidden">
             <button
               onClick={(e) => {

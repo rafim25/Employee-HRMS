@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { Op } from "sequelize";
 import Loan from "../models/Loan.js";
+import { v4 as uuidv4 } from 'uuid';
 
 export const getUsersByRole = async (req, res) => {
   try {
@@ -53,7 +54,7 @@ export const getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
       where: {
-        status: "active", // Only fetch active users
+        status: "active",
       },
       attributes: [
         "user_id",
@@ -62,7 +63,12 @@ export const getUsers = async (req, res) => {
         "role",
         "gender",
         "date_joined",
+        "department",
+        "designation",
         "mobile_number",
+        "alt_mobile_number",
+        "pan_number",
+        "aadhar_number",
         "address",
         "status",
         "photo",
@@ -82,7 +88,7 @@ export const getUserById = async (req, res) => {
     const user = await User.findOne({
       where: {
         user_id: req.params.id,
-        status: "active", // Only fetch active users
+        status: "active",
       },
       attributes: [
         "user_id",
@@ -91,7 +97,12 @@ export const getUserById = async (req, res) => {
         "role",
         "gender",
         "date_joined",
+        "department",
+        "designation",
         "mobile_number",
+        "alt_mobile_number",
+        "pan_number",
+        "aadhar_number",
         "address",
         "status",
         "photo",
@@ -118,7 +129,12 @@ export const createUser = async (req, res) => {
     password,
     gender,
     role,
+    department,
+    designation,
     mobile_number,
+    alt_mobile_number,
+    pan_number,
+    aadhar_number,
     address,
     permissions,
   } = req.body;
@@ -155,25 +171,44 @@ export const createUser = async (req, res) => {
   }
 
   try {
+    // Check if username already exists
+    const existingUser = await User.findOne({
+      where: { username: req.body.username }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        msg: "Username already exists. Please choose a different username."
+      });
+    }
+
     const hashPassword = await argon2.hash(password);
     const newUser = await User.create({
-      user_id: user_id,
+      uuid: uuidv4(),
+      user_id,
       username,
       email,
       password: hashPassword,
       gender,
       role,
+      department,
+      designation,
       mobile_number,
+      alt_mobile_number,
+      pan_number,
+      aadhar_number,
       address,
       permissions,
       photo: fileName,
       url: url,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
     res
       .status(201)
       .json({ msg: "User created successfully", user_id: newUser.user_id });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    res.status(500).json({ msg: error.message });
   }
 };
 
@@ -224,7 +259,12 @@ export const updateUser = async (req, res) => {
       password,
       gender,
       role,
+      department,
+      designation,
       mobile_number,
+      alt_mobile_number,
+      pan_number,
+      aadhar_number,
       address,
       permissions,
       status,
@@ -247,7 +287,12 @@ export const updateUser = async (req, res) => {
             password: hashPassword,
             gender,
             role,
+            department,
+            designation,
             mobile_number,
+            alt_mobile_number,
+            pan_number,
+            aadhar_number,
             address,
             permissions,
             status: "active", // Ensure status remains active
@@ -268,7 +313,12 @@ export const updateUser = async (req, res) => {
             email,
             gender,
             role,
+            department,
+            designation,
             mobile_number,
+            alt_mobile_number,
+            pan_number,
+            aadhar_number,
             address,
             permissions,
             status: "active", // Ensure status remains active

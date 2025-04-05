@@ -1,4 +1,4 @@
-import { Job, Candidate, CandidateStatusHistory } from '../models/index.js';
+import { Job, Candidate, CandidateStatusHistory, User } from '../models/index.js';
 import { Op } from 'sequelize';
 import multer from 'multer';
 import { uploadToS3, getSignedUrl } from '../utils/s3Config.js';
@@ -23,29 +23,105 @@ const upload = multer({
 
 export const getCandidates = async (req, res) => {
     try {
+        const where = {};
+        const { source, createdBy } = req.query;
+
+        if (source) {
+            where.source = source;
+        }
+
+        if (createdBy) {
+            where.created_by_id = createdBy;
+        }
+
         const candidates = await Candidate.findAll({
-            include: [{
-                model: Job,
-                as: 'job',
-                attributes: ['id', 'title', 'type', 'city', 'state']
-            }],
+            where,
+            include: [
+                {
+                    model: Job,
+                    as: 'job',
+                    attributes: ['id', 'title', 'type', 'city', 'state', 'questions']
+                },
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['user_id', 'username', 'email'],
+                }
+            ],
             attributes: [
+                // Basic Information
                 'id', 'uuid', 'name', 'email', 'phone', 
                 'experience', 'current_company', 'current_ctc', 
                 'expected_ctc', 'notice_period', 'current_location', 
                 'preferred_location', 'resume_url', 'status', 
                 'notes', 'source', 'referred_by',
-                'createdAt', 'updatedAt'
+                'created_by', 'created_by_id',
+                'createdAt', 'updatedAt',
+
+                // JSON fields
+                'job_answers',
+                'rejection_details',
+                'rejection_reason'
             ],
             order: [['createdAt', 'DESC']]
         });
 
-        // Process resume URLs for all candidates
-        const processedCandidates = await processResumesForCandidates(candidates);
+        // Process the candidates and ensure JSON fields are properly handled
+        const processedCandidates = await Promise.all(candidates.map(async candidate => {
+            const plainCandidate = candidate.get({ plain: true });
+            
+            // Process job answers
+            if (plainCandidate.job_answers) {
+                try {
+                    plainCandidate.job_answers = typeof plainCandidate.job_answers === 'string' 
+                        ? JSON.parse(plainCandidate.job_answers)
+                        : plainCandidate.job_answers;
+                } catch (e) {
+                    console.warn('Error parsing job_answers:', e);
+                    plainCandidate.job_answers = {};
+                }
+            }
+
+            // Process rejection details
+            if (plainCandidate.rejection_details) {
+                try {
+                    const rejectionDetails = typeof plainCandidate.rejection_details === 'string'
+                        ? JSON.parse(plainCandidate.rejection_details)
+                        : plainCandidate.rejection_details;
+
+                    // Format rejection information
+                    if (plainCandidate.status === 'rejected') {
+                        plainCandidate.rejection_information = {
+                            reason: plainCandidate.rejection_reason,
+                            ...rejectionDetails
+                        };
+                    }
+                } catch (e) {
+                    console.warn('Error parsing rejection_details:', e);
+                    plainCandidate.rejection_details = {};
+                }
+            }
+
+            // Format questionnaire if job questions exist
+            if (plainCandidate.job?.questions && plainCandidate.job_answers) {
+                plainCandidate.questionnaire = plainCandidate.job.questions.map(question => ({
+                    question: question,
+                    answer: plainCandidate.job_answers[question] || 'Not answered'
+                }));
+            }
+
+            // Process resume URL if needed
+            const processedResume = await processResumeForCandidate(plainCandidate);
+            return processedResume;
+        }));
+
         res.json(processedCandidates);
     } catch (error) {
         console.error('Error fetching candidates:', error);
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({ 
+            msg: "Error fetching candidates",
+            error: error.message 
+        });
     }
 };
 
@@ -53,23 +129,105 @@ export const getCandidateById = async (req, res) => {
     try {
         const candidate = await Candidate.findOne({
             where: { uuid: req.params.id },
-            include: [{
-                model: Job,
-                as: 'job',
-                attributes: ['id', 'title', 'type', 'city', 'state']
-            }]
+            include: [
+                {
+                    model: Job,
+                    as: 'job',
+                    attributes: ['id', 'title', 'type', 'city', 'state', 'questions']
+                },
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['user_id', 'username', 'email']
+                }
+            ],
+            attributes: [
+                // Basic Information
+                'id', 'uuid', 'name', 'email', 'phone', 
+                'experience', 'current_company', 'current_ctc', 
+                'expected_ctc', 'notice_period', 'current_location', 
+                'preferred_location', 'resume_url', 'status', 
+                'notes', 'source', 'referred_by',
+                'created_by', 'created_by_id',
+
+                // Job Questions & Answers
+                'job_answers',
+
+                // Rejection Details
+                'rejection_reason',
+                'rejection_details',
+
+                // Timestamps
+                'createdAt', 'updatedAt'
+            ]
         });
 
         if (!candidate) {
             return res.status(404).json({ msg: "Candidate not found" });
         }
 
-        // Process resume URL for single candidate
-        const processedCandidate = await processResumeForCandidate(candidate);
-        res.json(processedCandidate);
+        // Convert to plain object for manipulation
+        const plainCandidate = candidate.get({ plain: true });
+
+        // Process job answers if they exist
+        if (plainCandidate.job_answers) {
+            try {
+                plainCandidate.job_answers = typeof plainCandidate.job_answers === 'string'
+                    ? JSON.parse(plainCandidate.job_answers)
+                    : plainCandidate.job_answers;
+            } catch (e) {
+                console.warn('Error parsing job_answers:', e);
+                plainCandidate.job_answers = {};
+            }
+        }
+
+        // Process rejection details if candidate is rejected
+        if (plainCandidate.status === 'rejected') {
+            try {
+                const rejectionDetails = typeof plainCandidate.rejection_details === 'string'
+                    ? JSON.parse(plainCandidate.rejection_details)
+                    : plainCandidate.rejection_details;
+
+                plainCandidate.rejection_information = {
+                    reason: plainCandidate.rejection_reason,
+                    ...rejectionDetails
+                };
+            } catch (e) {
+                console.warn('Error parsing rejection_details:', e);
+                plainCandidate.rejection_information = {
+                    reason: plainCandidate.rejection_reason,
+                    stage: '',
+                    rejected_by: '',
+                    rejected_at: null,
+                    comments: ''
+                };
+            }
+        }
+
+        // Format job questions and answers if they exist
+        if (plainCandidate.job?.questions && plainCandidate.job_answers) {
+            plainCandidate.questionnaire = plainCandidate.job.questions.map(question => ({
+                question: question,
+                answer: plainCandidate.job_answers[question] || 'Not answered'
+            }));
+        }
+
+        // Process resume URL
+        const processedCandidate = await processResumeForCandidate(plainCandidate);
+
+        // Clean up response by removing redundant fields
+        const cleanedCandidate = {
+            ...processedCandidate,
+            rejection_details: undefined // Remove raw rejection_details since we have formatted rejection_information
+        };
+
+        res.json(cleanedCandidate);
     } catch (error) {
         console.error('Error fetching candidate:', error);
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({ 
+            msg: "Error fetching candidate details",
+            error: error.message 
+        });
     }
 };
 
@@ -92,7 +250,6 @@ export const getCandidatesByJob = async (req, res) => {
 
 export const createCandidate = async (req, res) => {
     try {
-        // Handle file upload with Promise
         await new Promise((resolve, reject) => {
             upload(req, res, (err) => {
                 if (err) reject(err);
@@ -100,28 +257,109 @@ export const createCandidate = async (req, res) => {
             });
         });
 
+        // First check for existing candidate with same email, phone, or name
+        const existingCandidate = await Candidate.findOne({
+            where: {
+                [Op.or]: [
+                    { email: req.body.email },
+                    { phone: req.body.phone },
+                    {
+                        [Op.and]: [
+                            { name: req.body.name },
+                            { phone: req.body.phone }
+                        ]
+                    }
+                ]
+            },
+            include: [
+                {
+                    model: Job,
+                    as: 'job',
+                    attributes: ['title']
+                }
+            ]
+        });
+
+        if (existingCandidate) {
+            let errorMessage = 'Candidate already exists: ';
+            if (existingCandidate.email === req.body.email) {
+                errorMessage += `Email ${req.body.email} is already registered`;
+            }
+            if (existingCandidate.phone === req.body.phone) {
+                errorMessage += `${errorMessage ? ' and phone ' : 'Phone '} ${req.body.phone} is already registered`;
+            }
+            if (existingCandidate.name === req.body.name && existingCandidate.phone === req.body.phone) {
+                errorMessage += ` for job: ${existingCandidate.job?.title || 'Unknown'}`;
+            }
+
+            return res.status(400).json({
+                msg: errorMessage,
+                existingCandidate: {
+                    name: existingCandidate.name,
+                    email: existingCandidate.email,
+                    phone: existingCandidate.phone,
+                    job: existingCandidate.job?.title,
+                    status: existingCandidate.status
+                }
+            });
+        }
+
+        // Verify user exists
+        const user = await User.findOne({
+            where: { user_id: req.body.created_by_id }
+        });
+
+        if (!user) {
+            return res.status(400).json({ msg: "Invalid user ID" });
+        }
+
+        // Handle resume upload
         let resumeUrl = null;
         if (req.file) {
-            // Upload to S3 and get URL
             resumeUrl = await uploadToS3(req.file);
         }
 
+        // Create new candidate
         const candidateData = {
             ...req.body,
             status: 'applied',
             source: req.body.source || 'Direct',
-            resume_url: resumeUrl
+            resume_url: resumeUrl,
+            created_by: user.username,
+            created_by_id: user.user_id,
+            // Ensure email and phone are properly formatted
+            email: req.body.email.toLowerCase().trim(),
+            phone: req.body.phone.trim().replace(/\s+/g, '')
         };
 
         const candidate = await Candidate.create(candidateData);
 
-        // Return candidate data with a temporary signed URL for the resume
+        // Fetch the created candidate with all associations
+        const createdCandidate = await Candidate.findOne({
+            where: { id: candidate.id },
+            include: [
+                {
+                    model: Job,
+                    as: 'job',
+                    attributes: ['id', 'title', 'type', 'city', 'state']
+                },
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['user_id', 'username', 'email']
+                }
+            ]
+        });
+
         const responseData = {
-            ...candidate.toJSON(),
+            ...createdCandidate.toJSON(),
             resume_url: resumeUrl ? await getSignedUrl(resumeUrl.split('/').pop()) : null
         };
 
-        res.status(201).json(responseData);
+        res.status(201).json({
+            msg: "Candidate created successfully",
+            candidate: responseData
+        });
 
     } catch (error) {
         console.error('Error creating candidate:', error);
@@ -138,7 +376,8 @@ export const updateCandidate = async (req, res) => {
         const {
             name, email, phone, experience, current_company, current_ctc,
             expected_ctc, notice_period, current_location, preferred_location,
-            status, notes, job_id, source, referred_by
+            status, notes, job_id, source, referred_by, job_answers,
+            rejection_details, rejection_reason
         } = req.body;
 
         const candidate = await Candidate.findOne({ where: { uuid: id } });
@@ -162,7 +401,10 @@ export const updateCandidate = async (req, res) => {
             notes,
             job_id,
             source,
-            referred_by
+            referred_by,
+            job_answers,
+            rejection_details,
+            rejection_reason
         });
 
         const updatedCandidate = await Candidate.findOne({
@@ -170,7 +412,7 @@ export const updateCandidate = async (req, res) => {
             include: [{
                 model: Job,
                 as: 'job',
-                attributes: ['id', 'title', 'type', 'city', 'state']
+                attributes: ['id', 'title', 'type', 'city', 'state', 'questions']
             }]
         });
 
@@ -315,7 +557,7 @@ export const getCandidatesByJobId = async (req, res) => {
             });
         }
 
-        // Then fetch candidates
+        // Then fetch candidates with existing columns only
         const candidates = await Candidate.findAll({
             where: {
                 job_id: jobId
@@ -325,20 +567,38 @@ export const getCandidatesByJobId = async (req, res) => {
                 'experience', 'current_company', 'current_ctc',
                 'expected_ctc', 'notice_period', 'current_location',
                 'preferred_location', 'status', 'source', 'referred_by',
-                'createdAt', 'updatedAt'
+                'resume_url', 'created_by', 'created_by_id',
+                'rejection_reason', 'rejection_details', 'current_round',
+                'job_answers', 'createdAt', 'updatedAt'
             ],
             include: [
                 {
                     model: Job,
                     as: 'job',
                     attributes: ['id', 'title', 'type', 'city', 'state']
+                },
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['id', 'username', 'email'],
+                    required: false
                 }
             ],
             order: [['createdAt', 'DESC']]
         });
 
-        return res.status(200).json( candidates
-        );
+        // Transform the data to include creator details
+        const transformedCandidates = candidates.map(candidate => {
+            const plainCandidate = candidate.get({ plain: true });
+            return {
+                ...plainCandidate,
+                created_by: plainCandidate.creator?.username || plainCandidate.created_by || 'N/A',
+                created_by_email: plainCandidate.creator?.email,
+                creator: undefined // Remove the nested creator object
+            };
+        });
+
+        return res.status(200).json(transformedCandidates);
 
     } catch (error) {
         console.error('Error fetching candidates by job:', error);
@@ -357,14 +617,14 @@ export const bulkUploadCandidates = async (req, res) => {
         const processedCandidates = candidates.map(candidate => ({
             ...candidate,
             id: candidate.id.startsWith('candidate_') ? candidate.id : `candidate_${candidate.id}`,
-            // Set default values for missing fields
             status: candidate.status?.toLowerCase() || 'applied',
             source: candidate.source || 'Direct',
-            // Other fields will be null if not provided
+            created_by: candidate.created_by || req.body.created_by || null,
+            created_by_id: candidate.created_by_id || req.body.created_by_id || null
         }));
 
         await Candidate.bulkCreate(processedCandidates, {
-            updateOnDuplicate: ['status', 'updated_at'] // Update if duplicate ID found
+            updateOnDuplicate: ['status', 'updated_at', 'created_by', 'created_by_id']
         });
 
         res.status(200).json({ message: 'Candidates uploaded successfully' });
@@ -412,5 +672,35 @@ export const shareCandidates = async (req, res) => {
     } catch (error) {
         console.error('Error sharing candidates:', error);
         res.status(500).json({ message: 'Failed to share candidates' });
+    }
+};
+
+export const rejectCandidate = async (req, res) => {
+    try {
+        const { status, rejection_reason, rejection_details, changed_by } = req.body;
+        const candidateId = req.params.uuid;
+
+        const candidate = await Candidate.findOne({
+            where: { uuid: candidateId }
+        });
+
+        if (!candidate) {
+            return res.status(404).json({ msg: "Candidate not found" });
+        }
+
+        await candidate.update({
+            status,
+            rejection_reason,
+            rejection_details,
+            updatedAt: new Date(),
+            updated_by: changed_by
+        });
+
+        res.status(200).json({
+            msg: "Candidate status and rejection details updated successfully",
+            candidate
+        });
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
     }
 };

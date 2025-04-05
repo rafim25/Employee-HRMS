@@ -9,7 +9,8 @@ import {
   updateCandidateStatus,
   applyForJob,
   getCandidatesByJobId,
-  shareCandidates
+  shareCandidates,
+  rejectCandidate
 } from "../controllers/CandidateController.js";
 import { sendCandidatesToClient } from "../controllers/EmailController.js";
 import {
@@ -26,7 +27,7 @@ router.post('/api/candidates', verifyUser, adminOnly, createCandidate);
 router.put('/api/candidates/:id', verifyUser, adminOnly, updateCandidate);
 router.delete('/api/candidates/:id', verifyUser, adminOnly, deleteCandidate);
 router.patch('/api/candidates/:uuid/status', verifyUser, adminOnly, updateCandidateStatus);
-
+router.patch('/api/candidates/:uuid/reject', verifyUser, adminOnly, rejectCandidate);
 // Job-specific candidate routes
 // router.get('/api/candidates/job/:jobId', verifyUser, adminOnly, getCandidatesByJob);
 router.get('/api/candidates/job/:jobId', getCandidatesByJobId);

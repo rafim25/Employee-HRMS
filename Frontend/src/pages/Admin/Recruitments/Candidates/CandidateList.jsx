@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEdit, FaTrash, FaUserPlus, FaFilter, FaSearch, FaEllipsisV, FaRegEdit, FaPlus, FaHistory, FaFileExcel, FaSort, FaSortUp, FaSortDown, FaDownload, FaUserCircle } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaUserPlus, FaFilter, FaSearch, FaEllipsisV, FaRegEdit, FaPlus, FaHistory, FaFileExcel, FaSort, FaSortUp, FaSortDown, FaDownload, FaUserCircle, FaUser } from 'react-icons/fa';
 import { BsTrash3, BsThreeDotsVertical } from 'react-icons/bs';
 import { BiSearch, BiSortAlt2 } from 'react-icons/bi';
 import toast from 'react-hot-toast';
@@ -9,11 +9,10 @@ import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../../../components';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchCandidates, updateCandidateStatus, deleteCandidate } from '../../../../context/actions/candidateActions';
-import { Menu, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
 import DataTable from '../../../../components/molecules/DataTable/DataTable';
-import { downloadCandidateTemplate } from '../../../../utils/excelTemplates';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
+import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
+import { MdSource } from 'react-icons/md';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -26,6 +25,7 @@ const CandidateList = () => {
   const [filters, setFilters] = useState({
     status: '',
     source: '',
+    createdBy: '',
     experience: { min: '', max: '' },
     location: '',
     dateRange: {
@@ -39,7 +39,6 @@ const CandidateList = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(ITEMS_PER_PAGE);
-  const [totalPages, setTotalPages] = useState(0);
 
   const navigate = useNavigate();
 
@@ -58,22 +57,52 @@ const CandidateList = () => {
 
   const userId = authState?.user?.user_id;
 
+  // Add these states
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+
+  // Add state for users list
+  const [users, setUsers] = useState([]);
+  const [sources, setSources] = useState([
+    'Direct', 'LinkedIn', 'Indeed', 'Naukri',
+    'Referral', 'Agency', 'Other'
+  ]);
+
   useEffect(() => {
     loadCandidates();
+    fetchUsers();
   }, [dispatch, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filters]);
 
   const loadCandidates = async () => {
     try {
       setLoading(true);
       const candidates = await fetchCandidates(dispatch);
-      // const data = state.candidates || [];
       setCandidates(candidates);
       console.log(candidates);
-      setTotalPages(Math.ceil(candidates.length / itemsPerPage));
     } catch (error) {
       toast.error('Failed to load candidates');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
   };
 
@@ -113,11 +142,16 @@ const CandidateList = () => {
       key: 'source',
       label: 'Source',
       type: 'select',
+      icon: <MdSource className="text-xl" />,
       options: [
+        { value: 'Naukri', label: 'Naukri' },
         { value: 'Direct', label: 'Direct' },
-        { value: 'Referral', label: 'Referral' },
         { value: 'LinkedIn', label: 'LinkedIn' },
-        { value: 'Agency', label: 'Agency' }
+        { value: 'Indeed', label: 'Indeed' },
+        { value: 'Naukri', label: 'Naukri' },
+        { value: 'Referral', label: 'Referral' },
+        { value: 'Agency', label: 'Agency' },
+        { value: 'Other', label: 'Other' }
       ]
     },
     {
@@ -136,6 +170,16 @@ const CandidateList = () => {
       label: 'Location',
       type: 'search',
       placeholder: 'Search location'
+    },
+    {
+      key: 'createdBy',
+      label: 'Created By',
+      type: 'select',
+      icon: <FaUser className="text-xl" />,
+      options: users.map(user => ({
+        value: user.user_id,
+        label: user.username
+      }))
     }
   ];
 
@@ -148,6 +192,7 @@ const CandidateList = () => {
     setFilters({
       status: '',
       source: '',
+      createdBy: '',
       experience: { min: '', max: '' },
       location: '',
       dateRange: { start: '', end: '' },
@@ -156,8 +201,14 @@ const CandidateList = () => {
     });
   };
 
-  // Add this function to handle status change
+  // Update the handleStatusChange function
   const handleStatusChange = async (candidateId, newStatus) => {
+    if (newStatus === 'rejected') {
+      setSelectedCandidate(candidates.find(c => c.uuid === candidateId));
+      setShowRejectionModal(true);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/candidates/${candidateId}/status`, {
         method: 'PATCH',
@@ -175,7 +226,6 @@ const CandidateList = () => {
         throw new Error('Failed to update status');
       }
 
-      // Update the local state to reflect the change
       setCandidates(prev =>
         prev.map(candidate =>
           candidate.uuid === candidateId
@@ -185,6 +235,56 @@ const CandidateList = () => {
       );
 
       toast.success(`Status updated to ${newStatus}`);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  // Add this function to handle rejection confirmation
+  const handleRejectionConfirm = async (rejectionDetails) => {
+    try {
+      const response = await fetch(`/api/candidates/${selectedCandidate.uuid}/reject`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          status: 'rejected',
+          rejection_reason: rejectionDetails.reason,
+          rejection_details: {
+            ...rejectionDetails,
+            rejected_by: authState?.user?.username,
+            rejected_at: new Date().toISOString()
+          },
+          changed_by: userId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update rejection details');
+      }
+
+      setCandidates(prev =>
+        prev.map(candidate =>
+          candidate.uuid === selectedCandidate.uuid
+            ? {
+              ...candidate,
+              status: 'rejected',
+              rejection_reason: rejectionDetails.reason,
+              rejection_details: {
+                ...rejectionDetails,
+                rejected_by: authState?.user?.username,
+                rejected_at: new Date().toISOString()
+              }
+            }
+            : candidate
+        )
+      );
+
+      toast.success('Candidate rejected successfully');
+      setShowRejectionModal(false);
+      setSelectedCandidate(null);
     } catch (error) {
       toast.error(error.message);
     }
@@ -202,21 +302,21 @@ const CandidateList = () => {
   };
 
   const statusColors = {
-    applied: 'bg-warning/10 text-warning',
-    screening: 'bg-info/10 text-info',
-    shortlisted: 'bg-success/10 text-success',
-    interviewed: 'bg-primary/10 text-primary',
-    selected: 'bg-success/10 text-success',
-    rejected: 'bg-danger/10 text-danger'
+    applied: 'bg-warning/10 text-warning hover:bg-warning hover:text-white cursor-pointer',
+    screening: 'bg-info/10 text-info hover:bg-info hover:text-white cursor-pointer',
+    shortlisted: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+    interviewed: 'bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer',
+    selected: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+    rejected: 'bg-danger/10 text-danger pointer-events-none opacity-75'
   };
 
   const columns = [
     {
       key: 'name',
       header: 'Candidate Details',
-      className: 'min-w-[220px] xl:pl-11',
+      className: 'min-w-[220px] py-4.5 px-4 xl:pl-11',
       render: (candidate) => (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <h5 className="font-medium text-black dark:text-white">
             {candidate.name}
           </h5>
@@ -230,20 +330,20 @@ const CandidateList = () => {
     {
       key: 'job',
       header: 'Job Applied For',
-      className: 'min-w-[150px]',
+      className: 'min-w-[150px] py-4.5 px-4',
       render: (candidate) => (
-        <>
-          <p className="text-black dark:text-white">
+        <div className="flex flex-col gap-1">
+          <p className="text-black dark:text-white font-medium">
             {candidate.job?.title}
           </p>
           <p className="text-sm text-gray-500">{candidate.job?.type}</p>
-        </>
+        </div>
       )
     },
     {
       key: 'resume',
       header: 'Resume',
-      className: 'min-w-[120px]',
+      className: 'min-w-[120px] py-4.5 px-4',
       render: (candidate) => (
         <div>
           {candidate.resume_url ? (
@@ -265,16 +365,23 @@ const CandidateList = () => {
     {
       key: 'status',
       header: 'Status',
-      className: 'min-w-[120px]',
-      type: 'status'
+      className: 'min-w-[120px] py-4.5 px-4',
+      render: (candidate) => (
+        <span
+          className={`inline-flex rounded-full py-1 px-3 text-sm font-medium transition-all duration-200 ${statusColors[candidate.status] || 'bg-gray-100 text-gray-500'
+            }`}
+        >
+          {candidate.status}
+        </span>
+      )
     },
     {
       key: 'source',
       header: 'Source',
-      className: 'min-w-[120px]',
+      className: 'min-w-[120px] py-4.5 px-4',
       render: (candidate) => (
-        <>
-          <p className="text-black dark:text-white">
+        <div className="flex flex-col gap-1">
+          <p className="text-black dark:text-white font-medium">
             {candidate.source || 'Direct'}
           </p>
           {candidate.referred_by && (
@@ -282,39 +389,32 @@ const CandidateList = () => {
               Ref: {candidate.referred_by}
             </p>
           )}
-        </>
+          <p className="text-sm text-gray-500">
+            Created by: {candidate.created_by || 'N/A'}
+          </p>
+        </div>
       )
     },
     {
       key: 'createdAt',
       header: 'Applied Date',
-      className: 'min-w-[120px]',
-      type: 'date',
-      format: 'MMM dd, yyyy'
+      className: 'min-w-[120px] py-4.5 px-4',
+      render: (candidate) => (
+        <p className="text-black dark:text-white">
+          {format(new Date(candidate.createdAt), 'MMM dd, yyyy')}
+        </p>
+      )
     }
   ];
 
-  const handleDownloadTemplate = async () => {
-    try {
-      const data = [
-        { Code: 'CAND001', 'First Name': 'John', 'Last Name': 'Doe', Email: 'john.doe@email.com', Mobile: '1234567890', 'Job Title': 'Software Engineer', Experience: '5', State: 'Karnataka', City: 'Bangalore', 'Expected Salary': '10', 'Current Salary': '8', Resume: 'john_resume.pdf', Source: 'Direct', Status: 'Applied' }
-      ];
-
-      const success = await downloadCandidateTemplate({ data1: data, fileName: "candidate-upload-template" });
-
-      if (success) {
-        console.log("✅ Success message should print now!");
-        toast.success('Template downloaded successfully');
-      } else {
-        toast.error('Failed to download template');
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      toast.error('Error downloading template');
-    }
-  };
-
   const filteredCandidates = candidates.filter(candidate => {
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm ||
+      candidate.name?.toLowerCase().includes(searchLower) ||
+      candidate.email?.toLowerCase().includes(searchLower) ||
+      candidate.phone?.includes(searchTerm) ||
+      candidate.job?.title?.toLowerCase().includes(searchLower);
+
     const matchesStatus = !filters.status || candidate.status === filters.status;
     const matchesSource = !filters.source || candidate.source === filters.source;
     const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
@@ -327,187 +427,192 @@ const CandidateList = () => {
     const matchesSalary = (!filters.salary.min || candidate.expected_salary >= Number(filters.salary.min)) &&
       (!filters.salary.max || candidate.expected_salary <= Number(filters.salary.max));
     const matchesJob = !filters.jobApplied || candidate.job?.title === filters.jobApplied;
+    const matchesCreatedBy = !filters.createdBy || candidate.created_by_id === filters.createdBy;
 
-    return matchesStatus &&
+    return matchesSearch &&
+      matchesStatus &&
       matchesSource &&
       matchesExperience &&
       matchesLocation &&
       matchesDateRange &&
       matchesSalary &&
-      matchesJob;
+      matchesJob &&
+      matchesCreatedBy;
   });
+
+  // Keep this calculation
+  const totalPages = Math.ceil(filteredCandidates.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
+
+  // Update the Pagination component with this simplified version
+  const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    const getPageNumbers = () => {
+      if (totalPages <= 3) {
+        // If there are 3 or fewer pages, show all of them
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+
+      if (currentPage === 1) {
+        // If on first page, show 1, 2, ...
+        return [1, 2, '...'];
+      }
+
+      if (currentPage === totalPages) {
+        // If on last page, show ..., lastPage-1, lastPage
+        return ['...', totalPages - 1, totalPages];
+      }
+
+      // In middle, show currentPage-1, currentPage, currentPage+1
+      return [currentPage - 1, currentPage, currentPage + 1];
+    };
+
+    return (
+      <div className='flex gap-2'>
+        <button
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary'
+        >
+          Previous
+        </button>
+
+        {getPageNumbers().map((pageNum, idx) => (
+          <button
+            key={idx}
+            onClick={() => typeof pageNum === 'number' ? onPageChange(pageNum) : null}
+            disabled={pageNum === '...'}
+            className={`py-2 px-4 rounded-lg border transition-colors
+              ${pageNum === currentPage
+                ? 'bg-primary text-white border-primary'
+                : pageNum === '...'
+                  ? 'border-gray-200 text-gray-400 cursor-default'
+                  : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary'
+              }`}
+          >
+            {pageNum}
+          </button>
+        ))}
+
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary'
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
 
   return (
     <DefaultLayoutAdmin>
-      <BreadcrumbAdmin pageName='Candidates' />
+      <BreadcrumbAdmin pageName='Candidates' icon={FaUser} backButton={false} />
 
-      {/* Header Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <Link to="/admin/recruitments/candidates/add">
-          <ButtonOne>
-            <span>Add Candidate</span>
-            <span><FaPlus /></span>
-          </ButtonOne>
-        </Link>
+      {/* Wrap all content in a fragment */}
+      <>
+        {/* Main Container with better spacing */}
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          {/* Header Section with Actions */}
+          <div className="p-4 md:p-6 xl:p-7.5">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+              {/* Add Candidate Button */}
+              <div className="w-full sm:w-auto">
+                <Link to="/admin/recruitments/candidates/add">
+                  <ButtonOne className="w-full sm:w-auto">
+                    <span className="mr-2">Add Candidate</span>
+                    <FaPlus />
+                  </ButtonOne>
+                </Link>
+              </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* <ButtonOne
-            onClick={handleDownloadTemplate}
-            className="flex items-center gap-2"
-          >
-            <FaDownload />
-            <span>Download Template</span>
-          </ButtonOne> */}
-          {/* <div className="flex items-center gap-2">
-            <label className="text-black dark:text-white font-medium">From:</label>
-            <input
-              type="date"
-              value={filters.dateRange.start}
-              onChange={(e) => setFilters({
-                ...filters,
-                dateRange: { ...filters.dateRange, start: e.target.value }
-              })}
-              className="rounded-lg border-[1.5px] border-stroke bg-transparent py-2 px-4 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
-            <label className="text-black dark:text-white font-medium ml-4">To:</label>
-            <input
-              type="date"
-              value={filters.dateRange.end}
-              onChange={(e) => setFilters({
-                ...filters,
-                dateRange: { ...filters.dateRange, end: e.target.value }
-              })}
-              className="rounded-lg border-[1.5px] border-stroke bg-transparent py-2 px-4 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
-          </div> */}
-          <button
-            onClick={() => setShowFilterModal(true)}
-            className="inline-flex items-center justify-center rounded-md bg-primary py-2 px-6 text-center font-medium text-white hover:bg-opacity-90 transition duration-200 ease-in-out ml-4"
-          >
-            <FaFilter className="mr-2" />
-            Filters
-          </button>
+              {/* Search and Filter Controls */}
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                {/* Search Box with improved styling */}
+                <div className="relative flex-grow sm:flex-grow-0 sm:w-72">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, phone..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-12 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary dark:border-strokedark dark:bg-meta-4 dark:focus:border-primary"
+                  />
+                  <BiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-500" />
+                </div>
+
+                {/* Filter Button */}
+                <button
+                  onClick={() => setShowFilterModal(true)}
+                  className="inline-flex items-center justify-center rounded-lg border border-primary bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out"
+                >
+                  <FaFilter className="mr-2" />
+                  Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Table Container with improved spacing */}
+            <div className="rounded-lg border border-stroke dark:border-strokedark">
+              <div className="max-w-full overflow-x-auto">
+                <DataTable
+                  data={paginatedCandidates}
+                  columns={columns}
+                  actions={true}
+                  statusOptions={statusOptions}
+                  onStatusChange={handleStatusChange}
+                  onDelete={(candidate) => handleDelete(candidate.uuid)}
+                  onEdit={(candidate) => navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`)}
+                  onView={(candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`)}
+                  onDownload={(candidate) => window.open(candidate.resume_url, '_blank')}
+                  statusColors={statusColors}
+                  className="w-full table-auto"
+                />
+              </div>
+
+              {/* Pagination with improved spacing */}
+              <div className="p-4 md:p-6 border-t border-stroke dark:border-strokedark">
+                <div className='flex justify-between items-center flex-col md:flex-row gap-4'>
+                  <div className='text-sm text-gray-500 dark:text-gray-400'>
+                    Showing {filteredCandidates.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredCandidates.length)} of {filteredCandidates.length} Candidates
+                  </div>
+                  {filteredCandidates.length > 0 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={(page) => setCurrentPage(page)}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Search and Filter Section */}
-      <div className='rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1'>
-        {/* <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
-          <div className="relative flex-1 md:mr-2 mb-4 md:mb-0">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by candidate name..."
-              className="rounded-lg border-[1.5px] border-stroke bg-transparent py-2 pl-10 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary left-0"
-            />
-            <span className="absolute left-2 py-3 text-xl">
-              <BiSearch />
-            </span>
-          </div>
-
-          <div className="relative flex-2 mb-4 md:mb-0">
-            <select
-              value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              className="rounded-lg border-[1.5px] border-stroke bg-transparent py-2 px-4 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary w-full"
-            >
-              <option value="">All Status</option>
-              <option value="applied">Applied</option>
-              <option value="screening">Screening</option>
-              <option value="shortlisted">Shortlisted</option>
-              <option value="interviewed">Interviewed</option>
-              <option value="selected">Selected</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
-        </div> */}
-
-        <DataTable
-          data={filteredCandidates}
-          columns={columns}
-          actions={true}
-          statusOptions={statusOptions}
-          onStatusChange={handleStatusChange}
-          onDelete={(candidate) => handleDelete(candidate.uuid)}
-          onEdit={(candidate) => navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`)}
-          onView={(candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`)}
-          onDownload={(candidate) => window.open(candidate.resume_url, '_blank')}
-          statusColors={statusColors}
+        {/* Filter Modal */}
+        <FilterModal
+          isOpen={showFilterModal}
+          onClose={() => setShowFilterModal(false)}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+          filters={filters}
+          setFilters={setFilters}
+          config={filterConfig}
         />
 
-        {/* Pagination */}
-        <div className="flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-5 dark:text-gray-4 text-sm py-4">
-              {filteredCandidates.length > 0 ? (
-                `Showing ${((currentPage - 1) * itemsPerPage) + 1}-${Math.min(currentPage * itemsPerPage, filteredCandidates.length)} of ${filteredCandidates.length} Candidates`
-              ) : (
-                'No candidates to display'
-              )}
-            </span>
-          </div>
-          {filteredCandidates.length > 0 && (
-            <div className="flex space-x-2 py-4">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50"
-              >
-                Prev
-              </button>
-              {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                const page = i + 1;
-                if (page === currentPage) {
-                  return (
-                    <div
-                      key={i}
-                      className="py-2 px-4 rounded-lg border border-primary bg-primary text-white font-semibold hover:bg-primary dark:text-white dark:bg-primary dark:hover:bg-primary"
-                    >
-                      {page}
-                    </div>
-                  );
-                } else if (page === 2 && currentPage > 4) {
-                  return <p key={i} className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white">...</p>;
-                } else if (page === totalPages - 1 && currentPage < totalPages - 3) {
-                  return <p key={i} className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white">...</p>;
-                } else if (
-                  page === 1 ||
-                  page === totalPages ||
-                  (page >= currentPage - 1 && page <= currentPage + 1)
-                ) {
-                  return (
-                    <div
-                      key={i}
-                      className="py-2 px-4 rounded-lg border border-gray-2 text-black dark:bg-transparent bg-gray font-medium dark:border-strokedark dark:text-white"
-                    >
-                      {page}
-                    </div>
-                  );
-                }
-                return null;
-              })}
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+        <RejectionModal
+          isOpen={showRejectionModal}
+          onClose={() => {
+            setShowRejectionModal(false);
+            setSelectedCandidate(null);
+          }}
+          onConfirm={handleRejectionConfirm}
+          currentStage={selectedCandidate?.current_round}
+        />
 
-      <FilterModal
-        isOpen={showFilterModal}
-        onClose={() => setShowFilterModal(false)}
-        onApply={handleApplyFilters}
-        onReset={handleResetFilters}
-        filters={filters}
-        setFilters={setFilters}
-        config={filterConfig}
-      />
+        {/* Filter Section */}
+
+      </>
     </DefaultLayoutAdmin>
   );
 };

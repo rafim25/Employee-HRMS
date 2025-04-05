@@ -21,9 +21,14 @@ const EditUser = () => {
         username: '',
         email: '',
         mobile_number: '',
+        alt_mobile_number: '',
         status: '',
         role: '',
         gender: '',
+        department: '',
+        designation: '',
+        pan_number: '',
+        aadhar_number: '',
         date_joined: '',
         address: '',
     });
@@ -83,7 +88,7 @@ const EditUser = () => {
         try {
             // First try to delete the user
             await deleteUser(dispatch, userId);
-            
+
             // If user deletion is successful, try to delete the profile photo
             try {
                 if (userData.photo) {
@@ -213,31 +218,82 @@ const EditUser = () => {
                                             Mobile Number <span className='text-meta-1'>*</span>
                                         </label>
                                         <input
-                                            type='text'
+                                            type='tel'
                                             name='mobile_number'
                                             value={userData.mobile_number}
                                             onChange={handleChange}
                                             required
-                                            placeholder='Enter mobile number'
+                                            placeholder='Enter primary mobile number'
+                                            pattern="[0-9]{10}"
                                             className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                         />
                                     </div>
 
                                     <div className='w-full xl:w-1/2'>
                                         <label className='mb-2.5 block text-black dark:text-white'>
-                                            Gender <span className='text-meta-1'>*</span>
+                                            Alternative Mobile Number
+                                        </label>
+                                        <input
+                                            type='tel'
+                                            name='alt_mobile_number'
+                                            value={userData.alt_mobile_number}
+                                            onChange={handleChange}
+                                            placeholder='Enter alternative mobile number'
+                                            pattern="[0-9]{10}"
+                                            className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Department and Designation */}
+                                <div className='mb-4.5 flex flex-col gap-6 xl:flex-row'>
+                                    <div className='w-full xl:w-1/2'>
+                                        <label className='mb-2.5 block text-black dark:text-white'>
+                                            Department <span className='text-meta-1'>*</span>
                                         </label>
                                         <div className='relative z-20 bg-transparent dark:bg-form-input'>
                                             <select
-                                                name='gender'
-                                                value={userData.gender}
+                                                name='department'
+                                                value={userData.department}
                                                 onChange={handleChange}
                                                 required
                                                 className='relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                             >
-                                                <option value=''>Select Gender</option>
-                                                <option value='male'>Male</option>
-                                                <option value='female'>Female</option>
+                                                <option value=''>Select Department</option>
+                                                <option value='HR'>Human Resources</option>
+                                                <option value='Marketing'>Marketing</option>
+                                                <option value='Sales'>Sales</option>
+                                                <option value='IT'>Information Technology</option>
+                                                <option value='Finance'>Finance</option>
+                                                <option value='Operations'>Operations</option>
+                                            </select>
+                                            <span className='absolute top-1/2 right-4 z-30 -translate-y-1/2 text-2xl'>
+                                                <MdOutlineKeyboardArrowDown />
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className='w-full xl:w-1/2'>
+                                        <label className='mb-2.5 block text-black dark:text-white'>
+                                            Designation <span className='text-meta-1'>*</span>
+                                        </label>
+                                        <div className='relative z-20 bg-transparent dark:bg-form-input'>
+                                            <select
+                                                name='designation'
+                                                value={userData.designation}
+                                                onChange={handleChange}
+                                                required
+                                                className='relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                            >
+                                                <option value=''>Select Designation</option>
+                                                <option value='Telecaller'>Telecaller</option>
+                                                <option value='Marketing Executive'>Marketing Executive</option>
+                                                <option value='HR Manager'>HR Manager</option>
+                                                <option value='HR Executive'>HR Executive</option>
+                                                <option value='Admin'>Admin</option>
+                                                <option value='Team Lead'>Team Lead</option>
+                                                <option value='Manager'>Manager</option>
+                                                <option value='Developer'>Developer</option>
                                             </select>
                                             <span className='absolute top-1/2 right-4 z-30 -translate-y-1/2 text-2xl'>
                                                 <MdOutlineKeyboardArrowDown />
@@ -290,6 +346,43 @@ const EditUser = () => {
                                                 <MdOutlineKeyboardArrowDown />
                                             </span>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Government IDs */}
+                                <div className='mb-4.5 flex flex-col gap-6 xl:flex-row'>
+                                    <div className='w-full xl:w-1/2'>
+                                        <label className='mb-2.5 block text-black dark:text-white'>
+                                            PAN Card Number <span className='text-meta-1'>*</span>
+                                        </label>
+                                        <input
+                                            type='text'
+                                            name='pan_number'
+                                            value={userData.pan_number}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder='Enter PAN card number'
+                                            pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
+                                            className='w-full uppercase rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Format: ABCDE1234F</p>
+                                    </div>
+
+                                    <div className='w-full xl:w-1/2'>
+                                        <label className='mb-2.5 block text-black dark:text-white'>
+                                            Aadhar Number <span className='text-meta-1'>*</span>
+                                        </label>
+                                        <input
+                                            type='text'
+                                            name='aadhar_number'
+                                            value={userData.aadhar_number}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder='Enter Aadhar number'
+                                            pattern="[0-9]{12}"
+                                            className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">12 digits number</p>
                                     </div>
                                 </div>
 

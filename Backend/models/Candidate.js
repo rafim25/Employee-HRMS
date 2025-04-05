@@ -1,5 +1,6 @@
 import { DataTypes, Sequelize } from 'sequelize';
 import db from '../config/Database.js';
+import User from "./User.js";
 
 const Candidate = db.define('candidates', {
     uuid: {
@@ -136,6 +137,48 @@ const Candidate = db.define('candidates', {
             this.setDataValue('interview_schedule', JSON.stringify(value));
         }
     },
+    created_by: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'username'
+        }
+    },
+    created_by_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'user_id'
+        }
+    },
+    job_answers: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: {}
+    },
+    rejection_reason: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    rejection_details: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        get() {
+            const value = this.getDataValue('rejection_details');
+            return value ? JSON.parse(value) : {
+                reason: '',
+                stage: '',
+                rejected_by: '',
+                rejected_at: null,
+                comments: ''
+            };
+        },
+        set(value) {
+            this.setDataValue('rejection_details', JSON.stringify(value));
+        }
+    },
     createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -150,5 +193,40 @@ const Candidate = db.define('candidates', {
     freezeTableName: true,
     timestamps: true,
 });
+
+// Define the association with User model
+Candidate.belongsTo(User, {
+    foreignKey: 'created_by_id',
+    as: 'creator'
+});
+
+// Updated sync function with foreign key constraints
+const syncNewColumns = async () => {
+    try {
+        await db.query(`
+            ALTER TABLE candidates 
+            ADD COLUMN IF NOT EXISTS created_by VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS created_by_id INT,
+            ADD CONSTRAINT fk_created_by_id 
+                FOREIGN KEY (created_by_id) 
+                REFERENCES users(user_id) 
+                ON DELETE SET NULL 
+                ON UPDATE CASCADE,
+            ADD CONSTRAINT fk_created_by_name 
+                FOREIGN KEY (created_by) 
+                REFERENCES users(username) 
+                ON DELETE SET NULL 
+                ON UPDATE CASCADE,
+            ADD COLUMN IF NOT EXISTS job_answers TEXT,
+            ADD COLUMN IF NOT EXISTS rejection_reason TEXT,
+            ADD COLUMN IF NOT EXISTS rejection_details TEXT;
+        `);
+        console.log('Added created_by columns with foreign key constraints and job answers and rejection fields successfully');
+    } catch (error) {
+        console.error('Error syncing new columns:', error);
+    }
+};
+
+syncNewColumns();
 
 export default Candidate; 

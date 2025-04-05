@@ -2,14 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaCode, FaTools } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchSkills, deleteSkill } from '../../../../context/actions/skillActions';
 import { toast } from 'react-hot-toast';
+import Pagination from '../../../../components/molecules/Pagination/Pagination';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 6;
 
 const SkillList = () => {
     const { state, dispatch } = useAuth();
@@ -72,117 +73,120 @@ const SkillList = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Skill Management' />
+            <BreadcrumbAdmin pageName='Skill Management' icon={FaCode} backButton={false} />
 
-            <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-                <div className="flex flex-wrap items-center justify-between gap-4 md:gap-6 xl:gap-8">
-                    <div className="flex gap-3">
-                        <Link to="/admin/recruitments/skill-management/form-skill">
-                            <ButtonOne>
-                                <span>Add New Skill</span>
-                                <span><FaPlus /></span>
-                            </ButtonOne>
-                        </Link>
-                    </div>
-                    <div className="relative flex w-full max-w-45 sm:w-72">
-                        <input
-                            type="text"
-                            placeholder="Search skills..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full rounded border border-stroke bg-transparent py-2 pl-10 pr-4 outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4 dark:focus:border-primary"
-                        />
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2">
-                            <BiSearch className="fill-body hover:fill-primary dark:fill-bodydark dark:hover:fill-primary" />
-                        </span>
-                    </div>
-                </div>
+            {/* Main Container with better spacing */}
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                {/* Header Section with Actions */}
+                <div className="p-4 md:p-6 xl:p-7.5">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                        {/* Add Skill Button */}
+                        <div className="w-full sm:w-auto">
+                            <Link to="/admin/recruitments/skill-management/form-skill">
+                                <ButtonOne className="w-full sm:w-auto">
+                                    <span className="mr-2">Add New Skill</span>
+                                    <FaPlus />
+                                </ButtonOne>
+                            </Link>
+                        </div>
 
-                <div className="max-w-full overflow-x-auto">
-                    <table className="w-full table-auto">
-                        <thead>
-                            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                                <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
-                                    ID
-                                </th>
-                                <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
-                                    Name
-                                </th>
-                                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
-                                    Description
-                                </th>
-                                <th className="py-4 px-4 font-medium text-black dark:text-white">
-                                    Status
-                                </th>
-                                <th className="py-4 px-4 font-medium text-black dark:text-white">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedSkills.map((skill) => (
-                                <tr key={skill.id}>
-                                    <td className="border-b border-[#eee] py-5 px-4 pl-9 xl:pl-11 dark:border-strokedark">
-                                        <h5 className="font-medium text-black dark:text-white">
-                                            {skill.id}
-                                        </h5>
-                                    </td>
-                                    <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                                        <p className="text-black dark:text-white">
-                                            {skill.name}
-                                        </p>
-                                    </td>
-                                    <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                                        <p className="text-black dark:text-white">
-                                            {skill.description || '-'}
-                                        </p>
-                                    </td>
-                                    <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                                        <p className={`inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium ${skill.status === 'active'
-                                            ? 'text-success bg-success'
-                                            : 'text-danger bg-danger'
-                                            }`}>
-                                            {skill.status}
-                                        </p>
-                                    </td>
-                                    <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
-                                        <div className="flex items-center space-x-3.5">
-                                            <Link to={`/admin/recruitments/skill-management/edit/${skill.id}`}>
-                                                <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
-                                            </Link>
-                                            <button onClick={() => handleDelete(skill.id)}>
-                                                <BsTrash3 className="text-danger text-xl hover:text-black dark:hover:text-white" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination */}
-                <div className="flex flex-wrap items-center justify-between gap-4 py-4">
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm text-body dark:text-bodydark">
-                            Showing {startIndex + 1}-{Math.min(endIndex, filteredSkills.length)} of {filteredSkills.length} skills
-                        </p>
+                        {/* Search Box with improved styling */}
+                        <div className="w-full sm:w-72">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search skills..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-12 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary dark:border-strokedark dark:bg-meta-4 dark:focus:border-primary"
+                                />
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2">
+                                    <BiSearch className="h-5 w-5 fill-body hover:fill-primary dark:fill-bodydark dark:hover:fill-primary" />
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            className="flex items-center justify-center rounded bg-primary py-2 px-4 text-white hover:bg-opacity-90 disabled:opacity-50"
-                            onClick={() => setCurrentPage(prev => prev - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Previous
-                        </button>
-                        <button
-                            className="flex items-center justify-center rounded bg-primary py-2 px-4 text-white hover:bg-opacity-90 disabled:opacity-50"
-                            onClick={() => setCurrentPage(prev => prev + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Next
-                        </button>
+
+                    {/* Table Container with improved spacing */}
+                    <div className="rounded-lg border border-stroke dark:border-strokedark">
+                        <div className="max-w-full overflow-x-auto">
+                            <table className="w-full table-auto">
+                                <thead>
+                                    <tr className="bg-gray-2 dark:bg-meta-4">
+                                        <th className="text-left py-4.5 px-4 font-medium text-black dark:text-white xl:pl-11">
+                                            ID
+                                        </th>
+                                        <th className="text-left py-4.5 px-4 font-medium text-black dark:text-white">
+                                            Name
+                                        </th>
+                                        <th className="text-left py-4.5 px-4 font-medium text-black dark:text-white">
+                                            Description
+                                        </th>
+                                        <th className="text-left py-4.5 px-4 font-medium text-black dark:text-white">
+                                            Status
+                                        </th>
+                                        <th className="text-left py-4.5 px-4 font-medium text-black dark:text-white">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedSkills.map((skill) => (
+                                        <tr key={skill.id} className="hover:bg-gray-1 dark:hover:bg-meta-4/30 transition-colors">
+                                            <td className="border-b border-[#eee] py-5 px-4 pl-9 xl:pl-11 dark:border-strokedark">
+                                                <h5 className="font-medium text-black dark:text-white">
+                                                    {skill.id}
+                                                </h5>
+                                            </td>
+                                            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                                <p className="text-black dark:text-white font-medium">
+                                                    {skill.name}
+                                                </p>
+                                            </td>
+                                            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                                <p className="text-black dark:text-white">
+                                                    {skill.description || '-'}
+                                                </p>
+                                            </td>
+                                            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                                <p className={`inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium ${skill.status === 'active'
+                                                    ? 'text-success bg-success'
+                                                    : 'text-danger bg-danger'
+                                                    }`}>
+                                                    {skill.status}
+                                                </p>
+                                            </td>
+                                            <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                                <div className="flex items-center gap-3.5">
+                                                    <Link to={`/admin/recruitments/skill-management/edit/${skill.id}`}>
+                                                        <button className="hover:text-primary">
+                                                            <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
+                                                        </button>
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(skill.id)}
+                                                        className="hover:text-danger"
+                                                    >
+                                                        <BsTrash3 className="text-danger text-xl hover:text-black dark:hover:text-white" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination with improved spacing */}
+                        <div className="p-4 md:p-6">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalItems={filteredSkills.length}
+                                itemsPerPage={ITEMS_PER_PAGE}
+                                onPageChange={setCurrentPage}
+                                showingText="Showing"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
