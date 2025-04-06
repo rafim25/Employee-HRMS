@@ -344,23 +344,36 @@ const CandidateList = () => {
       key: 'resume',
       header: 'Resume',
       className: 'min-w-[120px] py-4.5 px-4',
-      render: (candidate) => (
-        <div>
-          {candidate.resume_url ? (
-            <button
-              onClick={() => window.open(candidate.resume_url, '_blank')}
-              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200"
-            >
-              <FaDownload className="text-base" />
-              <span className="text-sm font-medium">Download CV</span>
-            </button>
-          ) : (
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              No resume uploaded
-            </span>
-          )}
-        </div>
-      )
+      render: (candidate) => {
+        return (
+          <div>
+            {candidate.resume_url ? (
+              <a
+                href={candidate.resume_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors duration-200"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Add error handling for the URL
+                  if (candidate.resume_url.startsWith('http')) {
+                    window.open(candidate.resume_url, '_blank');
+                  } else {
+                    toast.error('Invalid resume URL');
+                  }
+                }}
+              >
+                <FaDownload className="text-base" />
+                <span className="text-sm font-medium">View CV</span>
+              </a>
+            ) : (
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                No resume
+              </span>
+            )}
+          </div>
+        );
+      }
     },
     {
       key: 'status',

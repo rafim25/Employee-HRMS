@@ -1,23 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
-import { BreadcrumbAdmin, Pagination } from '../../../../components';
+import BreadcrumbAdmin from '../../../../components/atoms/Breadcrumb/BreadcrumbAdmin';
+import Pagination from '../../../../components/molecules/Pagination/Pagination';
+import DataTable from '../../../../components/molecules/DataTable/DataTable';
+import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
+import ConfirmationModal from '../../../../components/molecules/Modal/ConfirmationModal';
+import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
+import InterviewProcessMilestone from '../../../../components/molecules/Milestones/InterviewProcessMilestones';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchJobById } from '../../../../context/actions/jobActions';
 import { format, isValid, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
 import {
-  FaBriefcase, FaMapMarkerAlt, FaUsers, FaRegClock, FaBuilding,
-  FaEnvelope, FaLocationArrow, FaMoneyBillWave, FaUserClock,
-  FaListUl, FaQuestionCircle, FaCheckCircle, FaArrowLeft, FaDownload, FaShare, FaFilter, FaExclamationTriangle
+  FaBriefcase,
+  FaMapMarkerAlt,
+  FaUsers,
+  FaRegClock,
+  FaBuilding,
+  FaEnvelope,
+  FaLocationArrow,
+  FaMoneyBillWave,
+  FaUserClock,
+  FaListUl,
+  FaQuestionCircle,
+  FaCheckCircle,
+  FaArrowLeft,
+  FaDownload,
+  FaShare,
+  FaFilter,
+  FaExclamationTriangle
 } from 'react-icons/fa';
-import InterviewProcessMilestone from '../../../../components/molecules/Milestones/InterviewProcessMilestones';
-import DataTable from '../../../../components/molecules/DataTable/DataTable';
-import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
-import ConfirmationModal from '../../../../components/molecules/Modal/ConfirmationModal';
-import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
 import { BiSearch } from 'react-icons/bi';
-
 
 const JobDetails = () => {
   const { id } = useParams();

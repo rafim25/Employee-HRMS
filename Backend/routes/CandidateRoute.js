@@ -10,7 +10,9 @@ import {
   applyForJob,
   getCandidatesByJobId,
   shareCandidates,
-  rejectCandidate
+  rejectCandidate,
+  bulkUploadCandidates,
+  checkDuplicate
 } from "../controllers/CandidateController.js";
 import { sendCandidatesToClient } from "../controllers/EmailController.js";
 import {
@@ -42,5 +44,11 @@ router.put('/api/candidates/:id', verifyUser,adminOnly, updateCandidate);
 // Update candidate status
 router.patch('/api/candidates/:id/status', verifyUser,adminOnly, updateCandidateStatus);
 router.post('/api/candidates/share', verifyUser,adminOnly, sendCandidatesToClient);
+
+// Add the bulk upload route
+router.post('/api/candidates/bulk-upload', verifyUser, adminOnly, bulkUploadCandidates);
+
+// Add this route with your other candidate routes
+router.post('/api/candidates/check-duplicate', verifyUser, adminOnly, checkDuplicate);
 
 export default router; 

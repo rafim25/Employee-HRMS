@@ -2,24 +2,185 @@ import { Job, Candidate, CandidateStatusHistory, User } from '../models/index.js
 import { Op } from 'sequelize';
 import multer from 'multer';
 import { uploadToS3, getSignedUrl } from '../utils/s3Config.js';
-import { processResumesForCandidates, processResumeForCandidate } from '../utils/resumeHelper.js';
+import { processResumesForCandidates } from '../utils/resumeHelper.js';
+import xlsx from 'xlsx';
+import fs from 'fs';
+import path from 'path';
+import AWS from 'aws-sdk';
 
-// Configure multer for memory storage
+// Configure multer
 const storage = multer.memoryStorage();
-const upload = multer({
-    storage,
-    limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
-    },
-    fileFilter: (req, file, cb) => {
-        // Accept only PDF files
-        if (file.mimetype === 'application/pdf') {
-            cb(null, true);
-        } else {
-            cb(new Error('Only PDF files are allowed'));
-        }
+const uploadMiddleware = multer({ storage }).single('file');// Use memory storage instead of disk storage
+
+const fileFilter = (req, file, cb) => {
+  const allowedMimes = [
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/octet-stream' // Some browsers might send this mime type
+  ];
+
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only Excel files are allowed.'));
+  }
+};
+
+// const uploadMiddleware = multer({
+//   storage: storage,
+//   fileFilter: fileFilter,
+//   limits: {
+//     fileSize: 5 * 1024 * 1024 // 5MB limit
+//   }
+// }).single('file');
+
+export const bulkUploadCandidates = async (req, res) => {
+  try {
+    const { candidates, created_by, created_by_id } = req.body;
+
+    if (!candidates || !Array.isArray(candidates) || candidates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid candidates data provided'
+      });
     }
-}).single('resume'); // 'resume' is the field name
+
+    // Results array to track success and failures
+    const results = {
+      success: [],
+      duplicates: [],
+      errors: []
+    };
+
+    // Process candidates sequentially to check for duplicates
+    for (const candidate of candidates) {
+      try {
+        // Check for existing candidate
+        const existingCandidate = await Candidate.findOne({
+          where: {
+            [Op.or]: [
+              { email: candidate.email },
+              { phone: candidate.phone },
+              {
+                [Op.and]: [
+                  { name: candidate.name },
+                  { phone: candidate.phone }
+                ]
+              }
+            ]
+          },
+          include: [
+            {
+              model: Job,
+              as: 'job',
+              attributes: ['title']
+            }
+          ]
+        });
+
+        if (existingCandidate) {
+          let errorMessage = 'Candidate already exists: ';
+          if (existingCandidate.email === candidate.email) {
+            errorMessage += `Email ${candidate.email} is already registered`;
+          }
+          if (existingCandidate.phone === candidate.phone) {
+            errorMessage += `${errorMessage ? ' and phone ' : 'Phone '} ${candidate.phone} is already registered`;
+          }
+          if (existingCandidate.name === candidate.name && existingCandidate.phone === candidate.phone) {
+            errorMessage += ` for job: ${existingCandidate.job?.title || 'Unknown'}`;
+          }
+
+          results.duplicates.push({
+            name: candidate.name,
+            email: candidate.email,
+            phone: candidate.phone,
+            error: errorMessage
+          });
+          continue;
+        }
+
+        // Prepare candidate data
+        const candidateData = {
+          ...candidate,
+          status: 'applied',
+          source: candidate.source || 'Direct',
+          created_by,
+          created_by_id,
+          email: candidate.email.toLowerCase().trim(),
+          phone: candidate.phone.toString().trim().replace(/\s+/g, '')
+        };
+
+        // Create the candidate
+        const newCandidate = await Candidate.create(candidateData);
+        results.success.push({
+          name: candidate.name,
+          email: candidate.email,
+          id: newCandidate.uuid
+        });
+
+      } catch (error) {
+        results.errors.push({
+          name: candidate.name,
+          email: candidate.email,
+          error: error.message
+        });
+      }
+    }
+
+    // Prepare response message
+    const message = `Processed ${candidates.length} candidates: `
+      + `${results.success.length} successful, `
+      + `${results.duplicates.length} duplicates, `
+      + `${results.errors.length} errors`;
+
+    return res.status(200).json({
+      success: true,
+      message,
+      results,
+      candidatesProcessed: results.success.length
+    });
+
+  } catch (error) {
+    console.error('Bulk upload error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process candidates',
+      error: error.message
+    });
+  }
+};
+
+const processResumeForCandidate = async (candidate) => {
+    try {
+        if (candidate.resume_url) {
+            // If the resume_url is a full URL, return as is
+            if (candidate.resume_url.startsWith('http')) {
+                return {
+                    ...candidate,
+                    resume_url: candidate.resume_url
+                };
+            }
+
+            // If it's just a key, generate a signed URL from S3
+            const s3 = new AWS.S3();
+            const signedUrl = await s3.getSignedUrlPromise('getObject', {
+                Bucket: process.env.AWS_S3_BUCKET,
+                Key: candidate.resume_url,
+                Expires: 3600 // URL expires in 1 hour
+            });
+
+            return {
+                ...candidate,
+                resume_url: signedUrl
+            };
+        }
+        return candidate;
+    } catch (error) {
+        console.error('Error processing resume URL:', error);
+        // Return the candidate with original resume_url if there's an error
+        return candidate;
+    }
+};
 
 export const getCandidates = async (req, res) => {
     try {
@@ -49,7 +210,6 @@ export const getCandidates = async (req, res) => {
                 }
             ],
             attributes: [
-                // Basic Information
                 'id', 'uuid', 'name', 'email', 'phone', 
                 'experience', 'current_company', 'current_ctc', 
                 'expected_ctc', 'notice_period', 'current_location', 
@@ -57,8 +217,6 @@ export const getCandidates = async (req, res) => {
                 'notes', 'source', 'referred_by',
                 'created_by', 'created_by_id',
                 'createdAt', 'updatedAt',
-
-                // JSON fields
                 'job_answers',
                 'rejection_details',
                 'rejection_reason'
@@ -66,54 +224,60 @@ export const getCandidates = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        // Process the candidates and ensure JSON fields are properly handled
+        // Debug log for raw candidates
+        console.log('Fetched candidates count:', candidates.length);
+
         const processedCandidates = await Promise.all(candidates.map(async candidate => {
             const plainCandidate = candidate.get({ plain: true });
             
-            // Process job answers
-            if (plainCandidate.job_answers) {
-                try {
+            // Debug log for resume URL before processing
+            console.log(`Processing candidate ${plainCandidate.id} resume:`, plainCandidate.resume_url);
+
+            try {
+                // Process job answers
+                if (plainCandidate.job_answers) {
                     plainCandidate.job_answers = typeof plainCandidate.job_answers === 'string' 
                         ? JSON.parse(plainCandidate.job_answers)
                         : plainCandidate.job_answers;
-                } catch (e) {
-                    console.warn('Error parsing job_answers:', e);
-                    plainCandidate.job_answers = {};
                 }
-            }
 
-            // Process rejection details
-            if (plainCandidate.rejection_details) {
-                try {
+                // Process rejection details
+                if (plainCandidate.rejection_details) {
                     const rejectionDetails = typeof plainCandidate.rejection_details === 'string'
                         ? JSON.parse(plainCandidate.rejection_details)
                         : plainCandidate.rejection_details;
 
-                    // Format rejection information
                     if (plainCandidate.status === 'rejected') {
                         plainCandidate.rejection_information = {
                             reason: plainCandidate.rejection_reason,
                             ...rejectionDetails
                         };
                     }
-                } catch (e) {
-                    console.warn('Error parsing rejection_details:', e);
-                    plainCandidate.rejection_details = {};
                 }
-            }
 
-            // Format questionnaire if job questions exist
-            if (plainCandidate.job?.questions && plainCandidate.job_answers) {
-                plainCandidate.questionnaire = plainCandidate.job.questions.map(question => ({
-                    question: question,
-                    answer: plainCandidate.job_answers[question] || 'Not answered'
-                }));
-            }
+                // Format questionnaire
+                if (plainCandidate.job?.questions && plainCandidate.job_answers) {
+                    plainCandidate.questionnaire = plainCandidate.job.questions.map(question => ({
+                        question: question,
+                        answer: plainCandidate.job_answers[question] || 'Not answered'
+                    }));
+                }
 
-            // Process resume URL if needed
-            const processedResume = await processResumeForCandidate(plainCandidate);
-            return processedResume;
+                // Use existing processResumeForCandidate function
+                const processedCandidate = await processResumeForCandidate(plainCandidate);
+                
+                // Debug log for processed resume URL
+                console.log(`Processed resume URL for ${processedCandidate.id}:`, processedCandidate.resume_url);
+                
+                return processedCandidate;
+            } catch (error) {
+                console.error(`Error processing candidate ${plainCandidate.id}:`, error);
+                return plainCandidate;
+            }
         }));
+
+        // Final debug log
+        console.log('Total processed candidates:', processedCandidates.length);
 
         res.json(processedCandidates);
     } catch (error) {
@@ -251,7 +415,7 @@ export const getCandidatesByJob = async (req, res) => {
 export const createCandidate = async (req, res) => {
     try {
         await new Promise((resolve, reject) => {
-            upload(req, res, (err) => {
+            uploadMiddleware(req, res, (err) => {
                 if (err) reject(err);
                 resolve();
             });
@@ -313,20 +477,21 @@ export const createCandidate = async (req, res) => {
             return res.status(400).json({ msg: "Invalid user ID" });
         }
 
-        // Handle resume upload
-        let resumeUrl = null;
-        if (req.file) {
-            resumeUrl = await uploadToS3(req.file);
-        }
+        // // Handle resume upload
+        // let resumeUrl = null;
+        // if (req.file) {
+        //     resumeUrl = await uploadToS3(req.file);
+        // }
 
         // Create new candidate
         const candidateData = {
             ...req.body,
             status: 'applied',
             source: req.body.source || 'Direct',
-            resume_url: resumeUrl,
+            resume_url: req.body.resume_url,
             created_by: user.username,
             created_by_id: user.user_id,
+            
             // Ensure email and phone are properly formatted
             email: req.body.email.toLowerCase().trim(),
             phone: req.body.phone.trim().replace(/\s+/g, '')
@@ -353,7 +518,7 @@ export const createCandidate = async (req, res) => {
 
         const responseData = {
             ...createdCandidate.toJSON(),
-            resume_url: resumeUrl ? await getSignedUrl(resumeUrl.split('/').pop()) : null
+            resume_url: req.body.resume_url ? await getSignedUrl(req.body.resume_url.split('/').pop()) : null
         };
 
         res.status(201).json({
@@ -377,7 +542,7 @@ export const updateCandidate = async (req, res) => {
             name, email, phone, experience, current_company, current_ctc,
             expected_ctc, notice_period, current_location, preferred_location,
             status, notes, job_id, source, referred_by, job_answers,
-            rejection_details, rejection_reason
+            rejection_details, rejection_reason, resume_url
         } = req.body;
 
         const candidate = await Candidate.findOne({ where: { uuid: id } });
@@ -404,7 +569,8 @@ export const updateCandidate = async (req, res) => {
             referred_by,
             job_answers,
             rejection_details,
-            rejection_reason
+            rejection_reason,
+            resume_url
         });
 
         const updatedCandidate = await Candidate.findOne({
@@ -610,30 +776,6 @@ export const getCandidatesByJobId = async (req, res) => {
     }
 };
 
-export const bulkUploadCandidates = async (req, res) => {
-    try {
-        const candidates = req.body;
-        
-        const processedCandidates = candidates.map(candidate => ({
-            ...candidate,
-            id: candidate.id.startsWith('candidate_') ? candidate.id : `candidate_${candidate.id}`,
-            status: candidate.status?.toLowerCase() || 'applied',
-            source: candidate.source || 'Direct',
-            created_by: candidate.created_by || req.body.created_by || null,
-            created_by_id: candidate.created_by_id || req.body.created_by_id || null
-        }));
-
-        await Candidate.bulkCreate(processedCandidates, {
-            updateOnDuplicate: ['status', 'updated_at', 'created_by', 'created_by_id']
-        });
-
-        res.status(200).json({ message: 'Candidates uploaded successfully' });
-    } catch (error) {
-        console.error('Bulk upload error:', error);
-        res.status(500).json({ message: 'Failed to upload candidates', error: error.message });
-    }
-};
-
 export const shareCandidates = async (req, res) => {
     try {
         const { jobId, candidates, clientEmail, clientName, jobTitle } = req.body;
@@ -703,4 +845,52 @@ export const rejectCandidate = async (req, res) => {
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
+};
+
+export const checkDuplicate = async (req, res) => {
+  try {
+    const { email, phone, name } = req.body;
+
+    // Check for duplicate email
+    const existingEmail = await Candidate.findOne({ where: { email } });
+    if (existingEmail) {
+      return res.json({
+        isDuplicate: true,
+        message: 'A candidate with this email already exists'
+      });
+    }
+
+    // Check for duplicate phone
+    const existingPhone = await Candidate.findOne({ where: { phone } });
+    if (existingPhone) {
+      return res.json({
+        isDuplicate: true,
+        message: 'A candidate with this phone number already exists'
+      });
+    }
+
+    // Check for duplicate name and phone combination
+    const existingNamePhone = await Candidate.findOne({
+      where: {
+        name,
+        phone
+      }
+    });
+    if (existingNamePhone) {
+      return res.json({
+        isDuplicate: true,
+        message: 'A candidate with this name and phone number already exists'
+      });
+    }
+
+    return res.json({
+      isDuplicate: false
+    });
+  } catch (error) {
+    console.error('Check duplicate error:', error);
+    res.status(500).json({
+      isDuplicate: true,
+      message: 'Error checking for duplicate candidates'
+    });
+  }
 };

@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import session from "express-session";
 import dotenv from "dotenv";
+import multer from 'multer';
+
+import bodyParser from 'body-parser';
 import db, { testConnection } from "./config/Database.js";
 import initializeDatabase from "./config/initDb.js";
 
@@ -27,8 +30,11 @@ import jobRoutes from "./routes/jobRoutes.js";
 import skillRoute from "./routes/skillRoute.js";
 import { syncModels } from "./models/index.js";
 import candidateRoutes from './routes/CandidateRoute.js';
+import UploadRoute from './routes/UploadRoute.js';
 
 const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 dotenv.config();
 
 // Initialize database without dropping tables
@@ -92,39 +98,45 @@ const startServer = async () => {
     server.headersTimeout = 66000;
 
     // CORS Middleware
-    app.use(
-      cors({
-        origin:
-          process.env.NODE_ENV === "production"
-            ? [
-                "https://raghaveliteprojects.com",
-                "http://raghaveliteprojects.com",
-                "http://172.105.59.206:5173",
-                "http://172.105.59.206:3002",
-                "http://localhost:5173",
-                "http://localhost:3002",
-              ]
-            : [
-                "http://172.105.59.206:5173",
-                "http://172.105.59.206:3002",
-                "http://localhost:5173",
-                "http://localhost:3002",
-              ],
-        credentials: true,
-        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowedHeaders: [
-          "Content-Type",
-          "Authorization",
-          "X-Requested-With",
-          "Accept",
-          "Origin",
+    app.use(cors({
+      origin: process.env.NODE_ENV === "production"
+        ? [
+          "https://raghaveliteprojects.com",
+          "http://raghaveliteprojects.com",
+          "http://172.105.59.206:5173",
+          "http://172.105.59.206:3002",
+          "http://localhost:5173",
+          "http://localhost:3002",
+        ]
+        : [
+          "http://172.105.59.206:5173",
+          "http://172.105.59.206:3002",
+          "http://localhost:5173",
+          "http://localhost:3002",
         ],
-        exposedHeaders: ["Authorization"],
-      })
-    );
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
+      ],
+      exposedHeaders: ["Authorization"],
+    }));
 
     // Middleware for parsing JSON and handling sessions
-    app.use(express.json());
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/upload')) {
+        next();
+      } else {
+        bodyParser.json()(req, res, next);
+      }
+    });
+
+    app.use(bodyParser.urlencoded({ extended: true }));
+
     app.use(
       session({
         secret: process.env.SESS_SECRET,
@@ -145,8 +157,16 @@ const startServer = async () => {
     });
 
     // File upload and static files
-    app.use(FileUpload());
-    app.use(express.static("public"));
+    // app.use(FileUpload());
+
+    // Add multer configuration here (add this before your routes)
+    const storage = multer.memoryStorage();
+    const upload = multer({
+      storage: storage,
+      limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+      }
+    });
 
     // Routes
     app.use("/api", EmailRoute); // Mount email routes first
@@ -164,6 +184,7 @@ const startServer = async () => {
     app.use(AuthRoute);
     app.use(DataKehadiranRoute);
     app.use(EmployeeRoute);
+    app.use(UploadRoute);
 
     // Add job and skill routes
     app.use(jobRoutes);

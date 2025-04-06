@@ -9,27 +9,16 @@ const s3 = new AWS.S3({
 
 export const uploadToS3 = async (file, folder = 'resumes') => {
     try {
-        // Generate unique filename
         const fileExtension = file.originalname.split('.').pop();
         const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
 
-        // Set upload parameters
         const params = {
-            Bucket: process.env.AWS_S3_BUCKET,
+            Bucket: process.env.AWS_BUCKET_NAME,
             Key: fileName,
             Body: file.buffer,
-            ContentType: file.mimetype,
-            // Set expiry for presigned URLs
-            Expires: 60 * 60 * 24 * 7, // 7 days
-            // Enable compression for PDFs and large files
-            ContentEncoding: 'gzip',
-            // Cache settings
-            CacheControl: 'max-age=31536000',
-            // Make file public but secure
-            ACL: 'private'
+            ContentType: file.mimetype
         };
 
-        // Upload to S3
         const result = await s3.upload(params).promise();
         return result.Location;
     } catch (error) {
@@ -41,7 +30,7 @@ export const uploadToS3 = async (file, folder = 'resumes') => {
 // Generate temporary URL for private files
 export const getSignedUrl = async (fileKey) => {
     const params = {
-        Bucket: process.env.AWS_S3_BUCKET,
+        Bucket: process.env.AWS_BUCKET_NAME,
         Key: fileKey,
         Expires: 3600 // URL expires in 1 hour
     };

@@ -207,7 +207,7 @@ const DataTable = ({
                 {actions && (
                   <td className="py-5 px-4 text-right">
                     <div className="flex items-center space-x-3.5">
-                      {onDownload && item.resume_url && (
+                      {/* {onDownload && item.resume_url && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -218,7 +218,7 @@ const DataTable = ({
                         >
                           <FaDownload className="text-primary text-xl hover:text-black dark:hover:text-white" />
                         </button>
-                      )}
+                      )} */}
                       {onEdit && (
                         <button
                           onClick={(e) => {

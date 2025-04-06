@@ -55,7 +55,11 @@ const Candidate = db.define('candidates', {
     },
     resume_url: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        get() {
+            const rawValue = this.getDataValue('resume_url');
+            return rawValue ? rawValue : null;
+        }
     },
     status: {
         type: DataTypes.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'hold'),

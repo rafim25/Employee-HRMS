@@ -42,6 +42,7 @@ const CandidateEdit = () => {
       comments: ''
     }
   });
+  const [resume, setResume] = useState(null);
 
   const sourceOptions = [
     'Naukri',
@@ -102,14 +103,40 @@ const CandidateEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      // Ensure job_answers is properly structured
+      let resumeUrl = formData.resume_url;
+
+      // Upload resume if a new file is selected
+      if (resume) {
+        const formDataFile = new FormData();
+        formDataFile.append('file', resume);
+
+        const uploadResponse = await fetch('/api/upload/resume', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formDataFile
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload resume');
+        }
+
+        const uploadResult = await uploadResponse.json();
+        resumeUrl = uploadResult.url;
+      }
+
+      // Prepare data to send
       const dataToSend = {
         ...formData,
         job_id: parseInt(formData.job_id),
         created_by: state?.user?.username || formData.created_by,
         created_by_id: state?.user?.user_id || formData.created_by_id,
-        job_answers: formData.job_answers || {} // Ensure this is included
+        job_answers: formData.job_answers || {},
+        resume_url: resumeUrl // Use the new resume URL if uploaded, otherwise use existing
       };
 
       const response = await fetch(`/api/candidates/${id}`, {
@@ -121,12 +148,18 @@ const CandidateEdit = () => {
         body: JSON.stringify(dataToSend)
       });
 
-      if (!response.ok) throw new Error('Failed to update candidate');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update candidate');
+      }
 
       toast.success('Candidate updated successfully');
       navigate('/admin/recruitments/candidates');
     } catch (error) {
-      toast.error(error.message);
+      console.error('Update error:', error);
+      toast.error(error.message || 'Failed to update candidate');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,33 +181,26 @@ const CandidateEdit = () => {
     }
   };
 
-  const handleResumeUpload = async (e) => {
+  const handleResumeUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append('resume', file);
-
-      try {
-        const response = await fetch(`/api/candidates/${id}/resume`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: formData
-        });
-
-        if (!response.ok) throw new Error('Failed to upload resume');
-
-        const data = await response.json();
-        setFormData(prev => ({
-          ...prev,
-          resume_url: data.resume_url
-        }));
-
-        toast.success('Resume uploaded successfully');
-      } catch (error) {
-        toast.error('Failed to upload resume');
+      // Validate file type
+      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please upload only PDF or Word documents');
+        e.target.value = '';
+        return;
       }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB');
+        e.target.value = '';
+        return;
+      }
+
+      setResume(file);
+      toast.success('Resume selected successfully');
     }
   };
 
@@ -428,16 +454,27 @@ const CandidateEdit = () => {
                 <FaFileUpload className="inline mr-2" />
                 Resume
               </label>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-4">
                 {formData.resume_url && (
-                  <a
-                    href={formData.resume_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline flex items-center gap-2"
-                  >
-                    <FaFileUpload /> View Current Resume
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">Current Resume:</span>
+                    <a
+                      href={formData.resume_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-2"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (formData.resume_url.startsWith('http')) {
+                          window.open(formData.resume_url, '_blank');
+                        } else {
+                          toast.error('Invalid resume URL');
+                        }
+                      }}
+                    >
+                      <FaFileUpload /> View Current Resume
+                    </a>
+                  </div>
                 )}
                 <input
                   type="file"
@@ -445,6 +482,14 @@ const CandidateEdit = () => {
                   onChange={handleResumeUpload}
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
+                {resume && (
+                  <p className="mt-2 text-sm text-success">
+                    Selected new file: {resume.name}
+                  </p>
+                )}
+                <p className="text-sm text-gray-500">
+                  Supported formats: PDF, DOC, DOCX (Max size: 5MB)
+                </p>
               </div>
             </div>
 
