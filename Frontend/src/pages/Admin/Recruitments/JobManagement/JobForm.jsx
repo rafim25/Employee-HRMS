@@ -13,10 +13,11 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { FaBriefcase, FaMapMarkerAlt, FaDollarSign, FaInfoCircle, FaUser, FaQuestionCircle, FaPlus, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import axios from 'axios';
+import { numberToWords, formatIndianCurrency } from '../../../../utils/numberToWords';
 
 const JobForm = () => {
     const navigate = useNavigate();
-    const { dispatch } = useAuth();
+    const { dispatch, state } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -89,7 +90,15 @@ const JobForm = () => {
         setError('');
         const loadingToast = toast.loading(publish ? 'Publishing job...' : 'Saving job...');
         try {
-            const dataToSubmit = { ...jobData, status: publish ? 'active' : 'draft' };
+            const dataToSubmit = {
+                ...jobData,
+                status: publish ? 'active' : 'draft',
+                created_by: state?.user?.username,
+                created_by_id: state?.user?.user_id,
+                updated_by: state?.user?.username,
+                updated_by_id: state?.user?.user_id
+            };
+
             await createJob(dispatch, dataToSubmit);
             toast.success(publish ? 'Job published successfully!' : 'Job saved successfully!', { id: loadingToast });
             navigate('/admin/recruitments/job-management');
@@ -300,7 +309,7 @@ const JobForm = () => {
                                     <div className='mb-4.5 flex flex-col xl:flex-row gap-6'>
                                         <div className='w-full xl:w-1/2'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
-                                                Minimum CTC (LPA) <span className='text-meta-1'>*</span>
+                                                Minimum CTC (Annual) <span className='text-meta-1'>*</span>
                                             </label>
                                             <div className='relative'>
                                                 <input
@@ -317,15 +326,18 @@ const JobForm = () => {
                                                 </span>
                                             </div>
                                             {jobData.minSalary && (
-                                                <span className='text-sm text-gray-500 mt-1 block'>
-                                                    {formatCurrency(jobData.minSalary)} LPA
-                                                </span>
+                                                <div className='text-sm text-gray-500 mt-1'>
+                                                    <div>{formatIndianCurrency(jobData.minSalary)}</div>
+                                                    <div className='italic'>
+                                                        {numberToWords(jobData.minSalary)} Rupees Per Annum
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
 
                                         <div className='w-full xl:w-1/2'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
-                                                Maximum CTC (LPA) <span className='text-meta-1'>*</span>
+                                                Maximum CTC (Annual)
                                             </label>
                                             <div className='relative'>
                                                 <input
@@ -333,18 +345,20 @@ const JobForm = () => {
                                                     name='maxSalary'
                                                     value={jobData.maxSalary}
                                                     onChange={handleChange}
-                                                    required
                                                     placeholder='Enter maximum CTC'
-                                                    className='w-full rounded border-[1.5px] border-stroke bg-transparent pl-12 pr-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary'
+                                                    className='w-full rounded border-[1.5px] border-stroke bg-transparent pl-12 pr-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                                 />
                                                 <span className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-500'>
                                                     ₹
                                                 </span>
                                             </div>
                                             {jobData.maxSalary && (
-                                                <span className='text-sm text-gray-500 mt-1 block'>
-                                                    {formatCurrency(jobData.maxSalary)} LPA
-                                                </span>
+                                                <div className='text-sm text-gray-500 mt-1'>
+                                                    <div>{formatIndianCurrency(jobData.maxSalary)}</div>
+                                                    <div className='italic'>
+                                                        {numberToWords(jobData.maxSalary)} Rupees Per Annum
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
                                     </div>

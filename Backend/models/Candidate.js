@@ -1,6 +1,7 @@
 import { DataTypes, Sequelize } from 'sequelize';
 import db from '../config/Database.js';
 import User from "./User.js";
+import Job from '../models/Job.js';
 
 const Candidate = db.define('candidates', {
     uuid: {
@@ -62,7 +63,7 @@ const Candidate = db.define('candidates', {
         }
     },
     status: {
-        type: DataTypes.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'hold'),
+        type: DataTypes.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'archived'),
         defaultValue: 'applied'
     },
     notes: {
@@ -202,6 +203,12 @@ const Candidate = db.define('candidates', {
 Candidate.belongsTo(User, {
     foreignKey: 'created_by_id',
     as: 'creator'
+});
+
+// Define the association with Job model
+Candidate.belongsTo(Job, {
+    foreignKey: 'job_id',
+    as: 'job'
 });
 
 // Updated sync function with foreign key constraints

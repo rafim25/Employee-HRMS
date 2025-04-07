@@ -122,94 +122,82 @@ export const getUserById = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const {
-    user_id = "default_user_id",
-    username,
-    email,
-    password,
-    gender,
-    role,
-    department,
-    designation,
-    mobile_number,
-    alt_mobile_number,
-    pan_number,
-    aadhar_number,
-    address,
-    permissions,
-  } = req.body;
+    try {
+        const {
+            user_id,
+            username,
+            email,
+            password,
+            gender,
+            role,
+            department,
+            designation,
+            mobile_number,
+            alt_mobile_number,
+            pan_number,
+            aadhar_number,
+            address,
+            permissions,
+            url
+        } = req.body;
 
-  // Handle file upload
-  let fileName = "";
-  let url = "";
+        // Validate required fields
+        if (!username || !email || !password || !role) {
+            return res.status(400).json({
+                msg: "Required fields missing"
+            });
+        }
 
-  if (req.files && req.files.photo) {
-    const file = req.files.photo;
-    const fileSize = file.data.length;
-    const ext = path.extname(file.name);
-    fileName = file.md5 + ext;
-    const allowedType = [".png", ".jpg", ".jpeg"];
+        // Check if username already exists
+        const existingUser = await User.findOne({
+            where: { username }
+        });
 
-    if (!allowedType.includes(ext.toLowerCase())) {
-      return res.status(422).json({ msg: "Invalid image format" });
+        if (existingUser) {
+            return res.status(400).json({
+                msg: "Username already exists. Please choose a different username."
+            });
+        }
+
+        const hashPassword = await argon2.hash(password);
+        
+        // Convert permissions to string if it's an array or object
+        const stringifiedPermissions = permissions ? JSON.stringify(permissions) : '[]';
+
+        const newUser = await User.create({
+            uuid: uuidv4(),
+            user_id,
+            username,
+            email,
+            password: hashPassword,
+            gender,
+            role,
+            department,
+            designation,
+            mobile_number,
+            alt_mobile_number,
+            pan_number,
+            aadhar_number,
+            address,
+            permissions: stringifiedPermissions,
+            url,
+            status: 'active',
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        res.status(201).json({
+            msg: "User created successfully",
+            user_id: newUser.user_id
+        });
+
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({
+            msg: "Failed to create user",
+            error: error.message
+        });
     }
-    if (fileSize > 5000000) {
-      return res.status(422).json({ msg: "Image must be less than 5 MB" });
-    }
-
-    file.mv(`./public/images/${fileName}`, async (err) => {
-      if (err) return res.status(500).json({ msg: err.message });
-    });
-
-    // Use production URL in production environment
-    const baseUrl =
-      process.env.NODE_ENV === "production"
-        ? "http://172.105.59.206:3002"
-        : `${req.protocol}://${req.get("host")}`;
-
-    url = `${baseUrl}/images/${fileName}`;
-  }
-
-  try {
-    // Check if username already exists
-    const existingUser = await User.findOne({
-      where: { username: req.body.username }
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        msg: "Username already exists. Please choose a different username."
-      });
-    }
-
-    const hashPassword = await argon2.hash(password);
-    const newUser = await User.create({
-      uuid: uuidv4(),
-      user_id,
-      username,
-      email,
-      password: hashPassword,
-      gender,
-      role,
-      department,
-      designation,
-      mobile_number,
-      alt_mobile_number,
-      pan_number,
-      aadhar_number,
-      address,
-      permissions,
-      photo: fileName,
-      url: url,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    res
-      .status(201)
-      .json({ msg: "User created successfully", user_id: newUser.user_id });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
-  }
 };
 
 export const updateUser = async (req, res) => {

@@ -1,5 +1,5 @@
 import { api } from "../../services/api";
-import { SET_DASHBOARD_STATS, SET_ERROR } from "../types";
+import { SET_DASHBOARD_STATS, SET_ERROR, SET_RECRUITMENT_DASHBOARD } from "../types";
 
 export const fetchDashboardData = async (dispatch) => {
   try {
@@ -46,6 +46,40 @@ export const fetchDashboardData = async (dispatch) => {
     dispatch({
       type: SET_ERROR,
       payload: "Failed to fetch dashboard statistics",
+    });
+  }
+};
+
+export const fetchRecruitmentDashboardData = async (dispatch) => {
+  try {
+    const response = await api.get("/api/dashboard/recruitment");
+    const {
+      activeJobs,
+      totalCandidates,
+      selectedCandidates,
+      rejectedCandidates,
+      candidateStatusData,
+      sourceDistribution,
+      recentActivities,
+    } = response.data;
+
+    dispatch({
+      type: SET_RECRUITMENT_DASHBOARD,
+      payload: {
+        activeJobs,
+        totalCandidates,
+        selectedCandidates,
+        rejectedCandidates,
+        candidateStatusData,
+        sourceDistribution,
+        recentActivities,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching recruitment dashboard stats:", error);
+    dispatch({
+      type: SET_ERROR,
+      payload: "Failed to fetch recruitment dashboard statistics",
     });
   }
 };

@@ -9,9 +9,11 @@ import {
   FaTrashAlt,
   FaMoneyBillWave,
   FaCode,
-  FaUsers
+  FaUsers,
+  FaUser
 } from 'react-icons/fa';
 import { format, isValid, parseISO } from 'date-fns';
+import { MdKeyboardArrowDown } from 'react-icons/md';
 
 const skillColors = [
   'text-blue-500 bg-blue-50 dark:bg-blue-900/10',
@@ -21,7 +23,7 @@ const skillColors = [
   'text-pink-500 bg-pink-50 dark:bg-pink-900/10',
 ];
 
-const JobCard = ({ job, onEdit, onDelete }) => {
+const JobCard = ({ job, onEdit, onDelete, onStatusChange }) => {
   const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
   const actionMenuRef = useRef(null);
@@ -58,6 +60,14 @@ const JobCard = ({ job, onEdit, onDelete }) => {
     }
   };
 
+  const statusOptions = [
+    { value: 'active', label: 'Active', color: 'success' },
+    { value: 'draft', label: 'Draft', color: 'warning' },
+    { value: 'closed', label: 'Closed', color: 'danger' },
+    { value: 'archived', label: 'Archived', color: 'gray' },
+    { value: 'expired', label: 'Expired', color: 'danger' }
+  ];
+
   return (
     <div className="bg-white dark:bg-boxdark rounded-xl border border-stroke dark:border-strokedark p-5 
                     shadow-default hover:shadow-lg dark:hover:shadow-gray-700/40
@@ -80,14 +90,35 @@ const JobCard = ({ job, onEdit, onDelete }) => {
           <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-boxdark rounded-xl 
                          shadow-[0_8px_24px_rgb(0,0,0,0.12)] 
                          border border-stroke dark:border-strokedark overflow-hidden">
+            <div className="p-2">
+              <div className="mb-2">
+                <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">
+                  Update Status
+                </label>
+                <select
+                  value={job.status}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onStatusChange(job.id, e.target.value);
+                  }}
+                  className="w-full rounded-lg border border-stroke bg-transparent p-2 text-sm outline-none focus:border-primary"
+                >
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(job.id);
                 setShowActions(false);
               }}
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 transition-colors duration-200
-                         flex items-center gap-2 text-sm font-medium"
+              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 
+                         flex items-center gap-2 text-sm font-medium border-t border-stroke dark:border-strokedark"
             >
               <FaEdit className="text-primary" />
               <span>Edit Job</span>
@@ -98,7 +129,7 @@ const JobCard = ({ job, onEdit, onDelete }) => {
                 onDelete(job.id);
                 setShowActions(false);
               }}
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 transition-colors duration-200
+              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 
                          flex items-center gap-2 text-sm font-medium text-danger border-t border-stroke dark:border-strokedark"
             >
               <FaTrashAlt className="text-danger" />
@@ -165,6 +196,19 @@ const JobCard = ({ job, onEdit, onDelete }) => {
             <FaRegClock className="mr-2 text-primary" />
             <span>{formatDate(job?.deadline)}</span>
           </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-stroke dark:border-strokedark">
+          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+            <FaUser className="mr-2 text-primary" />
+            <span>Created by: {job.created_by || 'N/A'}</span>
+          </div>
+          {job.updated_by && (
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <FaEdit className="mr-2 text-primary" />
+              <span>Last updated by: {job.updated_by}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -7,15 +7,14 @@ import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArc
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
-import { fetchJobs, deleteJob } from '../../../../context/actions/jobActions';
+import { fetchJobs, deleteJob, updateJobStatus } from '../../../../context/actions/jobActions';
 import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import JobCard from '../../../../components/molecules/JobCard';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
 import Pagination from '../../../../components/molecules/Pagination/Pagination';
-import { skillIcons } from '../../../../config/skillIcons';
-import DeleteConfirmationModal from '../../../../components/molecules/DeleteConfirmationModal/DeleteConfirmationModal';
-
+import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
+import api from '../../../../services/api';
 const ITEMS_PER_PAGE = 6;
 
 const JobList = () => {
@@ -238,6 +237,23 @@ const JobList = () => {
         }
     };
 
+    const handleStatusChange = async (jobId, newStatus) => {
+        try {
+            const response = await api.patch(`/api/jobs/${jobId}/status`, {
+                status: newStatus,
+                updated_by: state?.user?.username,
+                updated_by_id: state?.user?.user_id
+            });
+
+            if (response.data) {
+                toast.success(`Job status updated to ${newStatus}`);
+                loadJobs(); // Reload the jobs list
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to update job status');
+        }
+    };
+
     if (loading) {
         return (
             <DefaultLayoutAdmin>
@@ -366,6 +382,7 @@ const JobList = () => {
                                     job={job}
                                     onEdit={() => navigate(`/admin/recruitments/job-management/edit/${job.id}`)}
                                     onDelete={handleDelete}
+                                    onStatusChange={handleStatusChange}
                                 />
                             ))
                         )}

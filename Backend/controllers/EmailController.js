@@ -301,13 +301,19 @@ export const sendCandidatesToClient = async (req, res) => {
             });
         }
 
-        // Create HTML table of candidate details
+        // Create HTML table of candidate details with resume link
         const candidateTableRows = shortlistedCandidates.map((candidate, index) => `
             <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'}">
                 <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.name}</td>
                 <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.experience} years</td>
                 <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.location || 'Not specified'}</td>
                 <td style="padding: 12px; border: 1px solid #dee2e6;">${candidate.expectedSalary || 'Not specified'} LPA</td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">
+                    ${candidate.resume_url ? 
+                        `<a href="${candidate.resume_url}" style="color: #3C50E0; text-decoration: underline;" target="_blank">View Resume</a>` : 
+                        'Not available'
+                    }
+                </td>
             </tr>
         `).join('');
 
@@ -333,6 +339,7 @@ export const sendCandidatesToClient = async (req, res) => {
                                     <th style="padding: 12px; border: 1px solid #dee2e6;">Experience</th>
                                     <th style="padding: 12px; border: 1px solid #dee2e6;">Location</th>
                                     <th style="padding: 12px; border: 1px solid #dee2e6;">Expected CTC</th>
+                                    <th style="padding: 12px; border: 1px solid #dee2e6;">Resume</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -342,7 +349,12 @@ export const sendCandidatesToClient = async (req, res) => {
                     </div>
 
                     <div style="margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #e8f5e9; color: #2e7d32;">
-                        <p style="margin: 0;">Detailed profiles and resumes are attached for your review.</p>
+                        <p style="margin: 0;">You can click on the resume links in the table to view each candidate's resume directly.</p>
+                        <p style="margin: 10px 0 0 0;">Additionally, the resumes are also attached to this email for your convenience.</p>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 15px; border-radius: 5px; background-color: #fff3e0; color: #e65100;">
+                        <p style="margin: 0;">Note: Resume links will expire in 24 hours for security purposes.</p>
                     </div>
 
                     <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">

@@ -61,19 +61,44 @@ const UserDataForm = () => {
     setLoading(true);
     setError('');
     const loadingToast = toast.loading('Creating user...');
-    try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (key === 'photo' && formData[key]) {
-          formDataToSend.append('photo', formData[key]);
-        } else {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
 
-      const response = await api.post(USER_ENDPOINTS.CREATE, formDataToSend, {
+    try {
+      let photoUrl = null;
+
+      // Handle photo upload if exists
+      if (formData.photo) {
+        const photoFormData = new FormData();
+        photoFormData.append('photo', formData.photo);
+
+        try {
+          const photoResponse = await api.post('/api/upload/photo', photoFormData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          photoUrl = photoResponse.data.url;
+        } catch (photoError) {
+          console.error('Photo upload failed:', photoError);
+          toast.error('Failed to upload photo', {
+            id: loadingToast,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Prepare user data
+      const { photo, ...userData } = formData;
+
+      // Add the photo URL if available
+      if (photoUrl) {
+        userData.url = photoUrl;
+      }
+
+      // Create user with JSON data
+      const response = await api.post(USER_ENDPOINTS.CREATE, userData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
 
@@ -427,7 +452,7 @@ const UserDataForm = () => {
                 </div>
 
                 {/* Photo and Permissions */}
-                {/* <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
+                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                   <div className='w-full xl:w-1/2'>
                     <label className='mb-2.5 block text-black dark:text-white'>
                       Photo
@@ -463,7 +488,7 @@ const UserDataForm = () => {
                       </span>
                     </div>
                   </div>
-                </div> */}
+                </div>
 
                 {/* Form Buttons */}
                 <div className='flex flex-col md:flex-row w-full gap-3 text-center mt-7.5'>

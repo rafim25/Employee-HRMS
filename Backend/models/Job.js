@@ -37,8 +37,9 @@ const Job = db.define('jobs', {
         allowNull: true
     },
     status: {
-        type: DataTypes.ENUM('active', 'archived', 'draft', 'closed', 'expired'),
-        defaultValue: 'active'
+        type: DataTypes.ENUM('active', 'draft', 'closed', 'archived', 'expired'),
+        defaultValue: 'draft',
+        allowNull: false
     },
     questions: {
         type: DataTypes.TEXT,
@@ -109,10 +110,90 @@ const Job = db.define('jobs', {
         allowNull: false,
         defaultValue: Sequelize.NOW,
     },
+    created_by: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'username'
+        }
+    },
+    created_by_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'user_id'
+        }
+    },
+    updated_by: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'username'
+        }
+    },
+    updated_by_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'users',
+            key: 'user_id'
+        }
+    },
 }, {
     freezeTableName: true,
     timestamps: true,
 });
+
+Job.associate = (models) => {
+    Job.belongsTo(models.User, {
+        foreignKey: 'created_by_id',
+        as: 'creator'
+    });
+    Job.belongsTo(models.User, {
+        foreignKey: 'updated_by_id',
+        as: 'updater'
+    });
+};
+
+const syncNewColumns = async () => {
+    try {
+        await db.query(`
+            ALTER TABLE jobs 
+            ADD COLUMN IF NOT EXISTS created_by VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS created_by_id INT,
+            ADD COLUMN IF NOT EXISTS updated_by VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS updated_by_id INT,
+            ADD CONSTRAINT fk_job_created_by_id 
+                FOREIGN KEY (created_by_id) 
+                REFERENCES users(user_id) 
+                ON DELETE SET NULL 
+                ON UPDATE CASCADE,
+            ADD CONSTRAINT fk_job_created_by_name 
+                FOREIGN KEY (created_by) 
+                REFERENCES users(username) 
+                ON DELETE SET NULL 
+                ON UPDATE CASCADE,
+            ADD CONSTRAINT fk_job_updated_by_id 
+                FOREIGN KEY (updated_by_id) 
+                REFERENCES users(user_id) 
+                ON DELETE SET NULL 
+                ON UPDATE CASCADE,
+            ADD CONSTRAINT fk_job_updated_by_name 
+                FOREIGN KEY (updated_by) 
+                REFERENCES users(username) 
+                ON DELETE SET NULL 
+                ON UPDATE CASCADE
+        `);
+        console.log('Added created_by and updated_by columns with foreign key constraints successfully');
+    } catch (error) {
+        console.error('Error syncing new columns:', error);
+    }
+};
+
+syncNewColumns();
 
 (async () => {
     try {

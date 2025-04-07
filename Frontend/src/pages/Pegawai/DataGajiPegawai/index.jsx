@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import DefaultLayoutPegawai from '../../../layout/DefaultLayoutPegawai';
 import DataGajiPegawaiPeople from '../../../Utils/DataGajiPegawaiPeople';
-import { BreadcrumbPegawai } from '../../../components';
+import { BreadcrumbPegawai } from '../../../components/index';
 import { TfiPrinter } from 'react-icons/tfi'
 
 const ITEMS_PER_PAGE = 4;
@@ -59,7 +59,7 @@ const DataGajiPegawai = () => {
                                     Salary
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Total Salary 
+                                    Total Salary
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Cetak Slip
@@ -105,7 +105,7 @@ const DataGajiPegawai = () => {
                 <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
                     <div className='flex items-center space-x-2'>
                         <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            Showing {startIndex}-{endIndex} of {DataGajiPegawaiPeople.length} Salary Data 
+                            Showing {startIndex}-{endIndex} of {DataGajiPegawaiPeople.length} Salary Data
                         </span>
                     </div>
                     <div className='flex space-x-2 py-4'>

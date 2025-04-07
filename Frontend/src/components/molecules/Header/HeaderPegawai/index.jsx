@@ -1,6 +1,6 @@
 import React from 'react'
 import LogoIcon from '../../../../Assets/images/logo/logo-icon.svg'
-import { DropdownNotification, DarkModeSwitcher, DropdownPegawai } from '../../..'
+import { DropdownNotification, DarkModeSwitcher, DropdownPegawai } from '../../../atoms'
 import { Link } from 'react-router-dom'
 import { BiSearch } from 'react-icons/bi'
 

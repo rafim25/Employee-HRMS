@@ -11,6 +11,7 @@ import {
   SET_ADMIN_COUNT,
   SET_USER_COUNT,
   SET_DASHBOARD_STATS,
+  SET_RECRUITMENT_DASHBOARD,
 } from "../types";
 
 import { CANDIDATE_TYPES } from '../types/candidateTypes';
@@ -116,6 +117,12 @@ export const authReducer = (state, action) => {
           candidate.id === action.payload.id ? action.payload : candidate
         ),
         candidateError: null
+      };
+    case SET_RECRUITMENT_DASHBOARD:
+      return {
+        ...state,
+        recruitmentDashboard: action.payload,
+        error: null,
       };
     default:
       return state;

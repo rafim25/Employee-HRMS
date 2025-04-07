@@ -52,3 +52,5 @@ export const DELETE_LOAN = "DELETE_LOAN";
    export const SET_SKILL_LOADING = 'SET_SKILL_LOADING';
    export const SET_SKILL_ERROR = 'SET_SKILL_ERROR';
    // Add other exports as needed
+
+export const SET_RECRUITMENT_DASHBOARD = 'SET_RECRUITMENT_DASHBOARD';

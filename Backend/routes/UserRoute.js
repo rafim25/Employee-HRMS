@@ -24,6 +24,8 @@ import {
   adminOnly,
 } from "../middleware/AuthUser.js";
 
+import { uploadPhoto } from '../controllers/UploadController.js';
+
 const router = express.Router();
 
 router.get("/api/data_pegawai", verifyUser, adminOnly, getDataPegawai);
@@ -46,5 +48,8 @@ router.patch("/api/users/:id", verify_User, admin_Only, updateUser);
 router.delete("/api/users/:id", verify_User, admin_Only, deleteUser);
 
 router.patch("/api/users/:id/password", verify_User, updatePassword);
+
+// Separate route for photo upload
+router.post('/api/upload/photo', verify_User, uploadPhoto);
 
 export default router;

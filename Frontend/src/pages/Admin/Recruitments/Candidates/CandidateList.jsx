@@ -13,6 +13,7 @@ import DataTable from '../../../../components/molecules/DataTable/DataTable';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
 import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
 import { MdSource } from 'react-icons/md';
+import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -67,6 +68,10 @@ const CandidateList = () => {
     'Direct', 'LinkedIn', 'Indeed', 'Naukri',
     'Referral', 'Agency', 'Other'
   ]);
+
+  // Add these state variables at the top with other states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [candidateToDelete, setCandidateToDelete] = useState(null);
 
   useEffect(() => {
     loadCandidates();
@@ -290,14 +295,24 @@ const CandidateList = () => {
     }
   };
 
-  const handleDelete = async (candidateId) => {
-    if (window.confirm('Are you sure you want to delete this candidate?')) {
-      try {
-        await deleteCandidate(dispatch, candidateId);
-        toast.success('Candidate deleted successfully');
-      } catch (error) {
-        toast.error('Failed to delete candidate');
-      }
+  // Replace the existing handleDelete function with this new version
+  const handleDelete = (candidateId) => {
+    setCandidateToDelete(candidateId);
+    setShowDeleteModal(true);
+  };
+
+  // Add this new function to handle the actual deletion
+  const confirmDelete = async () => {
+    try {
+      await deleteCandidate(dispatch, candidateToDelete);
+      toast.success('Candidate deleted successfully');
+      // Refresh the candidates list
+      loadCandidates();
+    } catch (error) {
+      toast.error('Failed to delete candidate');
+    } finally {
+      setShowDeleteModal(false);
+      setCandidateToDelete(null);
     }
   };
 
@@ -622,6 +637,20 @@ const CandidateList = () => {
           onConfirm={handleRejectionConfirm}
           currentStage={selectedCandidate?.current_round}
         />
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <DeleteConfirmationModal
+            isOpen={showDeleteModal}
+            onClose={() => {
+              setShowDeleteModal(false);
+              setCandidateToDelete(null);
+            }}
+            onConfirm={confirmDelete}
+            title="Delete Candidate"
+            message="Are you sure you want to delete this candidate? This action cannot be undone."
+          />
+        )}
 
         {/* Filter Section */}
 

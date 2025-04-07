@@ -3,6 +3,9 @@ import cors from "cors";
 import session from "express-session";
 import dotenv from "dotenv";
 import multer from 'multer';
+import fileUpload from 'express-fileupload';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import bodyParser from 'body-parser';
 import db, { testConnection } from "./config/Database.js";
@@ -31,6 +34,9 @@ import skillRoute from "./routes/skillRoute.js";
 import { syncModels } from "./models/index.js";
 import candidateRoutes from './routes/CandidateRoute.js';
 import UploadRoute from './routes/UploadRoute.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(bodyParser.json());
@@ -157,7 +163,16 @@ const startServer = async () => {
     });
 
     // File upload and static files
-    // app.use(FileUpload());
+    app.use(fileUpload({
+      createParentPath: true,
+      limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+      },
+      abortOnLimit: true
+    }));
+
+    // Serve static files
+    app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
     // Add multer configuration here (add this before your routes)
     const storage = multer.memoryStorage();

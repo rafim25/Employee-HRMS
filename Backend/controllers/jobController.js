@@ -1,13 +1,25 @@
 import { Sequelize } from "sequelize";// Backend/controllers/jobController.js
 
 import { Job, Candidate } from '../models/index.js';
+import { Op } from 'sequelize';
+import db from '../config/Database.js';
 
 export const createJob = async (req, res) => {
   try {
-    const job = await Job.create(req.body);
-    res.status(201).json(job);
+    const jobData = req.body;
+    
+    const job = await Job.create(jobData);
+    
+    res.status(201).json({
+      msg: "Job created successfully",
+      job
+    });
   } catch (error) {
-    res.status(400).json({ message: 'Failed to create job', error });
+    console.error('Error creating job:', error);
+    res.status(500).json({
+      msg: "Error creating job",
+      error: error.message
+    });
   }
 };
 
@@ -53,13 +65,30 @@ export const getJobById = async (req, res) => {
 
 export const updateJob = async (req, res) => {
   try {
-    const job = await Job.findByPk(req.params.id);
-    if (!job) return res.status(404).json({ message: 'Job not found' });
+    const { id } = req.params;
+    const jobData = req.body;
 
-    await job.update(req.body);
-    res.status(200).json(job);
+    // Add updater information
+    jobData.updated_by = req.user.username;
+    jobData.updated_by_id = req.user.user_id;
+
+    const job = await Job.findByPk(id);
+    if (!job) {
+      return res.status(404).json({ msg: "Job not found" });
+    }
+
+    await job.update(jobData);
+    
+    res.json({
+      msg: "Job updated successfully",
+      job
+    });
   } catch (error) {
-    res.status(400).json({ message: 'Failed to update job', error });
+    console.error('Error updating job:', error);
+    res.status(500).json({
+      msg: "Error updating job",
+      error: error.message
+    });
   }
 };
 
@@ -73,6 +102,78 @@ export const deleteJob = async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: 'Failed to delete job', error });
   }
+};
+
+export const updateJobStatus = async (req, res) => {
+    const { id } = req.params;
+    const { status, changed_by } = req.body;
+
+    try {
+        // Validate status
+        const validStatuses = ['active', 'draft', 'closed', 'archived', 'expired'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                msg: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+            });
+        }
+
+        // Find the job
+        const job = await Job.findByPk(id);
+        if (!job) {
+            return res.status(404).json({ msg: "Job not found" });
+        }
+
+        // Start a transaction
+        const transaction = await db.transaction();
+
+        try {
+            // Update job status
+            await job.update({
+                status,
+                updatedAt: new Date(),
+                updated_by: changed_by
+            }, { transaction });
+
+            // If job is being archived or closed, update associated candidates
+            if (status === 'archived' || status === 'closed') {
+                await Candidate.update(
+                    {
+                        status: 'archived',
+                        updatedAt: new Date()
+                    },
+                    {
+                        where: {
+                            job_id: id,
+                            status: {
+                                [Op.notIn]: ['selected', 'rejected'] // Don't update selected or rejected candidates
+                            }
+                        },
+                        transaction
+                    }
+                );
+            }
+
+            // Commit transaction
+            await transaction.commit();
+
+            res.json({
+                msg: `Job status updated to ${status}`,
+                job: await job.reload()
+            });
+
+        } catch (error) {
+            // Rollback transaction on error
+            await transaction.rollback();
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Error updating job status:', error);
+        res.status(500).json({
+            msg: "Error updating job status",
+            error: error.message
+        });
+    }
 };
 
 export default {

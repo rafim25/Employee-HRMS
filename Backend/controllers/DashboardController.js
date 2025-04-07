@@ -2,6 +2,8 @@ import User from "../models/User.js";
 import Loan from "../models/Loan.js";
 import Transaction from "../models/Transaction.js";
 import Expense from "../models/Expense.js";
+import Job from '../models/Job.js';
+import Candidate from '../models/Candidate.js';
 import { Op } from "sequelize";
 
 export const getDashboardStats = async (req, res) => {
@@ -262,4 +264,91 @@ export const getMonthlyStats = async (req, res) => {
     console.error("Monthly Stats Error:", error);
     res.status(500).json({ msg: error.message });
   }
+};
+
+export const getDashboardDataRecruitment = async (req, res) => {
+    try {
+        // Get active jobs count
+        const activeJobs = await Job.count({
+            where: { status: 'active' }
+        });
+
+        // Get candidates statistics
+        const totalCandidates = await Candidate.count();
+        const selectedCandidates = await Candidate.count({
+            where: { status: 'selected' }
+        });
+        const rejectedCandidates = await Candidate.count({
+            where: { status: 'rejected' }
+        });
+
+        // Get candidate status distribution
+        const statusDistribution = await Candidate.count({
+            group: ['status']
+        });
+
+        // Get source distribution
+        const sourceDistribution = await Candidate.count({
+            group: ['source']
+        });
+
+        // Get recent activities with correct association alias
+        const recentActivities = await Candidate.findAll({
+            attributes: [
+                'name',
+                'status',
+                'createdAt',
+                'updatedAt'
+            ],
+            include: [
+                {
+                    model: Job,
+                    as: 'job', // Add this alias to match your model association
+                    attributes: ['title']
+                }
+            ],
+            order: [['updatedAt', 'DESC']],
+            limit: 10
+        });
+
+        // Format recent activities with correct job reference
+        const formattedActivities = recentActivities.map(activity => {
+            if (activity.createdAt === activity.updatedAt) {
+                return {
+                    type: 'new_candidate',
+                    description: `New candidate ${activity.name} applied for ${activity.job?.title || 'Unknown Job'}`,
+                    timestamp: activity.createdAt
+                };
+            } else {
+                return {
+                    type: 'status_change',
+                    description: `${activity.name}'s status updated to ${activity.status}`,
+                    timestamp: activity.updatedAt
+                };
+            }
+        });
+
+        res.json({
+            activeJobs,
+            totalCandidates,
+            selectedCandidates,
+            rejectedCandidates,
+            candidateStatusData: statusDistribution.map(item => ({
+                status: item.status,
+                count: item.count
+            })),
+            sourceDistribution: sourceDistribution.map(item => ({
+                source: item.source,
+                count: item.count
+            })),
+            recentActivities: formattedActivities
+        });
+
+    } catch (error) {
+        console.error('Dashboard data error:', error);
+        res.status(500).json({
+            message: 'Error fetching dashboard data',
+            error: error.message
+        });
+    }
 };

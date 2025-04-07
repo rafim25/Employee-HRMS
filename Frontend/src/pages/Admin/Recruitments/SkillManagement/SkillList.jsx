@@ -9,6 +9,7 @@ import { useAuth } from '../../../../context/AuthContext';
 import { fetchSkills, deleteSkill } from '../../../../context/actions/skillActions';
 import { toast } from 'react-hot-toast';
 import Pagination from '../../../../components/molecules/Pagination/Pagination';
+import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 
 const ITEMS_PER_PAGE = 6;
 

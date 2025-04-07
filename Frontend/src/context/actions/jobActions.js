@@ -134,3 +134,22 @@ export const fetchJobById = async (dispatch, jobId) => {
     dispatch({ type: SET_JOB_LOADING, payload: false });
   }
 };
+
+export const updateJobStatus = async (dispatch, jobId, status, updatedBy) => {
+  try {
+    const response = await api.patch(`/api/jobs/${jobId}/status`, {
+      status,
+      updated_by: updatedBy
+    });
+
+    dispatch({
+      type: UPDATE_JOB,
+      payload: response.data.job
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating job status:', error);
+    throw error;
+  }
+};

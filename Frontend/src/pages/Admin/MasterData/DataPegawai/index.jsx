@@ -191,18 +191,18 @@ const CustomerData = () => {
 
     return (
         <DefaultLayoutAdmin>
-            <BreadcrumbAdmin pageName='Employee Details' />
+            <BreadcrumbAdmin pageName='Employee Details' backButton={false} />
 
             <div className="flex flex-wrap items-center justify-between gap-2.5 mb-6">
                 <div className="flex items-center gap-3 flex-1 justify-between">
                     <Link to="/admin/master-data/data-pegawai/form-data-pegawai">
                         <ButtonOne>
-                            <span>Add Customer</span>
+                            <span>Add User &nbsp; </span>
                             <span><FaPlus /></span>
                         </ButtonOne>
                     </Link>
 
-                    <div className="flex items-center gap-3">
+                    {/* <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                             <label className="text-black dark:text-white font-medium">From:</label>
                             <input
@@ -231,7 +231,7 @@ const CustomerData = () => {
                             <FaFileExcel className="text-lg" />
                             Download Excel
                         </button>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 

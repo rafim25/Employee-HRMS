@@ -5,6 +5,7 @@ import {
   createJob,
   updateJob,
   deleteJob,
+  updateJobStatus,
 } from '../controllers/jobController.js';
 import {
   verify_User as verifyUser,
@@ -19,6 +20,7 @@ router.get('/api/jobs/:id', verifyUser, getJobById);
 router.post('/api/jobs', verifyUser, adminOnly, createJob);
 router.put('/api/jobs/:id', verifyUser, adminOnly, updateJob);
 router.delete('/api/jobs/:id', verifyUser, adminOnly, deleteJob);
+router.patch('/api/jobs/:id/status',verifyUser, adminOnly, updateJobStatus);
 
 // Update job route
 router.patch('/api/jobs/:id', updateJob);
