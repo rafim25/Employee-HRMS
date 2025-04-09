@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne, ButtonTwo } from '../../../../components';
-import { FaRegEdit, FaPlus, FaFileExcel } from 'react-icons/fa'
+import { FaRegEdit, FaPlus, FaFileExcel, FaEye } from 'react-icons/fa'
 import { BsTrash3 } from 'react-icons/bs'
 import { BiSearch } from 'react-icons/bi'
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md'
@@ -12,6 +12,7 @@ import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { USER_ENDPOINTS } from '../../../../constants/apiEndpoints';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
+import Pagination from '../../../../components/molecules/Pagination/Pagination';
 import * as XLSX from 'xlsx';
 
 const ITEMS_PER_PAGE = 6;
@@ -179,6 +180,11 @@ const CustomerData = () => {
         }
     };
 
+    // Add handlePageChange function
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
     if (loading) {
         return (
             <DefaultLayoutAdmin>
@@ -318,6 +324,9 @@ const CustomerData = () => {
                                         </td>
                                         <td className='border-b border-[#eee] py-5 px-4 dark:border-strokedark'>
                                             <div className='flex items-center space-x-3.5'>
+                                                <Link to={`/admin/master-data/data-pegawai/view/${customer.user_id}`}>
+                                                    <FaEye className="text-success text-xl hover:text-black dark:hover:text-white" />
+                                                </Link>
                                                 <Link to={`/admin/master-data/data-pegawai/edit/${customer.user_id}`}>
                                                     <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
                                                 </Link>
@@ -333,81 +342,14 @@ const CustomerData = () => {
                     </table>
                 </div>
 
-                <div className='flex justify-between items-center mt-4 flex-col md:flex-row md:justify-between'>
-                    <div className='flex items-center space-x-2'>
-                        <span className='text-gray-5 dark:text-gray-4 text-sm py-4'>
-                            {paginatedUsers.length > 0 ? (
-                                `Showing ${startIndex + 1}-${Math.min(endIndex, filteredUsers.length)} of ${filteredUsers.length} Customers`
-                            ) : (
-                                'No customers to display'
-                            )}
-                        </span>
-                    </div>
-                    {paginatedUsers.length > 0 && (
-                        <div className='flex space-x-2 py-4'>
-                            <button
-                                disabled={currentPage === 1}
-                                onClick={goToPrevPage}
-                                className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
-                            >
-                                Prev
-                            </button>
-                            {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                                const page = i + 1;
-                                if (page === currentPage) {
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="py-2 px-4 rounded-lg border border-primary bg-primary text-white font-semibold hover:bg-primary dark:text-white dark:bg-primary dark:hover:bg-primary"
-                                        >
-                                            {page}
-                                        </div>
-                                    );
-                                } else if (page === 2 && currentPage > 4) {
-                                    return (
-                                        <p
-                                            key={i}
-                                            className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
-                                        >
-                                            ...
-                                        </p>
-                                    );
-                                } else if (page === totalPages - 1 && currentPage < totalPages - 3) {
-                                    return (
-                                        <p
-                                            key={i}
-                                            className="py-2 px-4 border border-gray-2 dark:bg-transparent text-black font-medium bg-gray dark:border-strokedark dark:text-white"
-                                        >
-                                            ...
-                                        </p>
-                                    );
-                                } else if (
-                                    page === 1 ||
-                                    page === totalPages ||
-                                    (page >= currentPage - 1 && page <= currentPage + 1)
-                                ) {
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="py-2 px-4 rounded-lg border border-gray-2 text-black dark:bg-transparent bg-gray font-medium dark:border-strokedark dark:text-white"
-                                        >
-                                            {page}
-                                        </div>
-                                    );
-                                } else {
-                                    return null;
-                                }
-                            })}
-                            <button
-                                disabled={currentPage === totalPages}
-                                onClick={goToNextPage}
-                                className='py-2 px-6 rounded-lg border border-primary text-primary font-semibold hover:bg-primary hover:text-white dark:text-white dark:border-primary dark:hover:bg-primary dark:hover:text-white disabled:opacity-50'
-                            >
-                                Next
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* Replace pagination with Pagination component */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredUsers.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={handlePageChange}
+                    showingText="Showing"
+                />
             </div>
 
             {/* Delete Confirmation Modal */}

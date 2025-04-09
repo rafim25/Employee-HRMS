@@ -29,9 +29,13 @@ import {
   FaDownload,
   FaShare,
   FaFilter,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaEdit,
+  FaEye,
 } from 'react-icons/fa';
 import { BiSearch } from 'react-icons/bi';
+import { BsTrash3 } from 'react-icons/bs';
+import { checkUserPermission } from '../../../../utils/permissions';
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -95,6 +99,11 @@ const JobDetails = () => {
   }, [activeTab]);
 
   const handleStatusChange = async (candidateId, newStatus) => {
+    const candidate = candidates.find(c => c.uuid === candidateId);
+    if (!checkUserPermission(candidate, authState?.user)) {
+      toast.error("You don't have permission to change this candidate's status");
+      return;
+    }
     if (newStatus === 'rejected') {
       setSelectedCandidate(candidates.find(c => c.uuid === candidateId));
       setShowRejectionModal(true);
@@ -723,11 +732,42 @@ const JobDetails = () => {
                   <DataTable
                     data={getPaginatedData()}
                     columns={columns}
-                    actions={true}
+                    actions={[
+                      {
+                        icon: <FaEye />,
+                        label: 'View',
+                        onClick: (candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`),
+                        show: () => true // View is always available to everyone
+                      },
+                      {
+                        icon: <FaEdit />,
+                        label: 'Edit',
+                        onClick: (candidate) => {
+                          if (checkUserPermission(candidate, authState?.user)) {
+                            navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`);
+                          } else {
+                            toast.error("You don't have permission to edit this candidate");
+                          }
+                        },
+                        show: (candidate) => checkUserPermission(candidate, authState?.user)
+                      },
+                      {
+                        icon: <BsTrash3 />,
+                        label: 'Delete',
+                        onClick: (candidate) => {
+                          if (checkUserPermission(candidate, authState?.user)) {
+                            handleDelete(candidate.uuid);
+                          } else {
+                            toast.error("You don't have permission to delete this candidate");
+                          }
+                        },
+                        show: (candidate) => checkUserPermission(candidate, authState?.user)
+                      }
+                    ]}
                     statusOptions={statusOptions}
                     onStatusChange={handleStatusChange}
-                    onView={(candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`)}
-                    onEdit={(candidate) => navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`)}
+                    // onView={(candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`)}
+                    // onEdit={(candidate) => navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`)}
                     onDownload={(candidate) => window.open(candidate.resume_url, '_blank')}
                     statusColors={statusColors}
                     className="w-full table-auto"

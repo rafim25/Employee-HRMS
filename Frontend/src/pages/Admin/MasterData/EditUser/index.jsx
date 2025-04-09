@@ -5,7 +5,7 @@ import { fetchUserById, updateUser, deleteUser } from '../../../../context/actio
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../../components';
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaCamera } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { api } from '../../../../services/api';
 import { USER_ENDPOINTS } from '../../../../constants/apiEndpoints';
@@ -32,6 +32,8 @@ const EditUser = () => {
         date_joined: '',
         address: '',
     });
+    const [photo, setPhoto] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
     useEffect(() => {
         const loadUser = async () => {
@@ -41,6 +43,10 @@ const EditUser = () => {
             try {
                 const response = await api.get(USER_ENDPOINTS.DETAILS(userId));
                 setUserData(response.data);
+                // Set photo preview if user has photo
+                if (response.data.url || response.data.photo) {
+                    setPhotoPreview(response.data.url || response.data.photo);
+                }
                 toast.success('User details loaded successfully', {
                     id: loadingToast,
                 });
@@ -62,13 +68,66 @@ const EditUser = () => {
         setUserData(prevData => ({ ...prevData, [name]: value }));
     };
 
+    const handlePhotoChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                toast.error('Please upload an image file');
+                return;
+            }
+
+            // Validate file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('File size must be less than 2MB');
+                return;
+            }
+
+            setPhoto(file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
         const loadingToast = toast.loading('Updating user...');
+
         try {
-            await updateUser(dispatch, userId, userData);
+            // First upload photo if there's a new one
+            let photoUrl = userData.url;
+            if (photo) {
+                const formData = new FormData();
+                formData.append('photo', photo);
+
+                try {
+                    const photoResponse = await api.post('/api/upload/photo', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+
+                    if (photoResponse.data.url) {
+                        photoUrl = photoResponse.data.url;
+                    }
+                } catch (photoError) {
+                    console.error('Photo upload failed:', photoError);
+                    toast.error('Failed to upload photo', {
+                        id: loadingToast,
+                    });
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // Update user data with new photo URL
+            const updatedUserData = {
+                ...userData,
+                url: photoUrl
+            };
+
+            await updateUser(dispatch, userId, updatedUserData);
             toast.success('User updated successfully!', {
                 id: loadingToast,
             });
@@ -178,6 +237,56 @@ const EditUser = () => {
 
                         <form onSubmit={handleSubmit}>
                             <div className='p-6.5'>
+                                {/* Add Photo Upload Section */}
+                                <div className='mb-4.5'>
+                                    <label className='mb-2.5 block text-black dark:text-white'>
+                                        Profile Photo
+                                    </label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative w-24 h-24 rounded-full overflow-hidden group">
+                                            {photoPreview ? (
+                                                <img
+                                                    src={photoPreview}
+                                                    alt="Profile"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                                                    <FaCamera className="text-2xl text-gray-400" />
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                                                <label htmlFor="photo-upload" className="cursor-pointer">
+                                                    <div className="flex flex-col items-center text-white">
+                                                        <FaCamera className="text-xl mb-1" />
+                                                        <span className="text-xs">Update</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <input
+                                                id="photo-upload"
+                                                type="file"
+                                                name="photo"
+                                                accept="image/*"
+                                                onChange={handlePhotoChange}
+                                                className="hidden"
+                                            />
+                                            <label
+                                                htmlFor="photo-upload"
+                                                className="inline-flex items-center justify-center gap-2.5 rounded-md bg-primary py-2 px-4 text-center font-medium text-white hover:bg-opacity-90 cursor-pointer"
+                                            >
+                                                <FaCamera />
+                                                Choose Photo
+                                            </label>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Max file size: 2MB. Supported formats: JPG, PNG
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Username and Email */}
                                 <div className='mb-4.5 flex flex-col gap-6 xl:flex-row'>
                                     <div className='w-full xl:w-1/2'>

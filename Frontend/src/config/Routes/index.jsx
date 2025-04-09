@@ -33,6 +33,7 @@ import PublicJobList from '../../pages/Public/Jobs/PublicJobList'
 import PublicJobDetails from '../../pages/Public/Jobs/PublicJobDetails'
 import PublicCandidateForm from '../../pages/Public/Jobs/PublicCandidateForm'
 import CandidateEdit from '../../pages/Admin/Recruitments/Candidates/CandidateEdit'
+import UserDetails from '../../pages/Admin/MasterData/DataPegawai/UserDetails'
 
 const AppRoutes = () => {
   return (
@@ -251,6 +252,13 @@ const AppRoutes = () => {
       <Route path="/admin/recruitments/candidates/edit/:id" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <CandidateEdit />
+        </ProtectedRoute>
+      } />
+
+      {/* User Details Route */}
+      <Route path='/admin/master-data/data-pegawai/view/:userId' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <UserDetails />
         </ProtectedRoute>
       } />
 

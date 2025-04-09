@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArchive, FaExclamationTriangle, FaFilter } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArchive, FaExclamationTriangle, FaFilter, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
@@ -15,6 +15,8 @@ import FilterModal from '../../../../components/molecules/FilterModal/FilterModa
 import Pagination from '../../../../components/molecules/Pagination/Pagination';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 import api from '../../../../services/api';
+import { useSelector } from 'react-redux';
+import { checkUserPermission } from '../../../../utils/permissions';
 const ITEMS_PER_PAGE = 6;
 
 const JobList = () => {
@@ -36,6 +38,7 @@ const JobList = () => {
         status: ''
     });
     const navigate = useNavigate();
+    const { user } = state;
 
     // Ensure jobs is always an array
     const jobsArray = Array.isArray(jobs) ? jobs : [];
@@ -198,6 +201,12 @@ const JobList = () => {
     const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
 
     const handleDelete = async (jobId) => {
+        const job = jobs.find(j => j.id === jobId);
+        if (!checkUserPermission(job, user)) {
+            toast.error("You don't have permission to delete this job");
+            return;
+        }
+
         setJobToDelete(jobId);
         setShowDeleteModal(true);
     };
@@ -238,21 +247,76 @@ const JobList = () => {
     };
 
     const handleStatusChange = async (jobId, newStatus) => {
+        const job = jobs.find(j => j.id === jobId);
+        if (!checkUserPermission(job, user)) {
+            toast.error("You don't have permission to change this job's status");
+            return;
+        }
+
         try {
             const response = await api.patch(`/api/jobs/${jobId}/status`, {
                 status: newStatus,
-                updated_by: state?.user?.username,
-                updated_by_id: state?.user?.user_id
+                updated_by: user.username,
+                updated_by_id: user.user_id
             });
 
             if (response.data) {
                 toast.success(`Job status updated to ${newStatus}`);
-                loadJobs(); // Reload the jobs list
+                loadJobs();
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update job status');
         }
     };
+
+    const renderActions = (job) => {
+        const hasPermission = checkUserPermission(job, user);
+
+        return (
+            <div className="flex items-center space-x-2">
+                {/* View button - available to everyone */}
+                <button
+                    onClick={() => navigate(`/admin/recruitments/job-management/view/${job.id}`)}
+                    className="text-primary hover:text-primary-dark"
+                    title="View Job Details"
+                >
+                    <FaEye className="text-lg" />
+                </button>
+
+                {hasPermission && (
+                    <>
+                        <button
+                            onClick={() => navigate(`/admin/recruitments/job-management/edit/${job.id}`)}
+                            className="text-primary hover:text-primary-dark"
+                            title="Edit Job"
+                        >
+                            <FaEdit className="text-lg" />
+                        </button>
+                        <button
+                            onClick={() => handleDelete(job.id)}
+                            className="text-danger hover:text-danger-dark"
+                            title="Delete Job"
+                        >
+                            <FaTrash className="text-lg" />
+                        </button>
+                        <select
+                            value={job.status}
+                            onChange={(e) => handleStatusChange(job.id, e.target.value)}
+                            className="rounded border-stroke bg-transparent px-2 py-1"
+                        >
+                            <option value="draft">Draft</option>
+                            <option value="active">Active</option>
+                            <option value="closed">Closed</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </>
+                )}
+            </div>
+        );
+    };
+
+    // Add permission check for adding new jobs
+    const canAddJob = user?.role === 'admin' || user?.permissions?.includes('create_job');
 
     if (loading) {
         return (
@@ -380,9 +444,29 @@ const JobList = () => {
                                 <JobCard
                                     key={job.id || job.job_id}
                                     job={job}
-                                    onEdit={() => navigate(`/admin/recruitments/job-management/edit/${job.id}`)}
-                                    onDelete={handleDelete}
-                                    onStatusChange={handleStatusChange}
+                                    onEdit={() => {
+                                        if (checkUserPermission(job, user)) {
+                                            navigate(`/admin/recruitments/job-management/edit/${job.id}`);
+                                        } else {
+                                            toast.error("You don't have permission to edit this job");
+                                        }
+                                    }}
+                                    onDelete={(jobId) => {
+                                        if (checkUserPermission(job, user)) {
+                                            handleDelete(jobId);
+                                        } else {
+                                            toast.error("You don't have permission to delete this job");
+                                        }
+                                    }}
+                                    onStatusChange={(jobId, status) => {
+                                        if (checkUserPermission(job, user)) {
+                                            handleStatusChange(jobId, status);
+                                        } else {
+                                            toast.error("You don't have permission to change this job's status");
+                                        }
+                                    }}
+                                    renderActions={renderActions}
+                                    hasPermission={checkUserPermission(job, user)}
                                 />
                             ))
                         )}

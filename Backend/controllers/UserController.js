@@ -205,48 +205,19 @@ export const updateUser = async (req, res) => {
     const user = await User.findOne({
       where: {
         user_id: req.params.id,
-        status: "active", // Only update active users
+        status: "active",
       },
     });
 
     if (!user) return res.status(404).json({ msg: "Active user not found" });
 
-    let fileName = user.photo;
-    let url = user.url;
-
-    if (req.files && req.files.photo) {
-      const file = req.files.photo;
-      const fileSize = file.data.length;
-      const ext = path.extname(file.name);
-      fileName = file.md5 + ext;
-
-      if (fileSize > 5000000) {
-        return res.status(422).json({ msg: "Image must be less than 5 MB" });
-      }
-
-      if (user.photo) {
-        const filePath = `./public/images/${user.photo}`;
-        try {
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
-        } catch (error) {
-          console.error("Error deleting old photo:", error);
-        }
-      }
-
-      file.mv(`./public/images/${fileName}`, (err) => {
-        if (err) return res.status(500).json({ msg: err.message });
-      });
-      url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
-    }
-
     const {
       username,
       email,
       password,
-      gender,
       role,
+      gender,
+      date_joined,
       department,
       designation,
       mobile_number,
@@ -256,6 +227,7 @@ export const updateUser = async (req, res) => {
       address,
       permissions,
       status,
+      url
     } = req.body;
 
     // Prevent changing status to inactive through this endpoint
@@ -266,6 +238,7 @@ export const updateUser = async (req, res) => {
     }
 
     try {
+      // If password is provided, hash it and update with password
       if (password) {
         const hashPassword = await argon2.hash(password);
         await User.update(
@@ -273,8 +246,9 @@ export const updateUser = async (req, res) => {
             username,
             email,
             password: hashPassword,
-            gender,
             role,
+            gender,
+            date_joined,
             department,
             designation,
             mobile_number,
@@ -284,8 +258,8 @@ export const updateUser = async (req, res) => {
             address,
             permissions,
             status: "active", // Ensure status remains active
-            photo: fileName,
-            url: url,
+            photo: null, // Set photo to null as per payload
+            url, // Use the URL from the payload
             updated_at: new Date(),
           },
           {
@@ -295,12 +269,14 @@ export const updateUser = async (req, res) => {
           }
         );
       } else {
+        // If no password provided, update without password field
         await User.update(
           {
             username,
             email,
-            gender,
             role,
+            gender,
+            date_joined,
             department,
             designation,
             mobile_number,
@@ -310,8 +286,8 @@ export const updateUser = async (req, res) => {
             address,
             permissions,
             status: "active", // Ensure status remains active
-            photo: fileName,
-            url: url,
+            photo: null, // Set photo to null as per payload
+            url, // Use the URL from the payload
             updated_at: new Date(),
           },
           {
@@ -321,6 +297,7 @@ export const updateUser = async (req, res) => {
           }
         );
       }
+
       res.status(200).json({ msg: "User updated successfully" });
     } catch (error) {
       res.status(400).json({ msg: error.message });

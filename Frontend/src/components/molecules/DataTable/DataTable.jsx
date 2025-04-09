@@ -219,39 +219,28 @@ const DataTable = ({
                           <FaDownload className="text-primary text-xl hover:text-black dark:hover:text-white" />
                         </button>
                       )} */}
-                      {onEdit && (
+                      {actions.map((action, actionIndex) => (
                         <button
+                          key={actionIndex}
                           onClick={(e) => {
                             e.stopPropagation();
-                            onEdit(item);
+                            if (action.show(item)) {
+                              action.onClick(item);
+                            }
                           }}
-                          className="hover:text-black"
+                          className={`hover:text-black ${!action.show(item) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          title={action.label}
+                          disabled={!action.show(item)}
                         >
-                          <FaRegEdit className="text-primary text-xl hover:text-black dark:hover:text-white" />
+                          {React.cloneElement(action.icon, {
+                            className: `text-xl hover:text-black dark:hover:text-white ${!action.show(item) ? 'opacity-50' :
+                              action.label === 'View' ? 'text-success' :
+                                action.label === 'Edit' ? 'text-primary' :
+                                  action.label === 'Delete' ? 'text-danger' : ''
+                              }`
+                          })}
                         </button>
-                      )}
-                      {onDelete && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(item);
-                          }}
-                          className="hover:text-black"
-                        >
-                          <BsTrash3 className="text-danger text-xl hover:text-black dark:hover:text-white" />
-                        </button>
-                      )}
-                      {onView && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onView(item);
-                          }}
-                          className="hover:text-black"
-                        >
-                          <FaEye className="text-success text-xl hover:text-black dark:hover:text-white" />
-                        </button>
-                      )}
+                      ))}
                       {statusOptions && <ActionMenu item={item} />}
                     </div>
                   </td>

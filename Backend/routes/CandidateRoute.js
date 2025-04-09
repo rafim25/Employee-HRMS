@@ -19,6 +19,7 @@ import {
   verify_User as verifyUser,
   admin_Only as adminOnly,
 } from '../middleware/AuthUser.js';
+import { checkPermission } from '../middleware/checkPermission.js';
 
 const router = express.Router();
 
@@ -26,8 +27,8 @@ const router = express.Router();
 router.get('/api/candidates', verifyUser, adminOnly, getCandidates);
 router.get('/api/candidates/:id', verifyUser, getCandidateById);
 router.post('/api/candidates', verifyUser, adminOnly, createCandidate);
-router.put('/api/candidates/:id', verifyUser, adminOnly, updateCandidate);
-router.delete('/api/candidates/:id', verifyUser, adminOnly, deleteCandidate);
+router.put('/api/candidates/:id', verifyUser, adminOnly, checkPermission, updateCandidate);
+router.delete('/api/candidates/:id', verifyUser, adminOnly, checkPermission, deleteCandidate);
 router.patch('/api/candidates/:uuid/status', verifyUser, adminOnly, updateCandidateStatus);
 router.patch('/api/candidates/:uuid/reject', verifyUser, adminOnly, rejectCandidate);
 // Job-specific candidate routes

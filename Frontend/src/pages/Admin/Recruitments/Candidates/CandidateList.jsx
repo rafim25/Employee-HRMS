@@ -14,6 +14,7 @@ import FilterModal from '../../../../components/molecules/FilterModal/FilterModa
 import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
 import { MdSource } from 'react-icons/md';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
+import { checkUserPermission } from '../../../../utils/permissions';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -72,6 +73,8 @@ const CandidateList = () => {
   // Add these state variables at the top with other states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [candidateToDelete, setCandidateToDelete] = useState(null);
+
+  // Add user from Redux state
 
   useEffect(() => {
     loadCandidates();
@@ -208,8 +211,14 @@ const CandidateList = () => {
 
   // Update the handleStatusChange function
   const handleStatusChange = async (candidateId, newStatus) => {
+    const candidate = candidates.find(c => c.uuid === candidateId);
+    if (!checkUserPermission(candidate, authState?.user)) {
+      toast.error("You don't have permission to change this candidate's status");
+      return;
+    }
+
     if (newStatus === 'rejected') {
-      setSelectedCandidate(candidates.find(c => c.uuid === candidateId));
+      setSelectedCandidate(candidate);
       setShowRejectionModal(true);
       return;
     }
@@ -297,6 +306,12 @@ const CandidateList = () => {
 
   // Replace the existing handleDelete function with this new version
   const handleDelete = (candidateId) => {
+    const candidate = candidates.find(c => c.uuid === candidateId);
+    if (!checkUserPermission(candidate, authState?.user)) {
+      toast.error("You don't have permission to delete this candidate");
+      return;
+    }
+
     setCandidateToDelete(candidateId);
     setShowDeleteModal(true);
   };
@@ -534,6 +549,9 @@ const CandidateList = () => {
     );
   };
 
+  // Add permission check for bulk actions if you have any
+  const canAddCandidate = authState?.user?.role === 'admin' || authState?.user?.permissions?.includes('create_candidate');
+
   return (
     <DefaultLayoutAdmin>
       <BreadcrumbAdmin pageName='Candidates' icon={FaUser} backButton={false} />
@@ -586,13 +604,40 @@ const CandidateList = () => {
                 <DataTable
                   data={paginatedCandidates}
                   columns={columns}
-                  actions={true}
+                  actions={[
+                    {
+                      icon: <FaEye />,
+                      label: 'View',
+                      onClick: (candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`),
+                      show: () => true // View is always available to everyone
+                    },
+                    {
+                      icon: <FaEdit />,
+                      label: 'Edit',
+                      onClick: (candidate) => {
+                        if (checkUserPermission(candidate, authState?.user)) {
+                          navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`);
+                        } else {
+                          toast.error("You don't have permission to edit this candidate");
+                        }
+                      },
+                      show: (candidate) => checkUserPermission(candidate, authState?.user)
+                    },
+                    {
+                      icon: <BsTrash3 />,
+                      label: 'Delete',
+                      onClick: (candidate) => {
+                        if (checkUserPermission(candidate, authState?.user)) {
+                          handleDelete(candidate.uuid);
+                        } else {
+                          toast.error("You don't have permission to delete this candidate");
+                        }
+                      },
+                      show: (candidate) => checkUserPermission(candidate, authState?.user)
+                    }
+                  ]}
                   statusOptions={statusOptions}
                   onStatusChange={handleStatusChange}
-                  onDelete={(candidate) => handleDelete(candidate.uuid)}
-                  onEdit={(candidate) => navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`)}
-                  onView={(candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`)}
-                  onDownload={(candidate) => window.open(candidate.resume_url, '_blank')}
                   statusColors={statusColors}
                   className="w-full table-auto"
                 />
