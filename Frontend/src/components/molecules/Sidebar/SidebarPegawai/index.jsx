@@ -6,6 +6,7 @@ import { AiOutlineArrowLeft } from 'react-icons/ai'
 import { RxDashboard } from 'react-icons/rx'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
+import { FaUserTie, FaBriefcase, FaToolbox, FaKey, FaSignOutAlt } from 'react-icons/fa'
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -82,7 +83,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         <nav className='mt-4 px-4 lg:mt-9 lg:px-6'>
           <div>
             <ul className='mb-6 flex flex-col gap-1.5'>
-              {/* <!--Dashboard Admin--> */}
+              {/* <!--Dashboard --> */}
               <NavLink
                 to='/pegawai/dashboard'
                 className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('dashboard') &&
@@ -92,12 +93,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 <RxDashboard />
                 Dashboard
               </NavLink>
-              {/* <!-- Dashboard Admin --> */}
 
-              {/* <!-- Settings Admin --> */}
+              {/* <!-- Recruitment Section --> */}
               <SidebarLinkGroup
                 activeCondition={
-                  pathname === '/pengaturan' || pathname.includes('pengaturan')
+                  pathname.includes('recruitment')
                 }
               >
                 {(handleClick, open) => {
@@ -105,15 +105,87 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${(pathname === '/pengaturan' ||
-                          pathname.includes('pengaturan')) &&
-                          'bg-graydark dark:bg-meta-4'
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('recruitment') && 'bg-graydark dark:bg-meta-4'
                           }`}
                         onClick={(e) => {
-                          e.preventDefault()
-                          sidebarExpanded
-                            ? handleClick()
-                            : setSidebarExpanded(true)
+                          e.preventDefault();
+                          handleClick();
+                        }}
+                      >
+                        <FaBriefcase />
+                        Recruitment
+                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                          }`} />
+                      </NavLink>
+                      {/* <!-- Dropdown Menu Start --> */}
+                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
+                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                          <li>
+                            <NavLink
+                              to='/employee/recruitments/job-management'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <FaBriefcase className="w-4 h-4" />
+                                Job Listings
+                              </div>
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to='/employee/recruitments/candidates'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <FaUserTie className="w-4 h-4" />
+                                My Candidates
+                              </div>
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to='/employee/recruitments/skill-management'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <FaToolbox className="w-4 h-4" />
+                                Skills Database
+                              </div>
+                            </NavLink>
+                          </li>
+                        </ul>
+                      </div>
+                      {/* <!-- Dropdown Menu End --> */}
+                    </React.Fragment>
+                  );
+                }}
+              </SidebarLinkGroup>
+
+              {/* <!-- Settings --> */}
+              <SidebarLinkGroup
+                activeCondition={
+                  pathname.includes('settings')
+                }
+              >
+                {(handleClick, open) => {
+                  return (
+                    <React.Fragment>
+                      <NavLink
+                        to='#'
+                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('settings') && 'bg-graydark dark:bg-meta-4'
+                          }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleClick();
                         }}
                       >
                         <FiSettings />
@@ -122,30 +194,43 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                           }`} />
                       </NavLink>
                       {/* <!-- Dropdown Menu Start --> */}
-                      <div
-                        className={`translate transform overflow-hidden ${!open && 'hidden'
-                          }`}
-                      >
+                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
                         <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
-                          {/* <li>
+                          <li>
                             <NavLink
-                              to='/pegawai/pengaturan/ubah-password'
+                              to='/pegawai/settings/change-password'
                               className={({ isActive }) =>
                                 'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
                                 (isActive && '!text-white')
                               }
                             >
-                              Change Password
+                              <div className="flex items-center gap-2">
+                                <FaKey className="w-4 h-4" />
+                                Change Password
+                              </div>
                             </NavLink>
-                          </li> */}
+                          </li>
+                          <li>
+                            <NavLink
+                              to='/logout'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <FaSignOutAlt className="w-4 h-4" />
+                                Logout
+                              </div>
+                            </NavLink>
+                          </li>
                         </ul>
                       </div>
                       {/* <!-- Dropdown Menu End --> */}
                     </React.Fragment>
-                  )
+                  );
                 }}
               </SidebarLinkGroup>
-              {/* <!-- Settings Admin --> */}
             </ul>
           </div>
         </nav>

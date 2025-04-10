@@ -27,6 +27,8 @@ import skillRoute from "./routes/skillRoute.js";
 import { syncModels } from "./models/index.js";
 import candidateRoutes from './routes/CandidateRoute.js';
 import UploadRoute from './routes/UploadRoute.js';
+import EmployeeJobRoutes from "./routes/EmployeeJobRoutes.js";
+import EmployeeCandidateRoutes from "./routes/EmployeeCandidateRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,14 +36,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 dotenv.config();
 
-// Database Initialization
+// Remove other database initialization code and replace with:
 (async () => {
-  try {
-    await syncModels();
-    console.log("✅ Database initialized successfully");
-  } catch (error) {
-    console.error("❌ Failed to initialize database:", error);
-  }
+    try {
+        await initializeDatabase();
+        console.log("✅ Database initialized successfully");
+    } catch (error) {
+        console.error("❌ Failed to initialize database:", error);
+    }
 })();
 
 // Authenticate and sync DB
@@ -156,6 +158,8 @@ const startServer = async () => {
     app.use(jobRoutes);
     app.use('/api/skills', skillRoute);
     app.use(candidateRoutes);
+    app.use(EmployeeJobRoutes);
+    app.use(EmployeeCandidateRoutes);
 
     // 404 Handler
     app.use((req, res) => {

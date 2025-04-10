@@ -31,6 +31,7 @@ const EditUser = () => {
         aadhar_number: '',
         date_joined: '',
         address: '',
+        permissions: '',
     });
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
@@ -121,10 +122,17 @@ const EditUser = () => {
                 }
             }
 
-            // Update user data with new photo URL
+            // Format permissions as an object or array depending on your needs
+            const permissionsData = {
+                type: userData.permissions,
+                permissions: getPermissionsByType(userData.permissions)
+            };
+
+            // Update user data with new photo URL and formatted permissions
             const updatedUserData = {
                 ...userData,
-                url: photoUrl
+                url: photoUrl,
+                permissions: permissionsData // Send permissions as a structured object
             };
 
             await updateUser(dispatch, userId, updatedUserData);
@@ -139,6 +147,20 @@ const EditUser = () => {
             setError(err.response?.data?.msg || 'Failed to update user');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Helper function to map permission types to actual permissions
+    const getPermissionsByType = (type) => {
+        switch (type) {
+            case 'Full':
+                return ['create', 'read', 'update', 'delete'];
+            case 'Limited':
+                return ['create', 'read', 'update'];
+            case 'Read':
+                return ['read'];
+            default:
+                return [];
         }
     };
 
@@ -509,6 +531,30 @@ const EditUser = () => {
                                         className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                         rows={4}
                                     />
+                                </div>
+
+                                {/* Permissions */}
+                                <div className='mb-4.5'>
+                                    <label className='mb-2.5 block text-black dark:text-white'>
+                                        Permissions <span className='text-meta-1'>*</span>
+                                    </label>
+                                    <div className='relative z-20 bg-transparent dark:bg-form-input'>
+                                        <select
+                                            name='permissions'
+                                            value={userData.permissions}
+                                            onChange={handleChange}
+                                            required
+                                            className='relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                        >
+                                            <option value=''>Select Permissions</option>
+                                            <option value='Full'>Full Access</option>
+                                            <option value='Limited'>Limited Access</option>
+                                            <option value='Read'>Read Only</option>
+                                        </select>
+                                        <span className='absolute top-1/2 right-4 z-30 -translate-y-1/2 text-2xl'>
+                                            <MdOutlineKeyboardArrowDown />
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {/* Form Buttons */}

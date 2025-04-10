@@ -243,7 +243,7 @@ const CandidateList = () => {
       setCandidates(prev =>
         prev.map(candidate =>
           candidate.uuid === candidateId
-            ? { ...candidate, status: newStatus }
+            ? { ...candidate, application_status: newStatus }
             : candidate
         )
       );
@@ -279,12 +279,13 @@ const CandidateList = () => {
         throw new Error('Failed to update rejection details');
       }
 
+      // Update the candidates state with application_status
       setCandidates(prev =>
         prev.map(candidate =>
           candidate.uuid === selectedCandidate.uuid
             ? {
               ...candidate,
-              status: 'rejected',
+              application_status: 'rejected', // Update this field
               rejection_reason: rejectionDetails.reason,
               rejection_details: {
                 ...rejectionDetails,
@@ -411,10 +412,10 @@ const CandidateList = () => {
       className: 'min-w-[120px] py-4.5 px-4',
       render: (candidate) => (
         <span
-          className={`inline-flex rounded-full py-1 px-3 text-sm font-medium transition-all duration-200 ${statusColors[candidate.status] || 'bg-gray-100 text-gray-500'
+          className={`inline-flex rounded-full py-1 px-3 text-sm font-medium transition-all duration-200 ${statusColors[candidate.application_status] || 'bg-gray-100 text-gray-500'
             }`}
         >
-          {candidate.status}
+          {candidate.application_status}
         </span>
       )
     },
@@ -458,7 +459,7 @@ const CandidateList = () => {
       candidate.phone?.includes(searchTerm) ||
       candidate.job?.title?.toLowerCase().includes(searchLower);
 
-    const matchesStatus = !filters.status || candidate.status === filters.status;
+    const matchesStatus = !filters.status || candidate.application_status === filters.status;
     const matchesSource = !filters.source || candidate.source === filters.source;
     const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
       (!filters.experience.max || candidate.experience <= Number(filters.experience.max));

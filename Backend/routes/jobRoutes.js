@@ -23,6 +23,6 @@ router.delete('/api/jobs/:id', verifyUser, adminOnly, deleteJob);
 router.patch('/api/jobs/:id/status',verifyUser, adminOnly, updateJobStatus);
 
 // Update job route
-router.patch('/api/jobs/:id', updateJob);
+router.patch('/api/jobs/:id',verifyUser, updateJob);
 
 export default router; 

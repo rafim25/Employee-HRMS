@@ -1,10 +1,12 @@
+import { Job, Candidate } from '../models/index.js';
+
 export const checkPermission = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user.user_id;
+        const userId =  req.userId || req.user.user_id ;
         const model = req.baseUrl.includes('jobs') ? Job : Candidate;
 
-        const item = await model.findByPk(id);
+        const item = await model.findOne({ where: { uuid: id } });
         
         if (!item) {
             return res.status(404).json({ msg: "Item not found" });

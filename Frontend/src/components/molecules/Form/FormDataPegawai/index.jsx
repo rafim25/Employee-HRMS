@@ -18,6 +18,7 @@ const UserDataForm = () => {
   // Form state
   const [formData, setFormData] = useState({
     user_id: generateUserId(),
+    name: '',
     username: '',
     email: '',
     password: '',
@@ -139,7 +140,7 @@ const UserDataForm = () => {
 
             <form onSubmit={handleSubmit}>
               <div className='p-6.5'>
-                {/* User ID and Username */}
+                {/* User ID and Name */}
                 <div className='mb-4.5 flex flex-col gap-6 xl:flex-row'>
                   <div className='w-full xl:w-1/2'>
                     <label className='mb-2.5 block text-black dark:text-white'>
@@ -156,6 +157,24 @@ const UserDataForm = () => {
 
                   <div className='w-full xl:w-1/2'>
                     <label className='mb-2.5 block text-black dark:text-white'>
+                      Name <span className='text-meta-1'>*</span>
+                    </label>
+                    <input
+                      type='text'
+                      name='name'
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      placeholder='Enter full name'
+                      className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                    />
+                  </div>
+                </div>
+
+                {/* Username and Email */}
+                <div className='mb-4.5 flex flex-col gap-6 xl:flex-row'>
+                  <div className='w-full xl:w-1/2'>
+                    <label className='mb-2.5 block text-black dark:text-white'>
                       Username <span className='text-meta-1'>*</span>
                     </label>
                     <input
@@ -168,10 +187,7 @@ const UserDataForm = () => {
                       className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                     />
                   </div>
-                </div>
 
-                {/* Email and Password */}
-                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                   <div className='w-full xl:w-1/2'>
                     <label className='mb-2.5 block text-black dark:text-white'>
                       Email <span className='text-meta-1'>*</span>
@@ -186,7 +202,10 @@ const UserDataForm = () => {
                       className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                     />
                   </div>
+                </div>
 
+                {/* Password */}
+                <div className="mb-4.5 flex flex-col gap-6 xl:flex-row">
                   <div className='w-full xl:w-1/2'>
                     <label className='mb-2.5 block text-black dark:text-white'>
                       Password <span className='text-meta-1'>*</span>
@@ -504,6 +523,7 @@ const UserDataForm = () => {
                     type="button"
                     onClick={() => setFormData({
                       user_id: generateUserId(),
+                      name: '',
                       username: '',
                       email: '',
                       password: '',

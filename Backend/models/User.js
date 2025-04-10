@@ -14,12 +14,15 @@ const User = db.define(
     },
     user_id: {
       type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    name: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
     username: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     email: {
       type: DataTypes.STRING,
@@ -63,8 +66,8 @@ const User = db.define(
       type: DataTypes.STRING,
     },
     permissions: {
-      type: DataTypes.STRING,
-      defaultValue: "limited",
+      type: DataTypes.JSON,
+      allowNull: true
     },
     department: {
       type: DataTypes.STRING,

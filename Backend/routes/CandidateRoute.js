@@ -24,12 +24,12 @@ import { checkPermission } from '../middleware/checkPermission.js';
 const router = express.Router();
 
 // Admin routes
-router.get('/api/candidates', verifyUser, adminOnly, getCandidates);
+router.get('/api/candidates', verifyUser, getCandidates);
 router.get('/api/candidates/:id', verifyUser, getCandidateById);
-router.post('/api/candidates', verifyUser, adminOnly, createCandidate);
+router.post('/api/candidates', verifyUser, createCandidate);
 router.put('/api/candidates/:id', verifyUser, adminOnly, checkPermission, updateCandidate);
 router.delete('/api/candidates/:id', verifyUser, adminOnly, checkPermission, deleteCandidate);
-router.patch('/api/candidates/:uuid/status', verifyUser, adminOnly, updateCandidateStatus);
+router.patch('/api/candidates/:uuid/status', verifyUser, updateCandidateStatus);
 router.patch('/api/candidates/:uuid/reject', verifyUser, adminOnly, rejectCandidate);
 // Job-specific candidate routes
 // router.get('/api/candidates/job/:jobId', verifyUser, adminOnly, getCandidatesByJob);
@@ -49,7 +49,8 @@ router.post('/api/candidates/share', verifyUser,adminOnly, sendCandidatesToClien
 // Add the bulk upload route
 router.post('/api/candidates/bulk-upload', verifyUser, adminOnly, bulkUploadCandidates);
 
-// Add this route with your other candidate routes
-router.post('/api/candidates/check-duplicate', verifyUser, adminOnly, checkDuplicate);
+// Add the check duplicate route
+router.post("/api/candidates/check-duplicate", checkDuplicate);
 
 export default router; 
+

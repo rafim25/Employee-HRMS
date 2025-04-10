@@ -57,6 +57,49 @@ const UserDetails = () => {
     );
   };
 
+  // Add this function to render permissions
+  const renderPermissions = (permissions) => {
+    if (!permissions) return 'No permissions set';
+    
+    try {
+      // If permissions is a string, try to parse it
+      const permissionsData = typeof permissions === 'string' 
+        ? JSON.parse(permissions) 
+        : permissions;
+
+      // If it's already a simple string, return it directly
+      if (typeof permissionsData === 'string') {
+        return permissionsData;
+      }
+
+      // If it's an object with type, return the type
+      if (permissionsData.type) {
+        return permissionsData.type;
+      }
+
+      // Fallback
+      return 'No permissions set';
+    } catch (error) {
+      // If parsing fails, return the raw value
+      return permissions;
+    }
+  };
+
+  // Update the InfoField component to handle permissions specially
+  const InfoField = ({ icon, label, value, isPermission }) => (
+    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-meta-4 transition-colors duration-200">
+      <span className="text-xl text-primary">{icon}</span>
+      <div>
+        <span className="block text-sm font-medium text-black dark:text-white mb-1">
+          {label}
+        </span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {isPermission ? renderPermissions(value) : (value || 'N/A')}
+        </span>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <DefaultLayoutAdmin>
@@ -159,7 +202,12 @@ const UserDetails = () => {
                 <InfoField icon={<FaBriefcase />} label="Designation" value={user?.designation} />
                 <InfoField icon={<FaIdBadge />} label="PAN Number" value={user?.pan_number} />
                 <InfoField icon={<FaAddressCard />} label="Aadhar Number" value={user?.aadhar_number} />
-                <InfoField icon={<FaKey />} label="Permissions" value={user?.permissions} />
+                <InfoField 
+                  icon={<FaKey />} 
+                  label="Permissions" 
+                  value={user?.permissions}
+                  isPermission={true}
+                />
               </div>
             </div>
           </div>
@@ -168,20 +216,5 @@ const UserDetails = () => {
     </DefaultLayoutAdmin>
   );
 };
-
-// Enhanced InfoField component with hover effect
-const InfoField = ({ icon, label, value }) => (
-  <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-meta-4 transition-colors duration-200">
-    <span className="text-xl text-primary">{icon}</span>
-    <div>
-      <span className="block text-sm font-medium text-black dark:text-white mb-1">
-        {label}
-      </span>
-      <span className="text-sm text-gray-500 dark:text-gray-400">
-        {value || 'N/A'}
-      </span>
-    </div>
-  </div>
-);
 
 export default UserDetails; 

@@ -23,7 +23,7 @@ const skillColors = [
   'text-pink-500 bg-pink-50 dark:bg-pink-900/10',
 ];
 
-const JobCard = ({ job, onEdit, onDelete, onStatusChange }) => {
+const JobCard = ({ job, onEdit, onDelete, onStatusChange, onJobClick }) => {
   const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
   const actionMenuRef = useRef(null);
@@ -45,7 +45,11 @@ const JobCard = ({ job, onEdit, onDelete, onStatusChange }) => {
   };
 
   const handleCardClick = () => {
-    navigate(`/admin/recruitments/job-management/details/${job.id}`);
+    if (onJobClick) {
+      onJobClick();
+    } else {
+      navigate(`/admin/recruitments/job-management/details/${job.id}`);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -67,6 +71,11 @@ const JobCard = ({ job, onEdit, onDelete, onStatusChange }) => {
     { value: 'archived', label: 'Archived', color: 'gray' },
     { value: 'expired', label: 'Expired', color: 'danger' }
   ];
+
+  const capitalizeStatus = (status) => {
+    if (!status) return 'Unknown';
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
 
   return (
     <div className="bg-white dark:bg-boxdark rounded-xl border border-stroke dark:border-strokedark p-5 
@@ -186,11 +195,12 @@ const JobCard = ({ job, onEdit, onDelete, onStatusChange }) => {
         </div>
 
         <div className="flex justify-between items-center text-sm">
-          <span className={`px-3 py-1 rounded-full font-medium ${job.status === 'active' ? 'bg-success/10 text-success' :
-            job.status === 'draft' ? 'bg-warning/10 text-warning' :
-              'bg-danger/10 text-danger'
+          <span className={`px-3 py-1 rounded-full font-medium ${!job.status ? 'bg-gray-100 dark:bg-meta-4 text-gray-500' :
+            job.status === 'active' ? 'bg-success/10 text-success' :
+              job.status === 'draft' ? 'bg-warning/10 text-warning' :
+                'bg-danger/10 text-danger'
             }`}>
-            {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+            {job.status ? (job.status.charAt(0).toUpperCase() + job.status.slice(1)) : 'Unknown'}
           </span>
           <div className="flex items-center text-gray-500 dark:text-gray-400">
             <FaRegClock className="mr-2 text-primary" />

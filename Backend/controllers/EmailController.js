@@ -292,7 +292,7 @@ export const sendCandidatesToClient = async (req, res) => {
         const { jobId, clientEmail, clientName, jobTitle, candidates } = req.body;
 
         // Filter only shortlisted candidates
-        const shortlistedCandidates = candidates.filter(c => c.status === 'shortlisted');
+        const shortlistedCandidates = candidates.filter(c => c.application_status === 'shortlisted');
 
         if (!shortlistedCandidates?.length) {
             return res.status(400).json({

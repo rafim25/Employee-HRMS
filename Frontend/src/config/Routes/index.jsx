@@ -8,7 +8,7 @@ import { ProtectedRoute } from '../../components/ProtectedRoute'
 import {
   LoginAdmin, DashboardAdmin, DataPegawai, DataJabatan, DataAbsensi, SettingPotonganGaji, DataGaji, LaporanGaji,
   LaporanAbsensi, SlipGaji, UbahPasswordAdmin, LoginPegawai, DashboardPegawai, DataGajiPegawai, UbahPasswordPegawai,
-  Lending, EditUser, EditLoan, EditPurchaseDetails
+  Lending, EditUser, EditLoan, EditPurchaseDetails, EmployeeDashboard
 } from '../../pages'
 import AddExpense from '../../pages/Admin/Expense/AddExpense'
 import EditExpense from '../../pages/Admin/Expense/EditExpense'
@@ -34,6 +34,12 @@ import PublicJobDetails from '../../pages/Public/Jobs/PublicJobDetails'
 import PublicCandidateForm from '../../pages/Public/Jobs/PublicCandidateForm'
 import CandidateEdit from '../../pages/Admin/Recruitments/Candidates/CandidateEdit'
 import UserDetails from '../../pages/Admin/MasterData/DataPegawai/UserDetails'
+import EmployeeCandidateList from '../../pages/Employee/Recruitments/Candidates'
+import EmployeeCandidateForm from '../../pages/Employee/Recruitments/Candidates/CandidateForm'
+import EmployeeCandidateDetails from '../../pages/Employee/Recruitments/Candidates/CandidateDetails'
+import EmployeeJobList from '../../pages/Employee/Recruitments/JobManagement/JobList'
+import EmployeeJobDetails from '../../pages/Employee/Recruitments/JobManagement/JobDetails'
+import EmployeeJobForm from '../../pages/Employee/Recruitments/JobManagement/JobForm'
 
 const AppRoutes = () => {
   return (
@@ -137,7 +143,8 @@ const AppRoutes = () => {
       {/* Protected Employee Routes */}
       <Route exact path='/pegawai/dashboard' element={
         <ProtectedRoute allowedRoles={['user']}>
-          <DashboardPegawai />
+          {/* <DashboardPegawai /> */}
+          <EmployeeDashboard />
         </ProtectedRoute>
       } />
       <Route exact path='/pegawai/data-gaji' element={
@@ -259,6 +266,45 @@ const AppRoutes = () => {
       <Route path='/admin/master-data/data-pegawai/view/:userId' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <UserDetails />
+        </ProtectedRoute>
+      } />
+
+      {/* Employee Candidate Management Routes */}
+      <Route path="/employee/recruitments/candidates" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeCandidateList />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/candidates/add" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeCandidateForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/candidates/:id" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeCandidateDetails />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/candidates/edit/:id" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeCandidateForm />
+        </ProtectedRoute>
+      } />
+
+      {/* Employee Job Management Routes */}
+      <Route path="/employee/recruitments/job-management" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeJobList />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/job-management/details/:id" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeJobDetails />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/job-management/edit/:id" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeJobForm />
         </ProtectedRoute>
       } />
 

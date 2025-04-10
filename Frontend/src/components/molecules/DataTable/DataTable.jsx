@@ -17,6 +17,7 @@ const DataTable = ({
   onDownload,
   customRowRender,
   statusColors = {},
+  disableStatusChange = () => false
 }) => {
   // Default status colors if not provided
   const defaultStatusColors = {
@@ -33,7 +34,7 @@ const DataTable = ({
 
   // Add this CSS class for hover effects
   const getStatusClass = (status) => {
-    const baseClass = defaultStatusColors[status.toLowerCase()] || defaultStatusColors.applied;
+    const baseClass = defaultStatusColors[status?.toLowerCase()] || defaultStatusColors.applied;
     return `inline-block px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${baseClass}`;
   };
 
@@ -48,8 +49,8 @@ const DataTable = ({
 
     if (column.type === 'status') {
       return (
-        <span className={getStatusClass(item[column.key])}>
-          {item[column.key].toUpperCase()}
+        <span className={getStatusClass(item.application_status)}>
+          {item.application_status.toUpperCase()}
         </span>
       );
     }
@@ -106,7 +107,7 @@ const DataTable = ({
 
     // Add current status marker
     const getCurrentStatusMark = (statusValue) => {
-      if (item.status === statusValue) {
+      if (item.application_status === statusValue) {
         return (
           <span className="absolute right-4 text-success">
             ✓
@@ -141,38 +142,35 @@ const DataTable = ({
             {statusOptions && (
               <div className="border-t border-stroke dark:border-strokedark">
                 {statusOptions.map((status) => {
-
-                  const isDisabled = item.status === 'rejected';
+                  // Call disableStatusChange with the current item
+                  const isDisabled = item.application_status === 'rejected' || disableStatusChange(item);
 
                   return (
                     <button
                       key={status.value}
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (item.status !== 'rejected') {
+                        if (!isDisabled) {
                           onStatusChange(item.uuid, status.value);
                           setShowActions(false);
                         }
                       }}
                       className={`
-                      relative w-full text-left px-4 py-3 transition-colors duration-200 
-                      flex items-center gap-2 text-sm font-medium
-                      ${item.status === 'rejected' ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-200 dark:hover:bg-gray-700 !important'}
-                      ${item.status === status.value ? 'text-success bg-success/10' : 'text-black dark:text-white'}
-                    `}
-                      disabled={item.status === 'rejected'}
+                        relative w-full text-left px-4 py-3 transition-colors duration-200 
+                        flex items-center gap-2 text-sm font-medium
+                        ${isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-200 dark:hover:bg-gray-700 !important'}
+                        ${item.application_status === status.value ? 'text-success bg-success/10' : 'text-black dark:text-white'}
+                      `}
+                      disabled={isDisabled}
                     >
-                      <span className={`w-2 h-2 rounded-full ${item.status === status.value ? 'bg-success' : 'bg-gray-400'}`} />
+                      <span className={`w-2 h-2 rounded-full ${item.application_status === status.value ? 'bg-success' : 'bg-gray-400'}`} />
                       {status.label}
                       {getCurrentStatusMark(status.value)}
                     </button>
-
-
                   );
                 })}
               </div>
             )}
-
           </div>
         )}
       </div>

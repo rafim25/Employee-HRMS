@@ -5,6 +5,9 @@ import Expense from "../models/Expense.js";
 import Job from '../models/Job.js';
 import Candidate from '../models/Candidate.js';
 import { Op } from "sequelize";
+import { Sequelize } from "sequelize";
+
+
 
 export const getDashboardStats = async (req, res) => {
   try {
@@ -276,34 +279,35 @@ export const getDashboardDataRecruitment = async (req, res) => {
         // Get candidates statistics
         const totalCandidates = await Candidate.count();
         const selectedCandidates = await Candidate.count({
-            where: { status: 'selected' }
+            where: { application_status: 'selected' }
         });
         const rejectedCandidates = await Candidate.count({
-            where: { status: 'rejected' }
+            where: { application_status: 'rejected' }
         });
 
         // Get candidate status distribution
         const statusDistribution = await Candidate.count({
-            group: ['status']
+            group: ['application_status']
         });
 
         // Get source distribution
         const sourceDistribution = await Candidate.count({
-            group: ['source']
+            group: ['application_status']
         });
 
         // Get recent activities with correct association alias
         const recentActivities = await Candidate.findAll({
             attributes: [
+                'uuid',
                 'name',
-                'status',
+                'application_status',
                 'createdAt',
                 'updatedAt'
             ],
             include: [
                 {
                     model: Job,
-                    as: 'job', // Add this alias to match your model association
+                    as: 'job',
                     attributes: ['title']
                 }
             ],
@@ -322,7 +326,7 @@ export const getDashboardDataRecruitment = async (req, res) => {
             } else {
                 return {
                     type: 'status_change',
-                    description: `${activity.name}'s status updated to ${activity.status}`,
+                    description: `${activity.name}'s status updated to ${activity.application_status}`,
                     timestamp: activity.updatedAt
                 };
             }
@@ -334,11 +338,11 @@ export const getDashboardDataRecruitment = async (req, res) => {
             selectedCandidates,
             rejectedCandidates,
             candidateStatusData: statusDistribution.map(item => ({
-                status: item.status,
+                status: item.application_status,
                 count: item.count
             })),
             sourceDistribution: sourceDistribution.map(item => ({
-                source: item.source,
+                source: item.application_status,
                 count: item.count
             })),
             recentActivities: formattedActivities
@@ -349,6 +353,157 @@ export const getDashboardDataRecruitment = async (req, res) => {
         res.status(500).json({
             message: 'Error fetching dashboard data',
             error: error.message
+        });
+    }
+};
+
+export const getEmployeeDashboardStats = async (req, res) => {
+    try {
+        // Get user details
+        const user = await User.findOne({
+            where: { user_id: req.session.userId },
+            attributes: [
+                'uuid',
+                'user_id',
+                'name',
+                'email',
+                'role',
+                'department',
+                'designation',
+                'photo',
+                'url'
+            ]
+        });
+
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        // Get all jobs statistics
+        // const jobStats = await Job.findAndCountAll({
+        //     where: { created_by_id: req.session.userId }
+        // });
+        const jobStats = await Job.findAndCountAll({});
+
+        // Get open positions count
+        const openPositionsCount = await Job.count({
+            where: { 
+                // created_by_id: req.session.userId,
+                status: 'active'
+            }
+        });
+
+        // Get candidate statistics
+        const candidateStats = await Candidate.findAndCountAll({
+            where: { created_by_id: req.session.userId }
+        });
+
+        // Get recent activities - Update the association alias to 'job'
+        const recentActivities = await Candidate.findAll({
+            where: { created_by_id: req.session.userId },
+            limit: 5,
+            order: [['createdAt', 'DESC']],
+            include: [{
+                model: Job,
+                as: 'job', // Changed from 'candidateJob' to 'job'
+                attributes: ['title']
+            }]
+        });
+
+        // Get open positions
+        const openPositions = await Job.findAll({
+            where: { 
+                // created_by_id: req.session.userId,
+                status: 'active'
+            },
+            limit: 5,
+            order: [['createdAt', 'DESC']]
+        });
+
+        const response = {
+            user: {
+                uuid: user.uuid,
+                user_id: user.user_id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                department: user.department,
+                designation: user.designation,
+                photo: user.photo,
+                url: user.url
+            },
+            stats: {
+                totalJobs: jobStats.count,
+                totalCandidates: candidateStats.count,
+                totalOpenPositions: openPositionsCount,
+                openPositions: openPositions.length,
+                activeJobs: openPositionsCount,
+                pendingCandidates: await Candidate.count({
+                    where: { 
+                        created_by_id: req.session.userId,
+                        application_status: 'applied' // Updated to use application_status
+                    }
+                }),
+                selectedCandidates: await Candidate.count({
+                    where: { 
+                        created_by_id: req.session.userId,
+                        application_status: 'selected' // Updated to use application_status
+                    }
+                }),
+                rejectedCandidates: await Candidate.count({
+                    where: { 
+                        created_by_id: req.session.userId,
+                        application_status: 'rejected' // Updated to use application_status
+                    }
+                })
+            },
+            recentActivities: recentActivities.map(activity => ({
+                id: activity.id,
+                candidateName: activity.name,
+                jobTitle: activity.job?.title || 'N/A', // Updated to use job instead of candidateJob
+                application_status: activity.application_status, // Updated to use application_status
+                date: activity.createdAt
+            })),
+            openPositions: openPositions.map(job => ({
+                id: job.id,
+                title: job.title,
+                type: job.type,
+                status: job.status,
+                openings: job.openings,
+                date: job.createdAt
+            })),
+            candidateStats: {
+                total: candidateStats.count,
+                pending: await Candidate.count({
+                    where: { 
+                        created_by_id: req.session.userId,
+                        application_status: 'applied' // Updated to use application_status
+                    }
+                }),
+                selected: await Candidate.count({
+                    where: { 
+                        created_by_id: req.session.userId,
+                        application_status: 'selected' // Updated to use application_status
+                    }
+                }),
+                rejected: await Candidate.count({
+                    where: { 
+                        created_by_id: req.session.userId,
+                        application_status: 'rejected' // Updated to use application_status
+                    }
+                })
+            }
+        };
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        console.error('Dashboard stats error:', error);
+        res.status(500).json({ 
+            msg: "Error fetching dashboard statistics", 
+            error: error.message,
+            session: req.session,
+            sessionId: req.sessionID
         });
     }
 };

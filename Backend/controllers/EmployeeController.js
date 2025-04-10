@@ -238,3 +238,22 @@ export const getLoanTransactions = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getProfile = async (req, res) => {
+    try {
+        const user = await User.findOne({
+            where: {
+                user_id: req.session.userId
+            },
+            attributes: ['uuid', 'user_id', 'name', 'email', 'role']
+        });
+        
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+        
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+};

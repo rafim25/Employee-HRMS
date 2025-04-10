@@ -54,6 +54,7 @@ export const verify_User = async (req, res, next) => {
   if (!user) return res.status(404).json({ msg: "User not found" });
   req.userId = user.user_id;
   req.role = user.role;
+  req.name = user.name;
   next();
 };
 

@@ -62,8 +62,9 @@ const Candidate = db.define('candidates', {
             return rawValue ? rawValue : null;
         }
     },
-    status: {
-        type: DataTypes.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'archived'),
+    application_status: {
+        type: Sequelize.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected'),
+        allowNull: false,
         defaultValue: 'applied'
     },
     notes: {
@@ -72,7 +73,11 @@ const Candidate = db.define('candidates', {
     },
     job_id: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: true,
+        references: {
+            model: 'jobs',
+            key: 'id'
+        }
     },
     source: {
         type: DataTypes.STRING,
@@ -144,15 +149,11 @@ const Candidate = db.define('candidates', {
     },
     created_by: {
         type: DataTypes.STRING,
-        allowNull: true,
-        references: {
-            model: 'users',
-            key: 'username'
-        }
+        allowNull: false
     },
     created_by_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
+        type: DataTypes.STRING,
+        allowNull: false,
         references: {
             model: 'users',
             key: 'user_id'
@@ -164,25 +165,12 @@ const Candidate = db.define('candidates', {
         defaultValue: {}
     },
     rejection_reason: {
-        type: DataTypes.TEXT,
+        type: Sequelize.STRING,
         allowNull: true
     },
     rejection_details: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        get() {
-            const value = this.getDataValue('rejection_details');
-            return value ? JSON.parse(value) : {
-                reason: '',
-                stage: '',
-                rejected_by: '',
-                rejected_at: null,
-                comments: ''
-            };
-        },
-        set(value) {
-            this.setDataValue('rejection_details', JSON.stringify(value));
-        }
+        type: Sequelize.JSON,
+        allowNull: true
     },
     createdAt: {
         type: DataTypes.DATE,
@@ -217,7 +205,7 @@ const syncNewColumns = async () => {
         await db.query(`
             ALTER TABLE candidates 
             ADD COLUMN IF NOT EXISTS created_by VARCHAR(255),
-            ADD COLUMN IF NOT EXISTS created_by_id INT,
+            ADD COLUMN IF NOT EXISTS created_by_id VARCHAR(255),
             ADD CONSTRAINT fk_created_by_id 
                 FOREIGN KEY (created_by_id) 
                 REFERENCES users(user_id) 

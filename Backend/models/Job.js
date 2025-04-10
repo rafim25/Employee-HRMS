@@ -6,7 +6,8 @@ const Job = db.define('jobs', {
     uuid: {
         type: DataTypes.STRING,
         defaultValue: DataTypes.UUIDV4,
-        allowNull: false
+        allowNull: false,
+        unique: true
     },
     title: {
         type: DataTypes.STRING,
@@ -100,6 +101,11 @@ const Job = db.define('jobs', {
             this.setDataValue('skills', JSON.stringify(value));
         }
     },
+    openings: {  // Added openings field
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    },
     createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -110,37 +116,21 @@ const Job = db.define('jobs', {
         allowNull: false,
         defaultValue: Sequelize.NOW,
     },
+    created_by_id: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     created_by: {
         type: DataTypes.STRING,
-        allowNull: true,
-        references: {
-            model: 'users',
-            key: 'username'
-        }
-    },
-    created_by_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-            model: 'users',
-            key: 'user_id'
-        }
+        allowNull: false
     },
     updated_by: {
         type: DataTypes.STRING,
-        allowNull: true,
-        references: {
-            model: 'users',
-            key: 'username'
-        }
+        allowNull: true
     },
     updated_by_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-            model: 'users',
-            key: 'user_id'
-        }
+        type: DataTypes.STRING,
+        allowNull: true
     },
 }, {
     freezeTableName: true,
@@ -160,47 +150,79 @@ Job.associate = (models) => {
 
 const syncNewColumns = async () => {
     try {
-        await db.query(`
-            ALTER TABLE jobs 
-            ADD COLUMN IF NOT EXISTS created_by VARCHAR(255),
-            ADD COLUMN IF NOT EXISTS created_by_id INT,
-            ADD COLUMN IF NOT EXISTS updated_by VARCHAR(255),
-            ADD COLUMN IF NOT EXISTS updated_by_id INT,
-            ADD CONSTRAINT fk_job_created_by_id 
-                FOREIGN KEY (created_by_id) 
-                REFERENCES users(user_id) 
-                ON DELETE SET NULL 
-                ON UPDATE CASCADE,
-            ADD CONSTRAINT fk_job_created_by_name 
-                FOREIGN KEY (created_by) 
-                REFERENCES users(username) 
-                ON DELETE SET NULL 
-                ON UPDATE CASCADE,
-            ADD CONSTRAINT fk_job_updated_by_id 
-                FOREIGN KEY (updated_by_id) 
-                REFERENCES users(user_id) 
-                ON DELETE SET NULL 
-                ON UPDATE CASCADE,
-            ADD CONSTRAINT fk_job_updated_by_name 
-                FOREIGN KEY (updated_by) 
-                REFERENCES users(username) 
-                ON DELETE SET NULL 
-                ON UPDATE CASCADE
+        console.log('Starting to sync new columns...');
+        await db.query('SET FOREIGN_KEY_CHECKS = 0');
+
+        // First, check the type of user_id in users table
+        const [userColumns] = await db.query(`
+            SHOW COLUMNS FROM users WHERE Field = 'user_id'
         `);
-        console.log('Added created_by and updated_by columns with foreign key constraints successfully');
+        
+        // Add or modify columns with correct types
+        const columnsToAdd = [
+            { name: 'created_by', type: 'VARCHAR(255)' },
+            // Make created_by_id match the users.user_id type
+            { name: 'created_by_id', type: 'VARCHAR(255)' },
+            { name: 'updated_by', type: 'VARCHAR(255)' },
+            { name: 'updated_by_id', type: 'VARCHAR(255)' },
+            { name: 'openings', type: 'INT NOT NULL DEFAULT 1' }
+        ];
+
+        // Drop existing foreign keys if they exist
+        const [constraints] = await db.query(`
+            SELECT CONSTRAINT_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_NAME = 'jobs'
+            AND REFERENCED_TABLE_NAME IS NOT NULL
+        `);
+
+        for (const constraint of constraints) {
+            await db.query(`
+                ALTER TABLE jobs
+                DROP FOREIGN KEY ${constraint.CONSTRAINT_NAME}
+            `);
+        }
+
+        // Modify or add columns
+        for (const column of columnsToAdd) {
+            await db.query(`
+                ALTER TABLE jobs 
+                MODIFY COLUMN IF EXISTS ${column.name} ${column.type},
+                ADD COLUMN IF NOT EXISTS ${column.name} ${column.type}
+            `);
+            console.log(`Modified/Added column: ${column.name}`);
+        }
+
+        // Add foreign key constraints
+        console.log('Adding foreign key constraints...');
+        await db.query(`
+            ALTER TABLE jobs
+            ADD CONSTRAINT fk_job_created_by_id 
+            FOREIGN KEY (created_by_id) 
+            REFERENCES users(user_id)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE
+        `);
+
+        await db.query('SET FOREIGN_KEY_CHECKS = 1');
+        
+        console.log('✅ Successfully synced all columns and constraints');
     } catch (error) {
-        console.error('Error syncing new columns:', error);
+        console.error('❌ Error syncing columns:', error);
+        console.error('Error details:', error.original || error);
+        throw error;
     }
 };
 
-syncNewColumns();
-
+// Immediately invoke the sync function with proper error handling
 (async () => {
     try {
-        await Job.sync({ force: true });
-        console.log("✅ Jobs table synchronized");
+        console.log('Starting database synchronization...');
+        await syncNewColumns();
+        console.log('✅ Database synchronization complete');
     } catch (error) {
-        console.error("❌ Error synchronizing Jobs table:", error);
+        console.error('❌ Database synchronization failed:', error);
+        console.error(error);
     }
 })();
 

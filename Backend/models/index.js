@@ -11,6 +11,16 @@ Candidate.associations = {};
 CandidateStatusHistory.associations = {};
 
 // Define associations
+Job.belongsTo(User, {
+    foreignKey: 'created_by_id',
+    as: 'creator'
+});
+
+User.hasMany(Job, {
+    foreignKey: 'created_by_id',
+    as: 'jobs'
+});
+
 Job.hasMany(Candidate, {
     foreignKey: 'job_id',
     as: 'candidates'
@@ -23,13 +33,11 @@ Candidate.belongsTo(Job, {
 
 Candidate.belongsTo(User, {
     foreignKey: 'created_by_id',
-    targetKey: 'user_id',
     as: 'creator'
 });
 
 User.hasMany(Candidate, {
     foreignKey: 'created_by_id',
-    sourceKey: 'user_id',
     as: 'candidates'
 });
 

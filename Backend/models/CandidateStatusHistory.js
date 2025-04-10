@@ -1,37 +1,36 @@
-import { DataTypes } from 'sequelize';
-import db from '../config/Database.js';
+import { Sequelize } from "sequelize";
+import db from "../config/Database.js";
 
 const CandidateStatusHistory = db.define('candidate_status_histories', {
     uuid: {
-        type: DataTypes.STRING,
-        defaultValue: DataTypes.UUIDV4,
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         unique: true
     },
     candidate_id: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.INTEGER,
         allowNull: false
     },
     status: {
-        type: DataTypes.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected'),
+        type: Sequelize.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected'),
         allowNull: false
     },
     changed_by: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false
     },
-    notes: {
-        type: DataTypes.TEXT,
-        allowNull: true
-    },
     changed_at: {
-        type: DataTypes.DATE,
+        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW
+        defaultValue: Sequelize.NOW
+    },
+    notes: {
+        type: Sequelize.TEXT,
+        allowNull: true
     }
 }, {
-    freezeTableName: true,
-    timestamps: false
+    timestamps: true
 });
 
 export default CandidateStatusHistory; 

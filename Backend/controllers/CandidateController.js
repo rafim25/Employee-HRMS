@@ -213,7 +213,7 @@ export const getCandidates = async (req, res) => {
                 'id', 'uuid', 'name', 'email', 'phone', 
                 'experience', 'current_company', 'current_ctc', 
                 'expected_ctc', 'notice_period', 'current_location', 
-                'preferred_location', 'resume_url', 'status', 
+                'preferred_location', 'resume_url', 'status', 'application_status',
                 'notes', 'source', 'referred_by',
                 'created_by', 'created_by_id',
                 'createdAt', 'updatedAt',
@@ -607,8 +607,8 @@ export const deleteCandidate = async (req, res) => {
 
 export const updateCandidateStatus = async (req, res) => {
     try {
-        const { uuid  } = req.params;
-        const { status , changed_by} = req.body;
+        const { uuid } = req.params;
+        const { status, changed_by } = req.body;
 
         const candidate = await Candidate.findOne({ where: { uuid: uuid } });
 
@@ -621,20 +621,25 @@ export const updateCandidateStatus = async (req, res) => {
             return res.status(400).json({ message: 'Invalid status value' });
         }
 
-        await candidate.update({ status });
+        // Update application_status instead of status
+        await candidate.update({ application_status: status });
 
+        // Create status history
         await CandidateStatusHistory.create({
             uuid: crypto.randomUUID(),
             candidate_id: candidate.id,
-            status,
-            changed_by: changed_by,
+            status: status, // Make sure to pass status explicitly
+            changed_by: changed_by || 'system',
             changed_at: new Date(),
             notes: req.body.notes || null
         });
 
+        // Fetch updated candidate to confirm new status
+        const updatedCandidate = await Candidate.findOne({ where: { uuid: uuid } });
+
         res.status(200).json({ 
             message: 'Status updated successfully', 
-            status 
+            status: updatedCandidate.application_status // Return the new application_status
         });
     } catch (error) {
         console.error('Error updating candidate status:', error);
@@ -735,7 +740,7 @@ export const getCandidatesByJobId = async (req, res) => {
                 'preferred_location', 'status', 'source', 'referred_by',
                 'resume_url', 'created_by', 'created_by_id',
                 'rejection_reason', 'rejection_details', 'current_round',
-                'job_answers', 'createdAt', 'updatedAt'
+                'application_status', 'job_answers', 'createdAt', 'updatedAt'
             ],
             include: [
                 {
@@ -819,31 +824,49 @@ export const shareCandidates = async (req, res) => {
 
 export const rejectCandidate = async (req, res) => {
     try {
-        const { status, rejection_reason, rejection_details, changed_by } = req.body;
-        const candidateId = req.params.uuid;
+        const { uuid } = req.params;
+        const { rejection_reason, rejection_details, changed_by } = req.body;
 
         const candidate = await Candidate.findOne({
-            where: { uuid: candidateId }
+            where: { uuid: uuid }
         });
 
         if (!candidate) {
-            return res.status(404).json({ msg: "Candidate not found" });
+            return res.status(404).json({
+                message: "Candidate not found"
+            });
         }
 
+        // Update both status fields and rejection details
         await candidate.update({
-            status,
+            application_status: 'rejected',
             rejection_reason,
             rejection_details,
-            updatedAt: new Date(),
             updated_by: changed_by
         });
 
-        res.status(200).json({
-            msg: "Candidate status and rejection details updated successfully",
-            candidate
+        // Create status history entry
+        await CandidateStatusHistory.create({
+            uuid: crypto.randomUUID(),
+            candidate_id: candidate.id,
+            status: 'rejected',
+            changed_by: changed_by,
+            changed_at: new Date(),
+            notes: rejection_reason
         });
+
+        res.status(200).json({
+            message: "Candidate rejected successfully",
+            application_status: 'rejected',
+            rejection_details
+        });
+
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        console.error('Error rejecting candidate:', error);
+        res.status(500).json({
+            message: "Failed to reject candidate",
+            error: error.message
+        });
     }
 };
 
@@ -893,4 +916,91 @@ export const checkDuplicate = async (req, res) => {
       message: 'Error checking for duplicate candidates'
     });
   }
+};
+
+export const getEmployeeCandidates = async (req, res) => {
+    try {
+        const userId = req.user.user_id; // Assuming you have user info in req.user from auth middleware
+
+        const candidates = await Candidate.findAll({
+            where: {
+                created_by_id: userId // Filter by the creator's user ID
+            },
+            include: [
+                {
+                    model: Job,
+                    as: 'job',
+                    attributes: ['id', 'title', 'type', 'city', 'state', 'questions']
+                },
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['user_id', 'username', 'email']
+                }
+            ],
+            attributes: [
+                'id', 'uuid', 'name', 'email', 'phone', 
+                'experience', 'current_company', 'current_ctc', 
+                'expected_ctc', 'notice_period', 'current_location', 
+                'preferred_location', 'resume_url', 'status', 
+                'notes', 'source', 'referred_by',
+                'created_by', 'created_by_id',
+                'createdAt', 'updatedAt',
+                'job_answers',
+                'rejection_details',
+                'rejection_reason'
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Process candidates similar to the getCandidates function
+        const processedCandidates = await Promise.all(candidates.map(async candidate => {
+            const plainCandidate = candidate.get({ plain: true });
+            
+            try {
+                // Process job answers
+                if (plainCandidate.job_answers) {
+                    plainCandidate.job_answers = typeof plainCandidate.job_answers === 'string' 
+                        ? JSON.parse(plainCandidate.job_answers)
+                        : plainCandidate.job_answers;
+                }
+
+                // Process rejection details
+                if (plainCandidate.rejection_details) {
+                    const rejectionDetails = typeof plainCandidate.rejection_details === 'string'
+                        ? JSON.parse(plainCandidate.rejection_details)
+                        : plainCandidate.rejection_details;
+
+                    if (plainCandidate.status === 'rejected') {
+                        plainCandidate.rejection_information = {
+                            reason: plainCandidate.rejection_reason,
+                            ...rejectionDetails
+                        };
+                    }
+                }
+
+                // Format questionnaire
+                if (plainCandidate.job?.questions && plainCandidate.job_answers) {
+                    plainCandidate.questionnaire = plainCandidate.job.questions.map(question => ({
+                        question: question,
+                        answer: plainCandidate.job_answers[question] || 'Not answered'
+                    }));
+                }
+
+                // Process resume URL
+                return await processResumeForCandidate(plainCandidate);
+            } catch (error) {
+                console.error(`Error processing candidate ${plainCandidate.id}:`, error);
+                return plainCandidate;
+            }
+        }));
+
+        res.json(processedCandidates);
+    } catch (error) {
+        console.error('Error fetching employee candidates:', error);
+        res.status(500).json({ 
+            msg: "Error fetching candidates",
+            error: error.message 
+        });
+    }
 };

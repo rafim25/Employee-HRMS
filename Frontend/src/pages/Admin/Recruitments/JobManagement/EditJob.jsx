@@ -22,7 +22,7 @@ import axios from 'axios';
 const EditJob = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { dispatch } = useAuth();
+  const { dispatch, state } = useAuth();
   const [loading, setLoading] = useState(true);
   const [skillOptions, setSkillOptions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState('');
@@ -174,7 +174,14 @@ const EditJob = () => {
     e.preventDefault();
     const loadingToast = toast.loading('Updating job...');
     try {
-      await updateJob(dispatch, id, jobData);
+      // Add updater information to jobData before submission
+      const updatedJobData = {
+        ...jobData,
+        updated_by: state.user.name || state.user.username, // Use name or username from auth state
+        updated_by_id: state.user.user_id // Use user_id from auth state
+      };
+
+      await updateJob(dispatch, id, updatedJobData);
       toast.success('Job updated successfully', { id: loadingToast });
       navigate('/admin/recruitments/job-management');
     } catch (error) {

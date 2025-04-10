@@ -125,6 +125,7 @@ export const createUser = async (req, res) => {
     try {
         const {
             user_id,
+            name,
             username,
             email,
             password,
@@ -140,6 +141,9 @@ export const createUser = async (req, res) => {
             permissions,
             url
         } = req.body;
+
+        // Log the request body to debug
+        console.log('Creating user with data:', req.body);
 
         // Validate required fields
         if (!username || !email || !password || !role) {
@@ -164,9 +168,10 @@ export const createUser = async (req, res) => {
         // Convert permissions to string if it's an array or object
         const stringifiedPermissions = permissions ? JSON.stringify(permissions) : '[]';
 
-        const newUser = await User.create({
+        const user = await User.create({
             uuid: uuidv4(),
             user_id,
+            name,
             username,
             email,
             password: hashPassword,
@@ -188,9 +193,8 @@ export const createUser = async (req, res) => {
 
         res.status(201).json({
             msg: "User created successfully",
-            user_id: newUser.user_id
+            user
         });
-
     } catch (error) {
         console.error('Error creating user:', error);
         res.status(500).json({

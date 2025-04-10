@@ -69,8 +69,9 @@ export const updateJob = async (req, res) => {
     const jobData = req.body;
 
     // Add updater information
-    jobData.updated_by = req.user.username;
-    jobData.updated_by_id = req.user.user_id;
+    console.log("req.name", req.name);
+    jobData.updated_by = jobData.updated_by;
+    jobData.updated_by_id = req.userId;
 
     const job = await Job.findByPk(id);
     if (!job) {
