@@ -46,7 +46,6 @@ console.log(`DB_PORT: ${process.env.DB_PORT}`);
 console.log(`DB_NAME: ${process.env.DB_NAME}`);
 
 // Now import database and other modules
-import db, { testConnection } from "./config/Database.js";
 
 const app = express();
 
@@ -156,14 +155,13 @@ app.use((req, res) => {
   res.status(404).json({ msg: "Route not found", path: req.url });
 });
 
-const PORT = process.env.APP_PORT || 5000;
-
 const startServer = async () => {
   try {
     // Test database connection
     await testConnection();
     
     // Start the server
+    const PORT = process.env.APP_PORT || 3002;
     app.listen(PORT, () => {
       console.log(`✅ Server is running on port ${PORT}`);
       console.log(`✅ Health check available at: http://localhost:${PORT}/api/health`);
