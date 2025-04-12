@@ -44,6 +44,13 @@ app.use(cors({
 // JSON middleware
 app.use(express.json());
 
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+// const envPath = path.resolve(process.cwd(), envFile);
+
+console.log(`📦 Loaded ENV: ${envFile}`);
+console.log(`🔧 Current Mode: ${process.env.NODE_ENV}`);
+console.log(`🎯 DB Host: ${process.env.DB_HOST}`);
+
 // Health Check Endpoint
 app.get('/api/health', async (req, res) => {
   try {
