@@ -3,6 +3,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+console.log('proces.env', process.env)
+console.log('DB_CONNECTION_LIMIT:', process.env.DB_CONNECTION_LIMIT);
+console.log('Parsed:', parseInt(process.env.DB_CONNECTION_LIMIT));
+
 const db = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER_NAME,
@@ -16,7 +20,7 @@ const db = new Sequelize(
       connectTimeout: parseInt(process.env.DB_TIMEOUT)
     },
     pool: {
-      max: parseInt(process.env.DB_CONNECTION_LIMIT),
+      max: parseInt(process.env.DB_CONNECTION_LIMIT) || 10,
       min: 0,
       acquire: 60000,
       idle: 10000
