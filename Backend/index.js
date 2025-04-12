@@ -32,13 +32,21 @@ import EmployeeCandidateRoutes from "./routes/EmployeeCandidateRoutes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables based on NODE_ENV
+// Load environment variables BEFORE importing other modules
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
-dotenv.config({ path: envFile });
+dotenv.config({ 
+  path: path.join(__dirname, envFile)
+});
 
-console.log(`📦 Environment: ${process.env.NODE_ENV}`);
-console.log(`🌐 Server Port: ${process.env.APP_PORT}`);
-console.log(`🔌 Database Host: ${process.env.DB_HOST}`);
+// Verify environment variables are loaded
+console.log('🔧 Environment Check:');
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`DB_HOST: ${process.env.DB_HOST}`);
+console.log(`DB_PORT: ${process.env.DB_PORT}`);
+console.log(`DB_NAME: ${process.env.DB_NAME}`);
+
+// Now import database and other modules
+import db, { testConnection } from "./config/Database.js";
 
 const app = express();
 

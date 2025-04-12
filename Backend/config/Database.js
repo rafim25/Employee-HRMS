@@ -1,22 +1,45 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Log database configuration (sanitized)
+// Load environment variables
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+dotenv.config({ 
+  path: path.join(__dirname, '..', envFile)
+});
+
+// Verify database configuration
+const dbConfig = {
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT, 10),
+  database: process.env.DB_NAME,
+  username: process.env.DB_USER_NAME,
+  password: process.env.DB_PASSWORD
+};
+
+// Log configuration (without sensitive data)
 console.log('📊 Database Configuration:');
-console.log(`Host: ${process.env.DB_HOST}`);
-console.log(`Port: ${process.env.DB_PORT}`);
-console.log(`Database: ${process.env.DB_NAME}`);
-console.log(`Username: ${process.env.DB_USER_NAME}`);
+console.log(`Host: ${dbConfig.host}`);
+console.log(`Port: ${dbConfig.port}`);
+console.log(`Database: ${dbConfig.database}`);
+console.log(`Username: ${dbConfig.username}`);
+
+// Validate configuration
+if (!dbConfig.host || !dbConfig.username || !dbConfig.database) {
+  throw new Error('Missing required database configuration. Check your environment variables.');
+}
 
 const db = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER_NAME,
-  process.env.DB_PASSWORD,
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
   {
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
+    host: dbConfig.host,
+    port: dbConfig.port,
     dialect: 'mysql',
     logging: false,
     pool: {
@@ -27,22 +50,26 @@ const db = new Sequelize(
     },
     dialectOptions: {
       connectTimeout: 60000,
-      // For Railway MySQL SSL connection
-      ssl: process.env.NODE_ENV === 'production' ? {
+      ssl: {
         rejectUnauthorized: false
-      } : false
+      }
     }
   }
 );
 
-// Simple connection test
 const testConnection = async () => {
   try {
     await db.authenticate();
-    console.log('✅ Database connection has been established successfully.');
+    console.log('✅ Database connection established successfully');
     return true;
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
+    console.error('❌ Database connection error:', {
+      message: error.message,
+      host: dbConfig.host,
+      port: dbConfig.port,
+      database: dbConfig.database,
+      username: dbConfig.username
+    });
     throw error;
   }
 };
