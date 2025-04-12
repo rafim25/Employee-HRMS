@@ -32,26 +32,24 @@ import EmployeeCandidateRoutes from "./routes/EmployeeCandidateRoutes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+// Load environment variables based on NODE_ENV
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
-// const envPath = path.resolve(process.cwd(), envFile);
+dotenv.config({ path: envFile });
 
-console.log(`📦 Loaded ENV: ${envFile}`);
-console.log(`🔧 Current Mode: ${process.env.NODE_ENV}`);
-console.log(`🎯 DB Host: ${process.env.DB_HOST}`);
+console.log(`📦 Environment: ${process.env.NODE_ENV}`);
+console.log(`🌐 Server Port: ${process.env.APP_PORT}`);
+console.log(`🔌 Database Host: ${process.env.DB_HOST}`);
+
+const app = express();
 
 // CORS middleware
 app.use(cors({
   credentials: true,
-  origin: 'http://localhost:5173'
+  origin: process.env.CLIENT_URL || 'http://localhost:5173'
 }));
 
 // JSON middleware
 app.use(express.json());
-
-
 
 // Health Check Endpoint
 app.get('/api/health', async (req, res) => {
@@ -126,8 +124,6 @@ app.use((req, res, next) => {
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 // Mount routes
-
-
 app.use("/api", EmailRoute);
 app.use(UserRoute);
 app.use(AuthV2Route);
