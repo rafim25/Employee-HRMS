@@ -226,6 +226,6 @@ const syncNewColumns = async () => {
     }
 };
 
-syncNewColumns();
+// syncNewColumns();
 
 export default Candidate; 

@@ -83,13 +83,13 @@ User.hasMany(Expense);
 Expense.belongsTo(User, { foreignKey: "userId", targetKey: "user_id" });
 
 // Force sync the model with the database
-(async () => {
-  try {
-    await Expense.sync({ alter: true });
-    console.log("✅ Expenses table synchronized");
-  } catch (error) {
-    console.error("❌ Error synchronizing Expenses table:", error);
-  }
-})();
+// (async () => {
+//   try {
+//     await Expense.sync({ alter: true });
+//     console.log("✅ Expenses table synchronized");
+//   } catch (error) {
+//     console.error("❌ Error synchronizing Expenses table:", error);
+//   }
+// })();
 
 export default Expense;

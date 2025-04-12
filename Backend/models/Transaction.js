@@ -90,13 +90,13 @@ Transaction.belongsTo(Loan, {
 });
 
 // Force sync the model with the database
-(async () => {
-  try {
-    await Transaction.sync({ alter: true });
-    console.log("✅ Transactions table synchronized");
-  } catch (error) {
-    console.error("❌ Error synchronizing Transactions table:", error);
-  }
-})();
+// (async () => {
+//   try {
+//     await Transaction.sync({ alter: true });
+//     console.log("✅ Transactions table synchronized");
+//   } catch (error) {
+//     console.error("❌ Error synchronizing Transactions table:", error);
+//   }
+// })();
 
 export default Transaction;

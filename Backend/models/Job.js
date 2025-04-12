@@ -215,15 +215,15 @@ const syncNewColumns = async () => {
 };
 
 // Immediately invoke the sync function with proper error handling
-(async () => {
-    try {
-        console.log('Starting database synchronization...');
-        await syncNewColumns();
-        console.log('✅ Database synchronization complete');
-    } catch (error) {
-        console.error('❌ Database synchronization failed:', error);
-        console.error(error);
-    }
-})();
+// (async () => {
+//     try {
+//         console.log('Starting database synchronization...');
+//         await syncNewColumns();
+//         console.log('✅ Database synchronization complete');
+//     } catch (error) {
+//         console.error('❌ Database synchronization failed:', error);
+//         console.error(error);
+//     }
+// })();
 
 export default Job;

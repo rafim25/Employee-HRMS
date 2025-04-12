@@ -67,13 +67,13 @@ const Loan = db.define(
 Loan.belongsTo(User, { foreignKey: "customer_id", targetKey: "user_id" });
 
 // Force sync the model with the database to update ENUM values
-(async () => {
-  try {
-    await Loan.sync({ alter: true });
-    console.log("✅ Loans table synchronized with updated status ENUM values");
-  } catch (error) {
-    console.error("❌ Error synchronizing Loans table:", error);
-  }
-})();
+// (async () => {
+//   try {
+//     await Loan.sync({ alter: true });
+//     console.log("✅ Loans table synchronized with updated status ENUM values");
+//   } catch (error) {
+//     console.error("❌ Error synchronizing Loans table:", error);
+//   }
+// })();
 
 export default Loan;

@@ -113,13 +113,13 @@ const User = db.define(
 );
 
 // Force sync the model with the database
-(async () => {
-  try {
-    await User.sync({ alter: true });
-    console.log("✅ Users table synchronized");
-  } catch (error) {
-    console.error("❌ Error synchronizing Users table:", error);
-  }
-})();
+// (async () => {
+//   try {
+//     await User.sync({ alter: true });
+//     console.log("✅ Users table synchronized");
+//   } catch (error) {
+//     console.error("❌ Error synchronizing Users table:", error);
+//   }
+// })();
 
 export default User;

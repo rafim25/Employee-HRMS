@@ -8,7 +8,6 @@ import { fileURLToPath } from 'url';
 
 import bodyParser from 'body-parser';
 import db, { testConnection } from "./config/Database.js";
-import initializeDatabase from "./config/initDb.js";
 import SequelizeStore from "connect-session-sequelize";
 
 import UserRoute from "./routes/UserRoute.js";
@@ -36,142 +35,151 @@ const __dirname = path.dirname(__filename);
 const app = express();
 dotenv.config();
 
-// Remove other database initialization code and replace with:
-(async () => {
-    try {
-        await initializeDatabase();
-        console.log("✅ Database initialized successfully");
-    } catch (error) {
-        console.error("❌ Failed to initialize database:", error);
-    }
-})();
+// CORS middleware
+app.use(cors({
+  credentials: true,
+  origin: 'http://localhost:5173'
+}));
 
-// Authenticate and sync DB
-(async () => {
+// JSON middleware
+app.use(express.json());
+
+// Health Check Endpoint
+app.get('/api/health', async (req, res) => {
   try {
+    // Check database connection
     await db.authenticate();
-    console.log('✅ Database connected...');
-    await db.sync({ alter: true });
-    console.log('✅ Database synchronized...');
+    
+    // Return health status
+    res.json({
+      status: 'healthy',
+      timestamp: new Date(),
+      uptime: process.uptime(),
+      database: 'connected',
+      environment: process.env.NODE_ENV || 'development'
+    });
   } catch (error) {
-    console.error('❌ Error syncing database:', error);
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date(),
+      uptime: process.uptime(),
+      database: 'disconnected',
+      error: error.message,
+      environment: process.env.NODE_ENV || 'development'
+    });
   }
-})();
+});
 
-// Start Server Function
+// Configure session store
+const sessionStore = SequelizeStore(session.Store);
+const store = new sessionStore({
+  db: db,
+  tableName: 'sessions', // Explicitly name the sessions table
+  checkExpirationInterval: 15 * 60 * 1000, // Clean up expired sessions every 15 minutes
+  expiration: 24 * 60 * 60 * 1000  // Sessions expire after 24 hours
+});
+
+// Create the sessions table if it doesn't exist
+store.sync();
+
+// Session middleware
+app.use(session({
+  secret: process.env.SESS_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false, // Changed to false for better security
+  store: store,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Only use secure in production
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  },
+  name: 'sid' // Change the cookie name from 'connect.sid' to something less obvious
+}));
+
+// Conditionally apply body-parser (important for multer compatibility)
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.startsWith('multipart/form-data')) {
+    return next(); // skip bodyParser for file uploads
+  }
+  bodyParser.json()(req, res, () => {
+    bodyParser.urlencoded({ extended: true })(req, res, next);
+  });
+});
+
+// Logging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
+// Static files
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
+// Mount routes
+
+
+app.use("/api", EmailRoute);
+app.use(UserRoute);
+app.use(AuthV2Route);
+app.use("/api", ExpenseRoute);
+app.use(LoanRoute);
+app.use(DashBoardRoute);
+app.use(TransactionRoute);
+app.use(DataJabatanRoute);
+app.use(AuthRoute);
+app.use(DataKehadiranRoute);
+app.use(EmployeeRoute);
+app.use(UploadRoute);
+app.use(jobRoutes);
+app.use('/api/skills', skillRoute);
+app.use(candidateRoutes);
+app.use(EmployeeJobRoutes);
+app.use(EmployeeCandidateRoutes);
+
+// 404 Handler
+app.use((req, res) => {
+  console.log(`❌ Route not found: ${req.method} ${req.url}`);
+  res.status(404).json({ msg: "Route not found", path: req.url });
+});
+
+const PORT = process.env.APP_PORT || 5000;
+
 const startServer = async () => {
   try {
-    const isConnected = await testConnection();
-    if (!isConnected) {
-      console.error("❌ Failed to start server due to DB connection issues");
-      process.exit(1);
-    }
-
-    const sessionStore = SequelizeStore(session.Store);
-    const store = new sessionStore({ db });
-    await store.sync();
-    console.log("✅ Session store synchronized");
-
-    const server = app.listen(process.env.APP_PORT || 3002, () => {
-      console.log(`✅ Server is running on port ${process.env.APP_PORT || 3002}`);
-      console.log(`📝 Environment: ${process.env.NODE_ENV}`);
+    // Test database connection
+    await testConnection();
+    
+    // Start the server
+    app.listen(PORT, () => {
+      console.log(`✅ Server is running on port ${PORT}`);
+      console.log(`✅ Health check available at: http://localhost:${PORT}/api/health`);
     });
-
-    server.timeout = 60000;
-    server.keepAliveTimeout = 65000;
-    server.headersTimeout = 66000;
-
-    // Setup CORS
-    app.use(cors({
-      origin: process.env.NODE_ENV === "production"
-        ? [
-            "https://raghaveliteprojects.com",
-            "http://raghaveliteprojects.com",
-            "http://172.105.59.206:5173",
-            "http://172.105.59.206:3002",
-            "http://localhost:5173",
-            "http://localhost:3002",
-          ]
-        : [
-            "http://172.105.59.206:5173",
-            "http://172.105.59.206:3002",
-            "http://localhost:5173",
-            "http://localhost:3002",
-          ],
-      credentials: true,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "Accept",
-        "Origin",
-      ],
-      exposedHeaders: ["Authorization"],
-    }));
-
-    // Conditionally apply body-parser (important for multer compatibility)
-    app.use((req, res, next) => {
-      const contentType = req.headers['content-type'] || '';
-      if (contentType.startsWith('multipart/form-data')) {
-        return next(); // skip bodyParser for file uploads
-      }
-      bodyParser.json()(req, res, () => {
-        bodyParser.urlencoded({ extended: true })(req, res, next);
-      });
-    });
-
-    // Express session
-    app.use(session({
-      secret: process.env.SESS_SECRET,
-      resave: false,
-      saveUninitialized: true,
-      store,
-      cookie: {
-        secure: false, // true if using HTTPS
-        httpOnly: true
-      }
-    }));
-
-    // Logging
-    app.use((req, res, next) => {
-      console.log(`${req.method} ${req.url}`);
-      next();
-    });
-
-    // Static files
-    app.use('/images', express.static(path.join(__dirname, 'public/images')));
-
-    // Mount routes
-    app.use("/api", EmailRoute);
-    app.use(UserRoute);
-    app.use(AuthV2Route);
-    app.use("/api", ExpenseRoute);
-    app.use(LoanRoute);
-    app.use(DashBoardRoute);
-    app.use(TransactionRoute);
-    app.use(DataJabatanRoute);
-    app.use(AuthRoute);
-    app.use(DataKehadiranRoute);
-    app.use(EmployeeRoute);
-    app.use(UploadRoute);
-    app.use(jobRoutes);
-    app.use('/api/skills', skillRoute);
-    app.use(candidateRoutes);
-    app.use(EmployeeJobRoutes);
-    app.use(EmployeeCandidateRoutes);
-
-    // 404 Handler
-    app.use((req, res) => {
-      console.log(`❌ Route not found: ${req.method} ${req.url}`);
-      res.status(404).json({ msg: "Route not found", path: req.url });
-    });
-
-    console.log("✅ Server boot complete.");
   } catch (error) {
-    console.error("❌ Server startup error:", error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
 
-startServer().catch(console.error);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    status: 'error',
+    message: 'Something broke!',
+    timestamp: new Date()
+  });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled Rejection:', error);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+startServer();
