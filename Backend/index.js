@@ -51,8 +51,19 @@ const app = express();
 
 // CORS middleware
 app.use(cors({
-  credentials: true,
-  origin: process.env.CLIENT_URL || 'http://localhost:5173'
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://13.60.189.178',
+      'http://your-production-domain.com'
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 
 // JSON middleware
