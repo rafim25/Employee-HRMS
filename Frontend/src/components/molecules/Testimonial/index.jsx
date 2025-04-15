@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaQuoteLeft, FaStar, FaHome, FaHandshake, FaTools, FaCheckCircle, FaUser } from 'react-icons/fa';
+import { FaQuoteLeft, FaStar, FaBriefcase, FaCheckCircle, FaUser, FaClock } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -8,75 +8,55 @@ import 'swiper/css/pagination';
 const Testimonials = () => {
     const testimonials = [
         {
-            name: "Dada Khalander",
-            role: "Software Engineer",
-            content: "The entire process from agreement to construction has been transparent and professional. The team's attention to detail and regular updates gave us complete peace of mind.",
+            name: "Anil Kumar S",
+            role: "Placed Candidate",
+            content: "I had a fantastic experience working with Seven Wings technology during my recent job search. Their team was highly professional, responsive, and supportive throughout the entire process. From the initial stage to the final placement, they went above and beyond to ensure that my needs and preferences were met.",
             rating: 5,
-            projectStatus: {
-                agreement: "Completed",
-                payment: "40% Processed",
-                construction: "50% Complete",
-                timeline: "On Schedule"
+            date: "1 year ago",
+            placementDetails: {
+                position: "Software Engineer",
+                company: "Leading Tech Company",
+                timeframe: "Quick Placement",
+                status: "Successfully Placed"
             }
         },
         {
-            name: "Mohammad Rafee",
-            role: "First-time Buyer",
-            content: "As a first-time property buyer, I was impressed with their professional approach. The team guided me through each step, making it seamless and stress-free.",
+            name: "Rachana Amrutha",
+            role: "Placed Candidate",
+            content: "I had an outstanding experience with Seven Wings Technology. From the moment I reached out to them, they provided top-notch support and guidance. I landed my dream job within a surprisingly short period. Great response from all the HR and the one day process is the impressive one.",
             rating: 5,
-            projectStatus: {
-                agreement: "Completed",
-                payment: "30% Processed",
-                construction: "35% Complete",
-                timeline: "On Schedule"
+            date: "1 year ago",
+            placementDetails: {
+                position: "Banking Professional",
+                company: "Top Bank",
+                timeframe: "One Day Process",
+                status: "Successfully Placed"
             }
         },
         {
-            name: "Suresh Kumar",
-            role: "Investment Buyer",
-            content: "The quality of construction and adherence to timelines has been impressive. Their property management solutions are truly world-class.",
+            name: "Srijith Gowda",
+            role: "Placed Candidate",
+            content: "Really happy with the kind of services they provide and handle all the candidates well. A special thanks to the Recruiter Rachana, Team Leader Anikha. As a team they helped and motivated me until I complete my last round of interview for Axis Bank and get my offer letter.",
             rating: 5,
-            projectStatus: {
-                agreement: "Completed",
-                payment: "60% Processed",
-                construction: "75% Complete",
-                timeline: "Ahead of Schedule"
+            date: "1 year ago",
+            placementDetails: {
+                position: "Banking Professional",
+                company: "Axis Bank",
+                timeframe: "Efficient Process",
+                status: "Successfully Placed"
             }
         },
         {
-            name: "Venkatesh Reddy",
-            role: "Property Owner",
-            content: "Exceptional service and quality construction. The team's commitment to excellence and timely delivery has exceeded my expectations.",
+            name: "Megha S",
+            role: "HDFC Bank Employee",
+            content: "I have taken training on BANK EDGE and have been placed in HDFC Bank. Thanks for your support to build my career in this field. Please contact Seven Wings Technology, you'll definitely get a good job in Banking.",
             rating: 5,
-            projectStatus: {
-                agreement: "Completed",
-                payment: "45% Processed",
-                construction: "55% Complete",
-                timeline: "On Schedule"
-            }
-        },
-        {
-            name: "Abdul Rahman",
-            role: "Business Owner",
-            content: "Their attention to detail and customer service is outstanding. The construction quality and project management are top-notch.",
-            rating: 5,
-            projectStatus: {
-                agreement: "Completed",
-                payment: "70% Processed",
-                construction: "80% Complete",
-                timeline: "On Schedule"
-            }
-        },
-        {
-            name: "Ramesh Babu",
-            role: "Property Investor",
-            content: "Very satisfied with the project progress and professional approach. The team's communication and transparency are commendable.",
-            rating: 5,
-            projectStatus: {
-                agreement: "Completed",
-                payment: "50% Processed",
-                construction: "60% Complete",
-                timeline: "On Schedule"
+            date: "3 years ago",
+            placementDetails: {
+                position: "Banking Professional",
+                company: "HDFC Bank",
+                timeframe: "After Training",
+                status: "Successfully Placed"
             }
         }
     ];
@@ -86,10 +66,10 @@ const Testimonials = () => {
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold text-black dark:text-white mb-4">
-                        Client Success Stories
+                        Success Stories
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-                        Discover how we've helped our clients achieve their property dreams with our comprehensive solutions and dedicated support.
+                        Discover how we've helped candidates secure their dream positions at leading organizations through our expert recruitment services.
                     </p>
                 </div>
 
@@ -136,47 +116,52 @@ const Testimonials = () => {
                                             <p className="text-gray-500 dark:text-gray-400">
                                                 {testimonial.role}
                                             </p>
-                                            <div className="flex mt-1">
-                                                {[...Array(testimonial.rating)].map((_, i) => (
-                                                    <FaStar key={i} className="text-yellow-400 text-sm" />
-                                                ))}
+                                            <div className="flex items-center mt-1">
+                                                <div className="flex mr-2">
+                                                    {[...Array(testimonial.rating)].map((_, i) => (
+                                                        <FaStar key={i} className="text-yellow-400 text-sm" />
+                                                    ))}
+                                                </div>
+                                                <span className="text-sm text-gray-400">
+                                                    {testimonial.date}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Testimonial Content */}
-                                    <p className="text-gray-600 dark:text-gray-300 mb-6 min-h-[80px]">
+                                    <p className="text-gray-600 dark:text-gray-300 mb-6 min-h-[100px]">
                                         "{testimonial.content}"
                                     </p>
 
-                                    {/* Project Status */}
+                                    {/* Placement Details */}
                                     <div className="border-t border-stroke dark:border-strokedark pt-4">
                                         <h5 className="text-sm font-semibold text-black dark:text-white mb-3">
-                                            Project Status
+                                            Placement Details
                                         </h5>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="flex items-center">
-                                                <FaHandshake className="text-primary mr-2" />
+                                                <FaBriefcase className="text-primary mr-2" />
                                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                    Agreement: {testimonial.projectStatus.agreement}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <FaHome className="text-primary mr-2" />
-                                                <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                    Payment: {testimonial.projectStatus.payment}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <FaTools className="text-primary mr-2" />
-                                                <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                    Construction: {testimonial.projectStatus.construction}
+                                                    {testimonial.placementDetails.position}
                                                 </span>
                                             </div>
                                             <div className="flex items-center">
                                                 <FaCheckCircle className="text-primary mr-2" />
                                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                    Timeline: {testimonial.projectStatus.timeline}
+                                                    {testimonial.placementDetails.company}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <FaClock className="text-primary mr-2" />
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {testimonial.placementDetails.timeframe}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <FaCheckCircle className="text-primary mr-2" />
+                                                <span className="text-sm text-green-500 font-medium">
+                                                    {testimonial.placementDetails.status}
                                                 </span>
                                             </div>
                                         </div>

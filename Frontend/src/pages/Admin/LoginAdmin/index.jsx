@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PublicLayout from '../../../components/layouts/PublicLayout';
 import FeatureHighlights from '../../../components/molecules/FeatureHighlights';
 import Testimonials from '../../../components/molecules/Testimonial';
+import RecruitmentWorkflow from '../../../components/molecules/FeatureHighlights';
 import { FaUserShield, FaLock, FaChartLine, FaUsers, FaFileInvoiceDollar, FaShieldAlt } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 import { api } from '../../../services/api';
@@ -34,19 +35,19 @@ const LoginAdmin = () => {
         const loadingToast = toast.loading('Signing in...');
 
         try {
-            const userData = await loginUser(dispatch, { 
-                username: formData.username, 
-                password: formData.password 
+            const userData = await loginUser(dispatch, {
+                username: formData.username,
+                password: formData.password
             });
-            
+
             if (!userData) {
                 throw new Error('No user data received');
             }
             const role = userData.role?.toLowerCase();
             localStorage.setItem('role', role);
-            
+
             toast.success('Login successful!', { id: loadingToast });
-            
+
             // Redirect based on role
             if (role === 'admin') {
                 navigate('/admin/dashboard');
@@ -61,28 +62,32 @@ const LoginAdmin = () => {
         }
     };
 
+    // Updated features for recruitment focus
     const features = [
         {
             icon: <FaUsers className="text-2xl" />,
-            title: 'User Management',
-            description: 'Seamlessly manage user profiles and access controls with our intuitive interface.'
-        },
-        {
-            icon: <FaFileInvoiceDollar className="text-2xl" />,
-            title: 'Financial Tracking',
-            description: 'Monitor transactions, generate reports, and maintain complete financial transparency.'
+            title: 'Talent Management',
+            description: 'Efficiently manage candidates, track applications, and streamline your recruitment process.'
         },
         {
             icon: <FaChartLine className="text-2xl" />,
-            title: 'Real-time Analytics',
-            description: 'Access comprehensive analytics and insights to make data-driven decisions.'
+            title: 'Recruitment Analytics',
+            description: 'Access detailed hiring metrics, pipeline analytics, and recruitment performance insights.'
+        },
+        {
+            icon: <FaFileInvoiceDollar className="text-2xl" />,
+            title: 'Interview Scheduling',
+            description: 'Seamlessly coordinate interviews, manage feedback, and track candidate progress.'
         },
         {
             icon: <FaShieldAlt className="text-2xl" />,
-            title: 'Secure Access',
-            description: 'Enterprise-grade security ensuring your data remains protected at all times.'
+            title: 'Secure Platform',
+            description: 'Enterprise-grade security ensuring candidate data remains protected and confidential.'
         }
     ];
+
+    // Updated testimonials data
+
 
     return (
         <PublicLayout>
@@ -90,17 +95,13 @@ const LoginAdmin = () => {
                 {/* Hero Section with Login */}
                 <div className="container mx-auto px-4 py-8 lg:py-12">
                     <div className="max-w-7xl mx-auto">
-                        {/* Welcome Header */}
+                        {/* Updated Welcome Header */}
                         <div className="text-center mb-12">
-                            {/* <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary mb-6 
-                                transform hover:scale-105 transition-transform duration-300">
-                                <MdDashboard className="text-white text-5xl" />
-                            </div> */}
                             <h1 className="text-4xl lg:text-5xl font-bold text-black dark:text-white mb-4">
-                                Welcome to Raghav Elite Projects
+                                Welcome to Seven Wings Technologies
                             </h1>
                             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                                Access your personalized dashboard to manage all your activities in one secure place
+                                Your trusted partner in recruitment and talent acquisition
                             </p>
                         </div>
 
@@ -110,7 +111,7 @@ const LoginAdmin = () => {
                             <div className="order-2 lg:order-1">
                                 <div className="grid sm:grid-cols-2 gap-6">
                                     {features.map((feature, index) => (
-                                        <div 
+                                        <div
                                             key={index}
                                             className="bg-white dark:bg-boxdark rounded-xl 
                                                 shadow-lg hover:shadow-xl p-6 
@@ -238,7 +239,7 @@ const LoginAdmin = () => {
                         <div className="max-w-7xl mx-auto space-y-16">
                             <div className="bg-white dark:bg-boxdark rounded-xl shadow-xl p-8
                                 border-2 border-stroke dark:border-strokedark transition-transform transition-shadow duration-300">
-                                <FeatureHighlights />
+                                <RecruitmentWorkflow />
                             </div>
 
                             <div className="bg-white dark:bg-boxdark rounded-xl shadow-xl p-8
@@ -248,6 +249,9 @@ const LoginAdmin = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Footer Section */}
+
             </div>
         </PublicLayout>
     );

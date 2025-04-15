@@ -23,9 +23,9 @@ const TopNavigation = ({ onLoginClick }) => {
                 <img src={logoDark} alt="Logo" className="h-20" />
               </Link>
             </div>
-            
+
             {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center justify-end flex-1 space-x-6 ml-32">
+            {/* <div className="hidden md:flex items-center justify-end flex-1 space-x-6 ml-32">
               {[
                 { to: "/", label: "Home" },
                 { to: "/gallery", label: "Gallery" },
@@ -36,10 +36,10 @@ const TopNavigation = ({ onLoginClick }) => {
                 <NavLink key={item.to} to={item.to}>
                   {item.label}
                 </NavLink>
-              ))}
-              
-              {/* Login Button */}
-              {/* <button
+              ))} */}
+
+            {/* Login Button */}
+            {/* <button
                 onClick={onLoginClick}
                 className="px-6 py-2.5 text-base font-medium text-white bg-primary hover:bg-blue-600 
                 rounded-lg transition-all duration-300 flex items-center space-x-2.5 
@@ -60,24 +60,24 @@ const TopNavigation = ({ onLoginClick }) => {
                 </svg>
                 <span>Login</span>
               </button> */}
-            </div>
+            {/* </div> */}
 
             {/* Mobile menu button */}
             <div className="md:hidden">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 rounded-lg text-gray-600 hover:text-primary hover:bg-blue-50 dark:text-gray-200 dark:hover:bg-boxdark-2 transition-all duration-300"
               >
-                <svg 
-                  className="h-7 w-7" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  className="h-7 w-7"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
                     d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
                   />
                 </svg>
@@ -106,7 +106,7 @@ const TopNavigation = ({ onLoginClick }) => {
                   {item.label}
                 </Link>
               ))}
-              
+
               {/* Mobile Login Button */}
               {/* <button
                 onClick={() => {
@@ -146,7 +146,7 @@ const TopNavigation = ({ onLoginClick }) => {
         animate-bounce-slow group hover:shadow-xl hover:shadow-green-500/20"
       >
         <FaWhatsapp className="text-white text-3xl group-hover:scale-110 transition-transform duration-300" />
-        
+
         {/* Tooltip */}
         <span className="absolute right-full mr-3 px-3 py-2 bg-white text-gray-700 
         text-sm font-medium rounded-lg shadow-lg whitespace-nowrap 
@@ -171,12 +171,12 @@ const NavLink = ({ to, children }) => (
   >
     {/* Hover effect background */}
     <span className="absolute inset-0 w-0 bg-blue-50 dark:bg-boxdark-2 transition-all duration-300 ease-out group-hover:w-full -z-10"></span>
-    
+
     {/* Text content */}
     <span className="relative">
       {children}
     </span>
-    
+
     {/* Bottom border animation */}
     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
   </Link>

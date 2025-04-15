@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaStar } from 'react-icons/fa';
 import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
 
 const Footer = () => {
@@ -7,12 +7,21 @@ const Footer = () => {
     <footer className="bg-primary text-white py-12 mt-auto">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* About Us Section */}
+          {/* Company Info Section */}
           <div>
-            <h6 className="text-xl font-semibold mb-4">About Us</h6>
+            <h6 className="text-xl font-semibold mb-4">Seven Wings Technologies</h6>
+            <div className="flex items-center mb-3">
+              <div className="flex text-yellow-400">
+                <FaStar />
+                <FaStar />
+                <FaStar />
+                <FaStar />
+                <FaStar />
+              </div>
+              <span className="ml-2 text-sm text-gray-200">3.012 Google reviews</span>
+            </div>
             <p className="text-sm text-gray-200">
-We are dedicated to providing the best real estate management solutions,
- helping clients streamline their property transactions efficiently and effectively.
+              Your trusted partner in recruitment and talent acquisition. We connect top talent with leading organizations across industries.
             </p>
           </div>
 
@@ -20,40 +29,70 @@ We are dedicated to providing the best real estate management solutions,
           <div>
             <h6 className="text-xl font-semibold mb-4">Contact Info</h6>
             <div className="space-y-3">
+              <div className="flex items-start">
+                <MdLocationOn className="mr-2 text-xl mt-1 flex-shrink-0" />
+                <span className="text-sm">
+                  Anugraha, No.313/313A, Siddhaiah Puranik Rd,
+                  East Jayanagar, 3rd Stage 4th Block,
+                  3rd Stage, Basaveshwar Nagar,
+                  Bengaluru, Karnataka 560079
+                </span>
+              </div>
               <div className="flex items-center">
                 <MdEmail className="mr-2 text-xl" />
-                <span className="text-sm">raghav.elite.projects@gmail.com</span>
+                <a href="mailto:contact@sevenwingstech.com" className="text-sm hover:text-gray-300 transition-colors">
+                  contact@sevenwingstech.com
+                </a>
               </div>
               <div className="flex items-center">
                 <MdPhone className="mr-2 text-xl" />
-                <span className="text-sm">+91 9900220446</span>
-              </div>
-              <div className="flex items-center">
-                <MdLocationOn className="mr-2 text-xl" />
-                <span className="text-sm">RAGHAVA ELITE PROJECTS
-AMRUTHA COLONY, CHIKALPARVI ROAD
-MANVI - 584123
-</span>
+                <a href="tel:+919900220446" className="text-sm hover:text-gray-300 transition-colors">
+                  +91 9900220446
+                </a>
               </div>
             </div>
           </div>
 
-          {/* Follow Us Section */}
+          {/* Quick Links & Social Section */}
           <div>
-            <h6 className="text-xl font-semibold mb-4">Follow Us</h6>
+            <h6 className="text-xl font-semibold mb-4">Quick Links</h6>
+            <ul className="space-y-2 mb-6">
+              <li>
+                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
+                  Job Openings
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
+                  Contact Us
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
+                  Career Resources
+                </a>
+              </li>
+            </ul>
+
+            <h6 className="text-xl font-semibold mb-3">Follow Us</h6>
             <div className="flex space-x-4">
-              <button className="hover:text-gray-300 transition-colors" aria-label="Facebook">
+              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="Facebook">
                 <FaFacebook className="text-2xl" />
-              </button>
-              <button className="hover:text-gray-300 transition-colors" aria-label="Twitter">
+              </a>
+              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="Twitter">
                 <FaTwitter className="text-2xl" />
-              </button>
-              <button className="hover:text-gray-300 transition-colors" aria-label="Instagram">
+              </a>
+              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="Instagram">
                 <FaInstagram className="text-2xl" />
-              </button>
-              <button className="hover:text-gray-300 transition-colors" aria-label="LinkedIn">
+              </a>
+              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="LinkedIn">
                 <FaLinkedin className="text-2xl" />
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -61,7 +100,7 @@ MANVI - 584123
         {/* Copyright Section */}
         <div className="mt-8 pt-6 border-t border-gray-600 text-center">
           <p className="text-sm">
-            © {new Date().getFullYear()} Raghav Elite Projects. All rights reserved.
+            © {new Date().getFullYear()} Seven Wings Technologies. All rights reserved.
           </p>
         </div>
       </div>

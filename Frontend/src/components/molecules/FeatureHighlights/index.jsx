@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  FiUserPlus,
+  FiUserCheck,
+  FiClipboard,
+  FiVideo,
+  FiAward,
   FiFileText,
-  FiDollarSign,
-  FiCalendar,
-  FiBook,
-  FiKey,
+  FiCheckCircle,
 } from 'react-icons/fi';
 
 const ProcessStep = ({ icon: Icon, title, description, isLast }) => (
@@ -25,44 +25,44 @@ const ProcessStep = ({ icon: Icon, title, description, isLast }) => (
   </div>
 );
 
-const LandPurchaseWorkflow = () => {
+const RecruitmentWorkflow = () => {
   const steps = [
     {
-      icon: FiUserPlus,
-      title: "Registration",
-      description: "Complete the initial registration process and verify your details"
+      icon: FiUserCheck,
+      title: "Application",
+      description: "Submit your application and complete initial screening process"
+    },
+    {
+      icon: FiClipboard,
+      title: "Assessment",
+      description: "Complete technical assessments and skill evaluations"
+    },
+    {
+      icon: FiVideo,
+      title: "Interview",
+      description: "Participate in virtual or in-person interview rounds"
+    },
+    {
+      icon: FiAward,
+      title: "Selection",
+      description: "Receive feedback and selection decision from hiring team"
     },
     {
       icon: FiFileText,
-      title: "Agreement",
-      description: "Review and sign the purchase agreement with all terms and conditions"
+      title: "Documentation",
+      description: "Complete required documentation and background verification"
     },
     {
-      icon: FiDollarSign,
-      title: "Downpayment",
-      description: "Make the initial downpayment to secure your land purchase"
-    },
-    {
-      icon: FiCalendar,
-      title: "EMI Process",
-      description: "Set up and manage your EMI payments through our easy payment system"
-    },
-    {
-      icon: FiBook,
-      title: "Land Registration",
-      description: "Complete the legal registration process and documentation"
-    },
-    {
-      icon: FiKey,
-      title: "Site Delivery",
-      description: "Receive your property documents and take possession of your land"
+      icon: FiCheckCircle,
+      title: "Onboarding",
+      description: "Receive offer letter and begin the onboarding process"
     }
   ];
 
   return (
     <div className="w-full p-6 bg-white dark:bg-boxdark rounded-xl shadow-sm border border-stroke dark:border-strokedark overflow-x-auto">
       <h2 className="text-2xl font-bold text-black dark:text-white mb-12 text-center">
-        Land Purchase Process
+        Recruitment Process at Seven Wings
       </h2>
       <div className="flex min-w-[900px] px-4">
         {steps.map((step, index) => (
@@ -73,8 +73,11 @@ const LandPurchaseWorkflow = () => {
           />
         ))}
       </div>
+      <div className="mt-8 text-center text-gray-600 dark:text-gray-400">
+        <p>Join hundreds of successful candidates who found their dream jobs through our streamlined process</p>
+      </div>
     </div>
   );
 };
 
-export default LandPurchaseWorkflow; 
+export default RecruitmentWorkflow; 
