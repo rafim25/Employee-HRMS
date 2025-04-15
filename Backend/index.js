@@ -49,21 +49,29 @@ console.log(`DB_NAME: ${process.env.DB_NAME}`);
 
 const app = express();
 
+// Define allowed origins
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://13.60.189.178',
+  'http://13.60.189.178:3002',
+  'http://13.60.189.178:5173'
+];
+
 // CORS middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://13.60.189.178',
-      'http://your-production-domain.com'
-    ];
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS policy violation'), false);
     }
+    return callback(null, true);
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Set-Cookie']
 }));
 
 // JSON middleware
@@ -99,27 +107,33 @@ app.get('/api/health', async (req, res) => {
 const sessionStore = SequelizeStore(session.Store);
 const store = new sessionStore({
   db: db,
-  tableName: 'sessions', // Explicitly name the sessions table
-  checkExpirationInterval: 15 * 60 * 1000, // Clean up expired sessions every 15 minutes
-  expiration: 24 * 60 * 60 * 1000  // Sessions expire after 24 hours
+  tableName: 'sessions',
+  checkExpirationInterval: 15 * 60 * 1000,
+  expiration: 24 * 60 * 60 * 1000
 });
 
-// Create the sessions table if it doesn't exist
-store.sync();
+// Ensure the session table exists
+await store.sync();
+
+// Session configuration
+const sessionConfig = {
+  secret: process.env.SESS_SECRET || 'your-secret-key',
+  resave: true,
+  saveUninitialized: false,
+  store: store,
+  name: 'connect.sid',
+  proxy: true,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+    path: '/'
+  }
+};
 
 // Session middleware
-app.use(session({
-  secret: process.env.SESS_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false, // Changed to false for better security
-  store: store,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // Only use secure in production
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  },
-  name: 'sid' // Change the cookie name from 'connect.sid' to something less obvious
-}));
+app.use(session(sessionConfig));
 
 // Conditionally apply body-parser (important for multer compatibility)
 app.use((req, res, next) => {
@@ -160,6 +174,57 @@ app.use(candidateRoutes);
 app.use(EmployeeJobRoutes);
 app.use(EmployeeCandidateRoutes);
 
+// Add session debugging middleware
+app.use((req, res, next) => {
+  console.log('🔍 Request:', {
+    url: req.url,
+    method: req.method,
+    sessionID: req.sessionID,
+    hasSession: !!req.session,
+    userId: req.session?.userId
+  });
+  next();
+});
+
+// Update auth check middleware
+const authCheck = async (req, res, next) => {
+  console.log('🔒 Auth Check:', {
+    url: req.url,
+    sessionID: req.sessionID,
+    session: req.session,
+    userId: req.session?.userId
+  });
+
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ msg: "Please login to your account!" });
+  }
+
+  try {
+    // Verify session in database
+    const sessionData = await store.get(req.sessionID);
+    if (!sessionData) {
+      return res.status(401).json({ msg: "Session expired, please login again" });
+    }
+    next();
+  } catch (error) {
+    console.error('Session verification error:', error);
+    res.status(500).json({ msg: "Error verifying session" });
+  }
+};
+
+// Apply auth check to protected routes
+app.use('/api/dashboard/*', authCheck);
+
+// Add session check endpoint for debugging
+app.get('/api/auth/check', (req, res) => {
+  res.json({
+    authenticated: !!req.session?.userId,
+    sessionID: req.sessionID,
+    userId: req.session?.userId,
+    role: req.session?.role
+  });
+});
+
 // 404 Handler
 app.use((req, res) => {
   console.log(`❌ Route not found: ${req.method} ${req.url}`);
@@ -185,11 +250,31 @@ const startServer = async () => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('❌ Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    sessionId: req.sessionID
+  });
+
+  if (err.message.includes('CORS')) {
+    return res.status(403).json({
+      error: 'CORS Error',
+      message: 'Origin not allowed'
+    });
+  }
+
+  if (err.message.includes('session')) {
+    return res.status(401).json({
+      error: 'Session Error',
+      message: 'Session invalid or expired'
+    });
+  }
+
   res.status(500).json({
-    status: 'error',
-    message: 'Something broke!',
-    timestamp: new Date()
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? 'An error occurred' : err.message
   });
 });
 
