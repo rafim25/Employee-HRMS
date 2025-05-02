@@ -1,318 +1,200 @@
 import React, { useState } from 'react';
-import { FiMapPin, FiPhone, FiMail, FiUser, FiMessageSquare } from 'react-icons/fi';
-import PublicLayout from '../../components/layouts/PublicLayout';
-import { api } from '../../services/api';
 import { motion } from 'framer-motion';
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaSpinner } from 'react-icons/fa';
+import ImageHero from '../../components/Booking/ImageHero';
+import TopNavigation from '../../components/molecules/TopNavigation';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [loading, setLoading] = useState(false);
 
-  const [submitStatus, setSubmitStatus] = useState({
-    loading: false,
-    success: false,
-    error: null
-  });
-
-  const handleWhatsAppClick = () => {
-    const phoneNumber = '9686918665';
-    const message = 'Hi, I would like to know more about your projects.';
-    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitStatus({ loading: true, success: false, error: null });
+    setLoading(true);
 
     try {
-      const response = await api.post('/api/email/contact', formData);
-      
+      const response = await axios.post('/api/email/contact/forestview', form);
       if (response.data.success) {
-        setSubmitStatus({
-          loading: false,
-          success: true,
-          error: null
-        });
-        // Reset form
-        setFormData({ name: '', email: '', phone: '', message: '' });
-        
-        // Show success message for 5 seconds
-        setTimeout(() => {
-          setSubmitStatus(prev => ({ ...prev, success: false }));
-        }, 5000);
+        toast.success('Message sent successfully!');
+        setForm({ name: '', email: '', message: '' });
       }
     } catch (error) {
-      setSubmitStatus({
-        loading: false,
-        success: false,
-        error: error.response?.data?.message || 'Failed to send message. Please try again.'
-      });
-      
-      // Clear error after 5 seconds
-      setTimeout(() => {
-        setSubmitStatus(prev => ({ ...prev, error: null }));
-      }, 5000);
+      toast.error(error.response?.data?.message || 'Failed to send message');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   return (
-    <PublicLayout>
-      <div className="min-h-screen bg-white dark:bg-boxdark">
-        {/* Hero Section */}
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black relative">
+      {/* Top Navigation */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <TopNavigation />
+      </div>
+
+      {/* Fixed Background Hero */}
+      <ImageHero
+        imageSrc="/images/resort-bg.jpg"
+      />
+
+      {/* Glassy Contact Card Overlay */}
+      <div className="relative z-10">
         <div className="container mx-auto px-4 py-8 lg:py-12">
           <div className="max-w-7xl mx-auto">
-            {/* Welcome Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl lg:text-5xl font-bold text-black dark:text-white mb-4">
-                Contact Us
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Get in touch with us for any inquiries or support
-              </p>
-            </div>
-
-            {/* Contact Form and Info Grid */}
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-              {/* Contact Form */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-                className="bg-white dark:bg-boxdark rounded-xl 
-                  shadow-xl hover:shadow-2xl p-8
-                  border-2 border-stroke dark:border-strokedark 
-                  transition-all duration-300"
-              >
-                <h2 className="text-2xl font-bold text-black dark:text-white mb-6">Send us a Message</h2>
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                      Your Name
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                        focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-boxdark-2
-                        text-gray-900 dark:text-gray-100"
-                        placeholder="John Doe"
-                      />
-                      <FiUser className="absolute right-3 top-3.5 text-gray-400" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                      Email Address <span className="text-gray-500 text-xs">(Optional)</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                        focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-boxdark-2
-                        text-gray-900 dark:text-gray-100"
-                        placeholder="john@example.com (Optional)"
-                      />
-                      <FiMail className="absolute right-3 top-3.5 text-gray-400" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                      Phone Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                        focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-boxdark-2
-                        text-gray-900 dark:text-gray-100"
-                        placeholder="+1 (555) 000-0000"
-                      />
-                      <FiPhone className="absolute right-3 top-3.5 text-gray-400" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                      Message
-                    </label>
-                    <div className="relative">
-                      <textarea
-                        name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        required
-                        rows="4"
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                        focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-boxdark-2
-                        text-gray-900 dark:text-gray-100"
-                        placeholder="Your message here..."
-                      ></textarea>
-                      <FiMessageSquare className="absolute right-3 top-3.5 text-gray-400" />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submitStatus.loading}
-                    className="w-full bg-primary text-white py-3 px-6 rounded-lg font-medium
-                    hover:bg-blue-600 transition-colors duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {submitStatus.loading ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Sending Message...
-                      </>
-                    ) : (
-                      <>
-                        <FiMail className="text-lg" />
-                        Send Message
-                      </>
-                    )}
-                  </button>
-
-                  {submitStatus.success && (
-                    <div className="mt-4 bg-success/10 text-success px-4 py-3 rounded-lg flex items-center gap-2">
-                      <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <p className="font-medium">Message Sent Successfully!</p>
-                        <p className="text-sm">Thank you for contacting us. We'll get back to you shortly.</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {submitStatus.error && (
-                    <div className="mt-4 bg-danger/10 text-danger px-4 py-3 rounded-lg flex items-center gap-2">
-                      <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <p className="font-medium">Error Sending Message</p>
-                        <p className="text-sm">{submitStatus.error}</p>
-                      </div>
-                    </div>
-                  )}
-                </form>
-              </motion.div>
-
-              {/* Contact Information */}
-              <div className="space-y-6">
-                {[
-                  {
-                    icon: <FiMapPin />,
-                    title: "Office Address",
-                    content: `RAGHAVA ELITE PROJECTS\n(REG NO: BLY-P-110-2023-24)\nAMRUTHA COLONY, CHIKALPARVI ROAD\nMANVI - 584123\nMOB: 9900220446`
-                  },
-                  {
-                    icon: <FiMapPin />,
-                    title: "Layout Address",
-                    content: `9TH WARD, OPP: SRIRAM INDUSTRY\nNEAR FOREST RANGE OFFICE\nMUSTOOR ROAD, MANVI-584123`,
-                    onClick: () => window.open('https://maps.app.goo.gl/LC3v5tY1Xf5hbegp7', '_blank')
-                  },
-                  {
-                    icon: <FiPhone />,
-                    title: "Contact Numbers",
-                    content: `Main: +91 9900220446\n`
-                  },
-                  {
-                    icon: <FiMail />,
-                    title: "Email Addresses",
-                    content: `Info: raghav.elite.projects@gmail.com\n`
-                  }
-                ].map((item, index) => (
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, type: 'spring' }}
+              className="w-full max-w-6xl mx-auto"
+            >
+              <div className='mt-16'>
+                {/* Page Title */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-center mb-12"
+                >
+                  <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+                    Contact Us
+                  </h1>
+                  <p className="text-xl text-white/90 max-w-2xl mx-auto">
+                    Get in touch with our team
+                  </p>
+                </motion.div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Contact Information */}
                   <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className={`bg-white dark:bg-boxdark rounded-xl 
-                      shadow-lg hover:shadow-xl p-6
-                      transform hover:scale-105 transition-all duration-300
-                      border-2 border-stroke dark:border-strokedark
-                      group ${item.onClick ? 'cursor-pointer' : ''}`}
-                    onClick={item.onClick}
+                    transition={{ delay: 0.2 }}
+                    className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10"
                   >
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center
-                        transform group-hover:scale-110 transition-transform duration-300">
-                        <div className="text-white text-xl">
-                          {item.icon}
+                    <h2 className="text-3xl font-bold text-white mb-6">Let's Connect</h2>
+                    <div className="space-y-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="bg-primary/20 p-3 rounded-lg">
+                          <FaMapMarkerAlt className="text-primary text-xl" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold mb-1">Our Location</h3>
+                          <p className="text-white">Maranahalli, Sakaleshpur, Karnataka</p>
                         </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-black dark:text-white mb-2 flex items-center gap-2">
-                          {item.title}
-                          {item.onClick && <FiMapPin className="text-primary animate-bounce" />}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 whitespace-pre-line">
-                          {item.content}
-                        </p>
-                        {item.onClick && (
-                          <p className="text-primary mt-2 text-sm">Click to open in Google Maps</p>
-                        )}
+                      <div className="flex items-start space-x-4">
+                        <div className="bg-primary/20 p-3 rounded-lg">
+                          <FaPhone className="text-primary text-xl" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold mb-1">Phone Number</h3>
+                          <p className="text-white">+91 8123432999</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-4">
+                        <div className="bg-primary/20 p-3 rounded-lg">
+                          <FaEnvelope className="text-primary text-xl" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold mb-1">Email Address</h3>
+                          <p className="text-white">unnathiforestview@gmail.com</p>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Map Section */}
-        <div className="mt-12 mb-12">
-          <div className="container mx-auto px-4">
-            <div className="max-w-7xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="bg-white dark:bg-boxdark rounded-xl shadow-xl p-4
-                  border-2 border-stroke dark:border-strokedark"
-              >
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3835.8067521882244!2d77.05019899999999!3d15.971465100000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bb7d10058cee913%3A0x66b0e7032568c2b!2sRAGHAV%20ELITE%20PROJECTS!5e0!3m2!1sen!2sin!4v1738206121713!5m2!1sen!2sin"
-                  width="100%"
-                  height="450"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="rounded-lg"
-                />
-              </motion.div>
-            </div>
+                  {/* Contact Form */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10"
+                  >
+                    <h2 className="text-3xl font-bold text-white mb-6">Send Message</h2>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div>
+                        <input
+                          type="text"
+                          name="name"
+                          value={form.name}
+                          onChange={handleChange}
+                          required
+                          placeholder="Your Name"
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="email"
+                          name="email"
+                          value={form.email}
+                          onChange={handleChange}
+                          required
+                          placeholder="Your Email"
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <textarea
+                          name="message"
+                          rows="4"
+                          value={form.message}
+                          onChange={handleChange}
+                          required
+                          placeholder="Your Message"
+                          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
+                        ></textarea>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-primary hover:bg-primary-dark text-white py-3 rounded-lg transition-all duration-300 font-semibold flex items-center justify-center space-x-2 disabled:opacity-70"
+                      >
+                        {loading ? (
+                          <>
+                            <FaSpinner className="animate-spin" />
+                            <span>Sending...</span>
+                          </>
+                        ) : (
+                          <span>Send Message</span>
+                        )}
+                      </button>
+                    </form>
+                  </motion.div>
+                </div>
+
+                {/* Map Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="mt-8 bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10"
+                >
+                  <h3 className="text-xl font-bold text-white mb-4">Find Us Here</h3>
+                  <div className="rounded-xl overflow-hidden h-[300px] border border-white/20">
+                    <iframe
+                      title="Unnathi Forest View Map"
+                      src="https://maps.google.com/maps?q=12.871403,75.716255&z=15&output=embed"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen=""
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    ></iframe>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
-    </PublicLayout>
+    </div>
   );
 };
 

@@ -1,107 +1,45 @@
 import React from 'react';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaStar } from 'react-icons/fa';
-import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
+import { Link } from 'react-router-dom';
+import { FaFacebook, FaTwitter, FaInstagram, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import logoDark from '../../../Assets/images/logo/logo-dark.png?url';
 
 const Footer = () => {
   return (
-    <footer className="bg-primary text-white py-12 mt-auto">
+    <footer className="bg-green-700 text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Company Info Section */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h6 className="text-xl font-semibold mb-4">Seven Wings Technologies</h6>
-            <div className="flex items-center mb-3">
-              <div className="flex text-yellow-400">
-                <FaStar />
-                <FaStar />
-                <FaStar />
-                <FaStar />
-                <FaStar />
-              </div>
-              <span className="ml-2 text-sm text-gray-200">3.012 Google reviews</span>
-            </div>
-            <p className="text-sm text-gray-200">
-              Your trusted partner in recruitment and talent acquisition. We connect top talent with leading organizations across industries.
-            </p>
+            <h3 className="text-xl font-bold mb-4">Forest View Resort</h3>
+            <p className="text-white/80">Experience luxury and tranquility in the heart of nature.</p>
           </div>
-
-          {/* Contact Info Section */}
           <div>
-            <h6 className="text-xl font-semibold mb-4">Contact Info</h6>
-            <div className="space-y-3">
-              <div className="flex items-start">
-                <MdLocationOn className="mr-2 text-xl mt-1 flex-shrink-0" />
-                <span className="text-sm">
-                  Anugraha, No.313/313A, Siddhaiah Puranik Rd,
-                  East Jayanagar, 3rd Stage 4th Block,
-                  3rd Stage, Basaveshwar Nagar,
-                  Bengaluru, Karnataka 560079
-                </span>
-              </div>
-              <div className="flex items-center">
-                <MdEmail className="mr-2 text-xl" />
-                <a href="mailto:contact@sevenwingstech.com" className="text-sm hover:text-gray-300 transition-colors">
-                  contact@sevenwingstech.com
-                </a>
-              </div>
-              <div className="flex items-center">
-                <MdPhone className="mr-2 text-xl" />
-                <a href="tel:+919900220446" className="text-sm hover:text-gray-300 transition-colors">
-                  +91 9900220446
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Links & Social Section */}
-          <div>
-            <h6 className="text-xl font-semibold mb-4">Quick Links</h6>
-            <ul className="space-y-2 mb-6">
-              <li>
-                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
-                  Job Openings
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm hover:text-gray-300 transition-colors">
-                  Career Resources
-                </a>
-              </li>
+            <h3 className="text-xl font-bold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li><Link to="/" className="text-white/80 hover:text-white">About Us</Link></li>
+              <li><Link to="/rooms" className="text-white/80 hover:text-white">Rooms</Link></li>
+              <li><Link to="/activities" className="text-white/80 hover:text-white">Activities</Link></li>
+              <li><Link to="/contact" className="text-white/80 hover:text-white">Contact</Link></li>
             </ul>
-
-            <h6 className="text-xl font-semibold mb-3">Follow Us</h6>
+          </div>
+          <div>
+            <h3 className="text-xl font-bold mb-4">Contact Info</h3>
+            <ul className="space-y-2">
+              <li className="text-white/80">Maranahalli, Sakaleshpur, Karnataka</li>
+              <li className="text-white/80">Phone: +91 8123432999</li>
+              <li className="text-white/80">Email: unnathiforestview@gmail.com</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-xl font-bold mb-4">Follow Us</h3>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="Facebook">
-                <FaFacebook className="text-2xl" />
-              </a>
-              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="Twitter">
-                <FaTwitter className="text-2xl" />
-              </a>
-              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="Instagram">
-                <FaInstagram className="text-2xl" />
-              </a>
-              <a href="#" className="hover:text-gray-300 transition-colors" aria-label="LinkedIn">
-                <FaLinkedin className="text-2xl" />
-              </a>
+              <a href="#" className="text-white/80 hover:text-white"><FaFacebook /></a>
+              <a href="#" className="text-white/80 hover:text-white"><FaTwitter /></a>
+              <a href="#" className="text-white/80 hover:text-white"><FaInstagram /></a>
             </div>
           </div>
         </div>
-
-        {/* Copyright Section */}
-        <div className="mt-8 pt-6 border-t border-gray-600 text-center">
-          <p className="text-sm">
-            © {new Date().getFullYear()} Seven Wings Technologies. All rights reserved.
-          </p>
+        <div className="mt-8 pt-8 border-t border-white/20 text-center text-white/80">
+          <p>&copy; 2024 Forest View Resort. All rights reserved.</p>
         </div>
       </div>
     </footer>

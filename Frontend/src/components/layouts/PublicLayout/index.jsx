@@ -1,5 +1,5 @@
 import React from 'react';
-import TopNavigation from '../../molecules/TopNavigation';
+import TopNavigation from '../../molecules/TopNavigation/index';
 import LoginModalWrapper from '../../molecules/LoginModalWrapper';
 import { useLoginModal } from '../../../context/LoginModalContext';
 import Footer from '../../molecules/Footer';

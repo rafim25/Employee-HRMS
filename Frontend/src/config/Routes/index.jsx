@@ -5,6 +5,7 @@ import FormDataPegawai from '../../components/molecules/Form/FormDataPegawai'
 import FormDataJabatan from '../../components/molecules/Form/FormDataJabatan'
 import FormSettingPotonganGaji from '../../components/molecules/Form/FormSettingPotonganGaji'
 import { ProtectedRoute } from '../../components/ProtectedRoute'
+import PublicLayout from '../../components/layouts/PublicLayout'
 import {
   LoginAdmin, DashboardAdmin, DataPegawai, DataJabatan, DataAbsensi, SettingPotonganGaji, DataGaji, LaporanGaji,
   LaporanAbsensi, SlipGaji, UbahPasswordAdmin, LoginPegawai, DashboardPegawai, DataGajiPegawai, UbahPasswordPegawai,
@@ -17,6 +18,8 @@ import Contact from '../../pages/Contact'
 import WhyChooseUs from '../../pages/WhyChooseUs'
 import Gallery from '../../pages/Gallery'
 import ProjectDocuments from '../../pages/ProjectDocuments'
+import Activities from '../../pages/Activities'
+import Reservation from '../../pages/Reservation'
 import TransactionReport from '../../pages/Admin/Reports/TransactionReport'
 import ResetPassword from '../../pages/Admin/Settings/ResetPassword'
 import JobList from '../../pages/Admin/Recruitments/JobManagement/JobList'
@@ -40,6 +43,23 @@ import EmployeeCandidateDetails from '../../pages/Employee/Recruitments/Candidat
 import EmployeeJobList from '../../pages/Employee/Recruitments/JobManagement/JobList'
 import EmployeeJobDetails from '../../pages/Employee/Recruitments/JobManagement/JobDetails'
 import EmployeeJobForm from '../../pages/Employee/Recruitments/JobManagement/JobForm'
+import BookingDashboard from '../../pages/BookingDashboard'
+import RoomList from '../../pages/Admin/Rooms/RoomList'
+import RoomForm from '../../pages/Admin/Rooms/RoomForm'
+import RoomDetails from '../../pages/Admin/Rooms/RoomDetails'
+import RoomEdit from '../../pages/Admin/Rooms/RoomEdit'
+import RoomTypeList from '../../pages/Admin/Rooms/RoomTypeList'
+import RoomTypeForm from '../../pages/Admin/Rooms/RoomTypeForm'
+import RoomTypeEdit from '../../pages/Admin/Rooms/RoomTypeEdit'
+import RoomTypeDetails from '../../pages/Admin/Rooms/RoomTypeDetails'
+import BookingList from '../../pages/Admin/Bookings/BookingList'
+import BookingCalendar from '../../pages/Admin/Bookings/BookingCalendar'
+import BookingDetails from '../../pages/Admin/Bookings/BookingDetails'
+import VisitorList from '../../pages/Admin/Visitors/VisitorList'
+import VisitorCheckIn from '../../pages/Admin/Visitors/VisitorCheckIn'
+import VisitorDetails from '../../pages/Admin/Visitors/VisitorDetails'
+import MyBookings from '../../pages/MyBookings'
+import RoomPricing from '../../pages/Admin/Rooms/RoomPricing'
 
 const AppRoutes = () => {
   return (
@@ -49,6 +69,22 @@ const AppRoutes = () => {
       <Route exact path='/why-choose-us' element={<WhyChooseUs />} />
       <Route exact path='/gallery' element={<Gallery />} />
       <Route exact path='/project-documents' element={<ProjectDocuments />} />
+      <Route exact path='/activities' element={<Activities />} />
+      <Route exact path='/reservation' element={
+        <PublicLayout>
+          <Reservation />
+        </PublicLayout>
+      } />
+      <Route exact path='/my-bookings' element={
+        <PublicLayout>
+          <MyBookings />
+        </PublicLayout>
+      } />
+      {/* <Route exact path='/booking-details/:bookingId' element={
+        <PublicLayout>
+          <BookingDetails />
+        </PublicLayout>
+      } /> */}
       <Route exact path='/admin/login' element={<LoginAdmin />} />
       <Route exact path='/' element={<LoginAdmin />} />
       <Route exact path='/pegawai/login' element={<LoginPegawai />} />
@@ -59,6 +95,79 @@ const AppRoutes = () => {
           <DashboardAdmin />
         </ProtectedRoute>
       } />
+      <Route path='/admin/booking-dashboard' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <BookingDashboard />
+        </ProtectedRoute>
+      } />
+
+      {/* Room Management Routes */}
+      <Route path='/admin/rooms/list' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomList />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/rooms/add' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomForm />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/rooms/edit/:id' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomEdit />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/rooms/:id' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomDetails />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/rooms/pricing' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomPricing />
+        </ProtectedRoute>
+      } />
+
+      {/* Booking Management Routes */}
+      <Route path='/admin/bookings/list' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <BookingList />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/bookings/calendar' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <BookingCalendar />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/bookings/:id' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <BookingDetails />
+        </ProtectedRoute>
+      } />
+
+      {/* Room Type Management Routes */}
+      <Route path='/admin/room-types/list' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomTypeList />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/room-types/add' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomTypeForm />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/room-types/edit/:id' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomTypeEdit />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/room-types/:id' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <RoomTypeDetails />
+        </ProtectedRoute>
+      } />
+
+      {/* Existing Admin Routes */}
       <Route path='/admin/master-data/data-pegawai' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <DataPegawai />
@@ -305,6 +414,23 @@ const AppRoutes = () => {
       <Route path="/employee/recruitments/job-management/edit/:id" element={
         <ProtectedRoute allowedRoles={['user']}>
           <EmployeeJobForm />
+        </ProtectedRoute>
+      } />
+
+      {/* Visitor Management Routes */}
+      <Route path='/admin/visitors/list' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <VisitorList />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/visitors/check-in' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <VisitorCheckIn />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/visitors/:id' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <VisitorDetails />
         </ProtectedRoute>
       } />
 

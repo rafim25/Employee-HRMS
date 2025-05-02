@@ -28,6 +28,19 @@ import candidateRoutes from './routes/CandidateRoute.js';
 import UploadRoute from './routes/UploadRoute.js';
 import EmployeeJobRoutes from "./routes/EmployeeJobRoutes.js";
 import EmployeeCandidateRoutes from "./routes/EmployeeCandidateRoutes.js";
+import BookingRoutes from "./routes/BookingRoutes.js";
+import PaymentRoutes from "./routes/PaymentRoutes.js";
+import VisitorRoutes from "./routes/VisitorRoutes.js";
+import Visitor from "./models/Visitor.js";
+import HotelRoom from "./models/HotelRoom.js";
+import Booking from "./models/Booking.js";
+import HotelRoomRoute from "./routes/HotelRoomRoute.js";
+import Payment from "./models/Payment.js";
+import RoomLockRoutes from "./routes/RoomLockRoutes.js";
+import RoomTypeRoute from './routes/RoomTypeRoute.js';
+import VisitorRoute from './routes/VisitorRoute.js';
+import HotelDashboardRoute from './routes/HotelDashboardRoute.js';
+import RoomPricingRoutes from './routes/RoomPricingRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,6 +86,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Set-Cookie']
 }));
+
+// Add this after your CORS middleware
+app.use('/QR', express.static('Frontend/public/QR'));
 
 // JSON middleware
 app.use(express.json());
@@ -173,7 +189,15 @@ app.use('/api/skills', skillRoute);
 app.use(candidateRoutes);
 app.use(EmployeeJobRoutes);
 app.use(EmployeeCandidateRoutes);
-
+app.use(PaymentRoutes);
+app.use(VisitorRoutes);
+app.use('/api/visitors', VisitorRoute);
+app.use(HotelRoomRoute);
+app.use(RoomLockRoutes);
+app.use(RoomTypeRoute);
+app.use(BookingRoutes);
+app.use(HotelDashboardRoute);
+app.use(RoomPricingRoutes);
 // Add session debugging middleware
 app.use((req, res, next) => {
   console.log('🔍 Request:', {
@@ -230,6 +254,91 @@ app.use((req, res) => {
   console.log(`❌ Route not found: ${req.method} ${req.url}`);
   res.status(404).json({ msg: "Route not found", path: req.url });
 });
+
+// Database synchronization
+(async () => {
+  try {
+    await db.authenticate();
+    console.log('Database Connected...');
+    
+    // Sync tables with proper error handling
+    try {
+      await Visitor.sync({ alter: true });
+      console.log('Visitor table synchronized successfully');
+    } catch (error) {
+      console.error('Error syncing Visitor table:', error.message);
+    }
+
+    try {
+      await HotelRoom.sync({ alter: true });
+      console.log('HotelRoom table synchronized successfully');
+    } catch (error) {
+      console.error('Error syncing HotelRoom table:', error.message);
+    }
+
+    try {
+      await Booking.sync({ alter: true });
+      console.log('Booking table synchronized successfully');
+    } catch (error) {
+      console.error('Error syncing Booking table:', error.message);
+    }
+
+    try {
+      await Payment.sync({ alter: true });
+      console.log('Payment table synchronized successfully');
+    } catch (error) {
+      console.error('Error syncing Payment table:', error.message);
+    }
+    
+    // Define relationships with proper foreign key names and unique aliases
+    Visitor.hasMany(Booking, {
+      foreignKey: 'visitor_id',
+      as: 'visitor_bookings'
+    });
+    
+    Booking.belongsTo(Visitor, {
+      foreignKey: 'visitor_id',
+      as: 'booking_visitor'
+    });
+    
+    // Single association between HotelRoom and Booking
+    HotelRoom.hasMany(Booking, {
+      foreignKey: 'room_id',
+      as: 'room_bookings'
+    });
+    
+    Booking.belongsTo(HotelRoom, {
+      foreignKey: 'room_id',
+      as: 'booking_room'
+    });
+    
+    Booking.hasMany(Payment, {
+      foreignKey: 'booking_id',
+      as: 'booking_payments'
+    });
+    
+    Payment.belongsTo(Booking, {
+      foreignKey: 'booking_id',
+      as: 'payment_booking'
+    });
+    
+    Visitor.hasMany(Payment, {
+      foreignKey: 'visitor_id',
+      as: 'visitor_payments'
+    });
+    
+    Payment.belongsTo(Visitor, {
+      foreignKey: 'visitor_id',
+      as: 'payment_visitor'
+    });
+    
+    console.log('All relationships were synchronized successfully.');
+  } catch (error) {
+    console.error('Database Sync Error:', error);
+    // Continue running the server even if sync fails
+    console.log('Continuing server startup despite sync error...');
+  }
+})();
 
 const startServer = async () => {
   try {

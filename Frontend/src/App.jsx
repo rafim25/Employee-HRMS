@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Routes } from './config';
 import { AuthProvider } from './context/AuthContext';
 import { LoginModalProvider } from './context/LoginModalContext';
+import BookingHistory from './pages/BookingHistory';
 
 function App() {
   const [loading, setLoading] = useState(true)

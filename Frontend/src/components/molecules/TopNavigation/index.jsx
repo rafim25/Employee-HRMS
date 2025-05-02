@@ -1,10 +1,35 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaWhatsapp } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FaWhatsapp, FaBars, FaTimes, FaUser, FaHistory, FaSignOutAlt } from 'react-icons/fa';
+import { useAuth } from '../../../context/AuthContext';
 import logoDark from '../../../Assets/images/logo/logo-dark.png?url';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+import LoginModal from '../LoginModal';
+import { loginUser } from '../../../context/actions/authActions';
 
 const TopNavigation = ({ onLoginClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state, dispatch } = useAuth();
+  const { user, isAuthenticated } = state;
+
+  console.log('isAuthenticated', isAuthenticated);
+  const isAdminLogin = location.pathname === '/admin/login';
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleWhatsAppClick = () => {
     const phoneNumber = '+919900220446';
@@ -12,10 +37,66 @@ const TopNavigation = ({ onLoginClick }) => {
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  const handleLogin = async (loginData) => {
+    try {
+      setLoginError('');
+      const endpoint = loginData.isAdminLogin ? '/api/admin/login' : '/api/visitors/login';
+      const payload = loginData.isAdminLogin
+        ? { username: loginData.username, password: loginData.password }
+        : { email: loginData.email, password: loginData.password };
+
+      let response;
+      if (loginData.isAdminLogin) {
+        response = await loginUser(dispatch, {
+          username: loginData.username,
+          password: loginData.password
+        });
+      } else {
+        response = await axios.post(endpoint, payload);
+      }
+
+      if (response) {
+        if (loginData.isAdminLogin) {
+          localStorage.setItem('adminAuth', JSON.stringify(response.data));
+          toast.success('Admin login successful');
+          navigate('/admin/booking-dashboard');
+        } else {
+          const payload = {
+            visitor_id: response.data.visitor.visitor_id,
+            name: response.data.visitor.name,
+            email: response.data.visitor.email,
+            role: 'visitor'
+          }
+          dispatch({ type: 'SET_USER', payload });
+          localStorage.setItem('auth', JSON.stringify({ ...payload, isAuthenticated: true }));
+          toast.success('Login successful');
+          navigate('/my-bookings');
+        }
+        setShowLoginModal(false);
+      }
+    } catch (error) {
+      setLoginError(error.response?.data?.message || 'Login failed. Please try again.');
+      toast.error(error.response?.data?.message || 'Login failed');
+    }
+  };
+
+  const handleLogout = () => {
+    dispatch({ type: 'LOGOUT' });
+    localStorage.removeItem('auth');
+    localStorage.removeItem('adminAuth');
+    setIsUserMenuOpen(false);
+    navigate('/');
+  };
+
   return (
     <>
-      <nav className="bg-gradient-to-r from-white to-primary text-white shadow-lg">
-        <div className="container mx-auto px-0">
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${isAdminLogin
+        ? 'bg-white/10 backdrop-blur-md'
+        : isScrolled
+          ? 'bg-black'
+          : 'bg-transparent'
+        }`}>
+        <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-20">
             {/* Logo/Brand */}
             <div className="flex-shrink-0 ml-0">
@@ -25,42 +106,77 @@ const TopNavigation = ({ onLoginClick }) => {
             </div>
 
             {/* Desktop Navigation Links */}
-            {/* <div className="hidden md:flex items-center justify-end flex-1 space-x-6 ml-32">
+            <div className="hidden md:flex items-center justify-end flex-1 space-x-6 ml-32">
               {[
                 { to: "/", label: "Home" },
                 { to: "/gallery", label: "Gallery" },
-                { to: "/project-documents", label: "Project Documents" },
-                { to: "/why-choose-us", label: "Why Choose Us" },
+                { to: "/activities", label: "Activities" },
                 { to: "/contact", label: "Contact Us" },
+                { to: "/reservation", label: "Book Now" },
               ].map((item) => (
                 <NavLink key={item.to} to={item.to}>
                   {item.label}
                 </NavLink>
-              ))} */}
+              ))}
 
-            {/* Login Button */}
-            {/* <button
-                onClick={onLoginClick}
-                className="px-6 py-2.5 text-base font-medium text-white bg-primary hover:bg-blue-600 
-                rounded-lg transition-all duration-300 flex items-center space-x-2.5 
-                hover:shadow-lg hover:shadow-blue-500/30 tracking-wide ml-4"
-              >
-                <svg 
-                  className="w-5 h-5" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+              {/* User Menu or Login Button */}
+              {isAuthenticated ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="px-6 py-2.5 text-base font-medium text-white bg-primary hover:bg-blue-600 
+                    rounded-lg transition-all duration-300 flex items-center space-x-2.5 
+                    hover:shadow-lg hover:shadow-blue-500/30 tracking-wide ml-4"
+                  >
+                    <FaUser className="w-5 h-5" />
+                    <span>{state.user?.name || 'My Account'}</span>
+                  </button>
+
+                  {/* User Dropdown Menu */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <Link
+                        to="/my-bookings"
+                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <FaHistory className="mr-2" />
+                        My Bookings
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        <FaSignOutAlt className="mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="px-6 py-2.5 text-base font-medium text-white bg-primary hover:bg-blue-600 
+                  rounded-lg transition-all duration-300 flex items-center space-x-2.5 
+                  hover:shadow-lg hover:shadow-blue-500/30 tracking-wide ml-4"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" 
-                  />
-                </svg>
-                <span>Login</span>
-              </button> */}
-            {/* </div> */}
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  <span>Login</span>
+                </button>
+              )}
+            </div>
 
             {/* Mobile menu button */}
             <div className="md:hidden">
@@ -91,15 +207,15 @@ const TopNavigation = ({ onLoginClick }) => {
               {[
                 { to: "/", label: "Home" },
                 { to: "/gallery", label: "Gallery" },
-                { to: "/project-documents", label: "Project Documents" },
-                { to: "/why-choose-us", label: "Why Choose Us" },
+                { to: "/activities", label: "Activities" },
                 { to: "/contact", label: "Contact Us" },
+                { to: "/reservation", label: "Book Now" },
               ].map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="block px-4 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 
-                  hover:bg-blue-50 hover:text-primary dark:hover:bg-boxdark-2 rounded-lg
+                  className="block px-4 py-2.5 text-base font-medium text-white
+                  hover:bg-white/10 hover:text-white/90 rounded-lg
                   transition-all duration-300"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -107,31 +223,55 @@ const TopNavigation = ({ onLoginClick }) => {
                 </Link>
               ))}
 
-              {/* Mobile Login Button */}
-              {/* <button
-                onClick={() => {
-                  onLoginClick();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full text-left px-4 py-2.5 text-base font-medium text-primary 
-                hover:bg-blue-50 dark:hover:bg-boxdark-2 rounded-lg
-                transition-all duration-300 flex items-center space-x-2"
-              >
-                <svg 
-                  className="w-5 h-5" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+              {/* Mobile User Menu or Login Button */}
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/my-bookings"
+                    className="block px-4 py-2.5 text-base font-medium text-white
+                    hover:bg-white/10 hover:text-white/90 rounded-lg
+                    transition-all duration-300 flex items-center space-x-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FaHistory />
+                    <span>My Bookings</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2.5 text-base font-medium text-white
+                    hover:bg-white/10 hover:text-white/90 rounded-lg
+                    transition-all duration-300 flex items-center space-x-2"
+                  >
+                    <FaSignOutAlt />
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowLoginModal(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-base font-medium text-white
+                  hover:bg-white/10 hover:text-white/90 rounded-lg
+                  transition-all duration-300 flex items-center space-x-2"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" 
-                  />
-                </svg>
-                <span>Login</span>
-              </button> */}
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  <span>Login1</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -158,6 +298,16 @@ const TopNavigation = ({ onLoginClick }) => {
           border-6 border-transparent border-l-white"></span>
         </span>
       </button>
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          setLoginError('');
+        }}
+        onSubmit={handleLogin}
+        error={loginError}
+      />
     </>
   );
 };
@@ -165,20 +315,12 @@ const TopNavigation = ({ onLoginClick }) => {
 const NavLink = ({ to, children }) => (
   <Link
     to={to}
-    className="relative px-5 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 rounded-lg 
-    hover:text-primary hover:bg-blue-50/80 dark:hover:bg-boxdark-2 
-    transition-all duration-300 group overflow-hidden tracking-wide"
+    className="relative px-5 py-2.5 text-base font-medium text-white hover:text-white/90 rounded-lg 
+    hover:bg-white/10 transition-all duration-300 group overflow-hidden tracking-wide"
   >
-    {/* Hover effect background */}
-    <span className="absolute inset-0 w-0 bg-blue-50 dark:bg-boxdark-2 transition-all duration-300 ease-out group-hover:w-full -z-10"></span>
-
-    {/* Text content */}
-    <span className="relative">
-      {children}
-    </span>
-
-    {/* Bottom border animation */}
-    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+    <span className="absolute inset-0 w-0 bg-white/10 transition-all duration-300 ease-out group-hover:w-full -z-10"></span>
+    <span className="relative">{children}</span>
+    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
   </Link>
 );
 
