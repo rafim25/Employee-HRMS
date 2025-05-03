@@ -28,6 +28,7 @@ import candidateRoutes from './routes/CandidateRoute.js';
 import UploadRoute from './routes/UploadRoute.js';
 import EmployeeJobRoutes from "./routes/EmployeeJobRoutes.js";
 import EmployeeCandidateRoutes from "./routes/EmployeeCandidateRoutes.js";
+import locationRoutes from './routes/LocationRoute.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -173,6 +174,7 @@ app.use('/api/skills', skillRoute);
 app.use(candidateRoutes);
 app.use(EmployeeJobRoutes);
 app.use(EmployeeCandidateRoutes);
+app.use(locationRoutes);
 
 // Add session debugging middleware
 app.use((req, res, next) => {

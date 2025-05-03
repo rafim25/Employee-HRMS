@@ -26,6 +26,9 @@ const EditJob = () => {
   const [loading, setLoading] = useState(true);
   const [skillOptions, setSkillOptions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState('');
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [userOptions, setUserOptions] = useState([]);
   const [jobData, setJobData] = useState({
     title: '',
     type: '',
@@ -43,9 +46,10 @@ const EditJob = () => {
     clientLocation: '',
     skills: [],
     status: 'draft',
+    editable_by: [],
   });
 
-  // Fetch skills on component mount
+  // Fetch skills, states, and users on component mount
   useEffect(() => {
     const fetchSkills = async () => {
       try {
@@ -69,8 +73,74 @@ const EditJob = () => {
       }
     };
 
+    const fetchStates = async () => {
+      try {
+        const response = await fetch('/api/locations/states', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch states');
+        const data = await response.json();
+        setStates(data);
+      } catch (error) {
+        console.error('Error fetching states:', error);
+        toast.error('Failed to load states');
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('/api/users', {
+          withCredentials: true
+        });
+        const usersList = response.data.map(user => ({
+          value: user.user_id,
+          label: user.username
+        })).sort((a, b) => a.label.localeCompare(b.label));
+        setUserOptions(usersList);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to load users');
+      }
+    };
+
     fetchSkills();
+    fetchStates();
+    fetchUsers();
   }, []);
+
+  const fetchDistricts = async (stateCode) => {
+    try {
+      const response = await fetch(`/api/locations/states/${stateCode}/districts`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch districts');
+      const data = await response.json();
+      setDistricts(data);
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+      toast.error('Failed to load districts');
+    }
+  };
+
+  const handleLocationChange = (field, value) => {
+    if (field === 'state') {
+      fetchDistricts(value);
+      setJobData(prev => ({
+        ...prev,
+        state: value,
+        city: '' // Reset city when state changes
+      }));
+    } else {
+      setJobData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
 
   // Load job data
   useEffect(() => {
@@ -89,6 +159,7 @@ const EditJob = () => {
             experienceRange: jobDetails.experienceRange || [0, 10],
             interviewRounds: jobDetails.interviewRounds || [],
             skills: jobDetails.skills || [],
+            editable_by: jobDetails.editable_by || [],
           });
           toast.success('Job details loaded', { id: loadingToast });
         }
@@ -308,30 +379,41 @@ const EditJob = () => {
                 <label className="mb-3 block text-sm font-medium text-black dark:text-white">
                   State <span className="text-meta-1">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   name="state"
                   value={jobData.state}
-                  onChange={handleChange}
+                  onChange={(e) => handleLocationChange('state', e.target.value)}
                   required
-                  placeholder="Enter state"
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                />
+                >
+                  <option value="">Select State</option>
+                  {states.map(state => (
+                    <option key={state.iso2} value={state.iso2}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
                 <label className="mb-3 block text-sm font-medium text-black dark:text-white">
                   City <span className="text-meta-1">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   name="city"
                   value={jobData.city}
-                  onChange={handleChange}
+                  onChange={(e) => handleLocationChange('city', e.target.value)}
                   required
-                  placeholder="Enter city"
+                  disabled={!jobData.state}
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                />
+                >
+                  <option value="">Select City</option>
+                  {districts.map(district => (
+                    <option key={district.id} value={district.name}>
+                      {district.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -411,6 +493,26 @@ const EditJob = () => {
               <div className="text-center mt-2">
                 {jobData.experienceRange[0]} - {jobData.experienceRange[1]} Years
               </div>
+            </div>
+
+            <div className="mb-4.5">
+              <label className="mb-3 block text-sm font-medium text-black dark:text-white">
+                Users with Edit Access
+              </label>
+              <Select
+                isMulti
+                options={userOptions}
+                value={userOptions.filter(option => jobData.editable_by.includes(option.value))}
+                onChange={(selected) => handleMultiSelectChange('editable_by', selected)}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                isClearable={true}
+                isSearchable={true}
+                placeholder="Select users who can edit this job..."
+                noOptionsMessage={() => "No users available"}
+                closeMenuOnSelect={false}
+                hideSelectedOptions={true}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

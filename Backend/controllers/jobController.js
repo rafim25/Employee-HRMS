@@ -8,6 +8,11 @@ export const createJob = async (req, res) => {
   try {
     const jobData = req.body;
     
+    // Ensure editable_by is an array
+    if (jobData.editable_by && !Array.isArray(jobData.editable_by)) {
+      jobData.editable_by = [jobData.editable_by];
+    }
+    
     const job = await Job.create(jobData);
     
     res.status(201).json({
@@ -67,17 +72,19 @@ export const updateJob = async (req, res) => {
   try {
     const { id } = req.params;
     const jobData = req.body;
-
-    // Add updater information
-    console.log("req.name", req.name);
-    jobData.updated_by = jobData.updated_by;
-    jobData.updated_by_id = req.userId;
-
+    
+    // Ensure editable_by is an array
+    if (jobData.editable_by && !Array.isArray(jobData.editable_by)) {
+      jobData.editable_by = [jobData.editable_by];
+    }
+    
     const job = await Job.findByPk(id);
     if (!job) {
-      return res.status(404).json({ msg: "Job not found" });
+      return res.status(404).json({
+        msg: "Job not found"
+      });
     }
-
+    
     await job.update(jobData);
     
     res.json({

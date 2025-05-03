@@ -216,7 +216,7 @@ const JobCard = ({ job, onEdit, onDelete, onStatusChange, onJobClick }) => {
           {job.updated_by && (
             <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
               <FaEdit className="mr-2 text-primary" />
-              <span>Last updated by: {job.updated_by}</span>
+              <span>Last updated by: {job.updated_by} on {formatDate(job.updatedAt)}</span>
             </div>
           )}
         </div>

@@ -490,11 +490,14 @@ const EditUser = () => {
                                             type='text'
                                             name='pan_number'
                                             value={userData.pan_number}
-                                            onChange={handleChange}
+                                            onChange={(e) => {
+                                                const value = e.target.value.toUpperCase();
+                                                handleChange({ target: { name: 'pan_number', value } });
+                                            }}
                                             required
                                             placeholder='Enter PAN card number'
                                             pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
-                                            className='w-full uppercase rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                                            className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Format: ABCDE1234F</p>
                                     </div>

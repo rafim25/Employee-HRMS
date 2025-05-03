@@ -15,6 +15,7 @@ import RejectionModal from '../../../../components/molecules/RejectionModal/Reje
 import { MdSource } from 'react-icons/md';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 import { checkUserPermission } from '../../../../utils/permissions';
+import * as XLSX from 'xlsx';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -553,6 +554,40 @@ const CandidateList = () => {
   // Add permission check for bulk actions if you have any
   const canAddCandidate = authState?.user?.role === 'admin' || authState?.user?.permissions?.includes('create_candidate');
 
+  // Add this function for Excel download
+  const handleDownloadExcel = () => {
+    try {
+      const candidatesForExcel = filteredCandidates.map(candidate => ({
+        'Candidate ID': candidate.uuid || 'N/A',
+        'Name': candidate.name || 'N/A',
+        'Email': candidate.email || 'N/A',
+        'Phone': candidate.phone || 'N/A',
+        'Job Applied': candidate.job?.title || 'N/A',
+        'Status': candidate.application_status || 'N/A',
+        'Source': candidate.source || 'N/A',
+        'Experience': candidate.experience || 'N/A',
+        'Current Company': candidate.current_company || 'N/A',
+        'Current CTC': candidate.current_ctc ? `₹${candidate.current_ctc}` : 'N/A',
+        'Expected CTC': candidate.expected_ctc ? `₹${candidate.expected_ctc}` : 'N/A',
+        'Notice Period': candidate.notice_period ? `${candidate.notice_period} days` : 'N/A',
+        'Current Location': candidate.current_location || 'N/A',
+        'Preferred Location': candidate.preferred_location || 'N/A',
+        'Applied Date': format(new Date(candidate.createdAt), 'MMM dd, yyyy') || 'N/A',
+        'Created By': candidate.created_by || 'N/A'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(candidatesForExcel);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Candidates');
+      XLSX.writeFile(wb, 'candidates_list.xlsx');
+
+      toast.success('Excel file downloaded successfully');
+    } catch (error) {
+      console.error('Error generating Excel:', error);
+      toast.error('Failed to generate Excel file');
+    }
+  };
+
   return (
     <DefaultLayoutAdmin>
       <BreadcrumbAdmin pageName='Candidates' icon={FaUser} backButton={false} />
@@ -595,6 +630,16 @@ const CandidateList = () => {
                 >
                   <FaFilter className="mr-2" />
                   Filters
+                </button>
+
+                {/* Add Excel Download Button */}
+                <button
+                  onClick={handleDownloadExcel}
+                  disabled={filteredCandidates.length === 0}
+                  className="inline-flex items-center justify-center rounded-lg border border-success bg-success py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaFileExcel className="mr-2" />
+                  Export Excel
                 </button>
               </div>
             </div>

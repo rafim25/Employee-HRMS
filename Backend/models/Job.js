@@ -132,6 +132,17 @@ const Job = db.define('jobs', {
         type: DataTypes.STRING,
         allowNull: true
     },
+    editable_by: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        get() {
+            const value = this.getDataValue('editable_by');
+            return value ? JSON.parse(value) : [];
+        },
+        set(value) {
+            this.setDataValue('editable_by', JSON.stringify(value));
+        }
+    },
 }, {
     freezeTableName: true,
     timestamps: true,
