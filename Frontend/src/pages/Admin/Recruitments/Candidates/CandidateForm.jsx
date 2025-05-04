@@ -15,6 +15,8 @@ const CandidateForm = () => {
   const navigate = useNavigate();
   const { dispatch, state } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [statesLoading, setStatesLoading] = useState(true);
   const [jobs, setJobs] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -90,6 +92,7 @@ const CandidateForm = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
+        setJobsLoading(true);
         const response = await fetch('/api/jobs', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -97,11 +100,13 @@ const CandidateForm = () => {
         });
         if (!response.ok) throw new Error('Failed to fetch jobs');
         const data = await response.json();
-        console.log('Fetched jobs:', data); // Debug log
+        console.log('Fetched jobs:', data);
         setJobs(data);
       } catch (error) {
         console.error('Error fetching jobs:', error);
         toast.error('Failed to load jobs');
+      } finally {
+        setJobsLoading(false);
       }
     };
 
@@ -111,6 +116,7 @@ const CandidateForm = () => {
   useEffect(() => {
     const fetchStates = async () => {
       try {
+        setStatesLoading(true);
         const response = await fetch('/api/locations/states', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -122,6 +128,8 @@ const CandidateForm = () => {
       } catch (error) {
         console.error('Error fetching states:', error);
         toast.error('Failed to load states');
+      } finally {
+        setStatesLoading(false);
       }
     };
 
@@ -872,604 +880,616 @@ const CandidateForm = () => {
     <>
       <DefaultLayoutAdmin>
         <BreadcrumbAdmin pageName="Add Candidate" icon={FaUser} />
-        <div className="mx-auto max-w-screen-2xl  ">
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            <Tab.Group>
-              <Tab.List className="flex border-b border-stroke dark:border-strokedark">
-                <Tab
-                  className={({ selected }) =>
-                    `w-full py-4 text-sm font-medium outline-none ${selected
-                      ? 'border-b-2 border-primary text-primary'
-                      : 'text-gray-600 hover:text-primary'
-                    }`
-                  }
-                >
-                  Single Upload
-                </Tab>
-                <Tab
-                  className={({ selected }) =>
-                    `w-full py-4 text-sm font-medium outline-none ${selected
-                      ? 'border-b-2 border-primary text-primary'
-                      : 'text-gray-600 hover:text-primary'
-                    }`
-                  }
-                >
-                  Bulk Upload
-                </Tab>
-              </Tab.List>
+        <div className="mx-auto max-w-screen-2xl">
+          {(jobsLoading || statesLoading) ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <Tab.Group>
+                <Tab.List className="flex border-b border-stroke dark:border-strokedark">
+                  <Tab
+                    className={({ selected }) =>
+                      `w-full py-4 text-sm font-medium outline-none ${selected
+                        ? 'border-b-2 border-primary text-primary'
+                        : 'text-gray-600 hover:text-primary'
+                      }`
+                    }
+                  >
+                    Single Upload
+                  </Tab>
+                  <Tab
+                    className={({ selected }) =>
+                      `w-full py-4 text-sm font-medium outline-none ${selected
+                        ? 'border-b-2 border-primary text-primary'
+                        : 'text-gray-600 hover:text-primary'
+                      }`
+                    }
+                  >
+                    Bulk Upload
+                  </Tab>
+                </Tab.List>
 
-              <Tab.Panels>
-                <Tab.Panel>
-                  <form onSubmit={handleSubmit} encType="multipart/form-data" className="p-6.5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaUser className="inline mr-2" />
-                          Full Name <span className="text-meta-1">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          required
-                          placeholder="Enter full name"
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaEnvelope className="inline mr-2" />
-                          Email <span className="text-meta-1">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          placeholder="Enter email"
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaPhoneAlt className="inline mr-2" />
-                          Phone <span className="text-meta-1">*</span>
-                        </label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          required
-                          placeholder="Enter phone number"
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaBriefcase className="inline mr-2" />
-                          Experience (years) <span className="text-meta-1">*</span>
-                        </label>
-                        <input
-                          type="number"
-                          name="experience"
-                          value={formData.experience}
-                          onChange={handleChange}
-                          required
-                          step="0.1"
-                          min="0"
-                          placeholder="Enter years of experience"
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaBuilding className="inline mr-2" />
-                          Current Company
-                        </label>
-                        <input
-                          type="text"
-                          name="currentCompany"
-                          value={formData.currentCompany}
-                          onChange={handleChange}
-                          placeholder="Enter current company"
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaRupeeSign className="inline mr-2" />
-                          Current CTC (LPA)
-                        </label>
-                        <div className="relative">
-                          <FaRupeeSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Tab.Panels>
+                  <Tab.Panel>
+                    <form onSubmit={handleSubmit} encType="multipart/form-data" className="p-6.5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaUser className="inline mr-2" />
+                            Full Name <span className="text-meta-1">*</span>
+                          </label>
                           <input
-                            type="number"
-                            name="currentCTC"
-                            value={formData.currentCTC}
+                            type="text"
+                            name="name"
+                            value={formData.name}
                             onChange={handleChange}
-                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 pl-10 pr-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                            required
+                            placeholder="Enter full name"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                           />
                         </div>
-                      </div>
 
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaRupeeSign className="inline mr-2" />
-                          Expected CTC (LPA)
-                        </label>
-                        <div className="relative">
-                          <FaRupeeSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaEnvelope className="inline mr-2" />
+                            Email <span className="text-meta-1">*</span>
+                          </label>
                           <input
-                            type="number"
-                            name="expectedCTC"
-                            value={formData.expectedCTC}
+                            type="email"
+                            name="email"
+                            value={formData.email}
                             onChange={handleChange}
-                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 pl-10 pr-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                            required
+                            placeholder="Enter email"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                           />
                         </div>
-                      </div>
 
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaClock className="inline mr-2" />
-                          Notice Period (days)
-                        </label>
-                        <input
-                          type="number"
-                          name="noticePeriod"
-                          value={formData.noticePeriod}
-                          onChange={handleChange}
-                          min="0"
-                          placeholder="Enter notice period"
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <h3 className="text-lg text-black mb-4">Current Location</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="mb-2.5 block text-black dark:text-white">
-                              State
-                            </label>
-                            <select
-                              value={currentLocation.state}
-                              onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
-                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                            >
-                              <option value="">Select State</option>
-                              {states.map(state => (
-                                <option key={state.iso2} value={state.iso2}>
-                                  {state.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="mb-2.5 block text-black dark:text-white">
-                              District
-                            </label>
-                            <select
-                              value={currentLocation.district}
-                              onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
-                              disabled={!currentLocation.state}
-                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                            >
-                              <option value="">Select City</option>
-                              {districts.map(district => (
-                                <option key={district.id} value={district.id}>
-                                  {district.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          {/* <div>
-                            <label className="mb-2.5 block text-black dark:text-white">
-                              City
-                            </label>
-                            <select
-                              value={currentLocation.city}
-                              onChange={(e) => handleLocationChange('current', 'city', e.target.value)}
-                              disabled={!currentLocation.district}
-                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                            >
-                              <option value="">Select City</option>
-                              {cities.map(city => (
-                                <option key={city.id} value={city.id}>
-                                  {city.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div> */}
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaPhoneAlt className="inline mr-2" />
+                            Phone <span className="text-meta-1">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            required
+                            placeholder="Enter phone number"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          />
                         </div>
-                      </div>
 
-                      <div className="md:col-span-2">
-                        <h3 className="text-lg text-black mb-4">Preferred Location</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="mb-2.5 block text-black dark:text-white">
-                              State
-                            </label>
-                            <select
-                              value={preferredLocation.state}
-                              onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
-                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                            >
-                              <option value="">Select State</option>
-                              {states.map(state => (
-                                <option key={state.iso2} value={state.iso2}>
-                                  {state.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <label className="mb-2.5 block text-black dark:text-white">
-                              District
-                            </label>
-                            <select
-                              value={preferredLocation.district}
-                              onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
-                              disabled={!preferredLocation.state}
-                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                            >
-                              <option value="">Select City</option>
-                              {districts.map(district => (
-                                <option key={district.id} value={district.id}>
-                                  {district.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          {/* <div>
-                            <label className="mb-2.5 block text-black dark:text-white">
-                              City
-                            </label>
-                            <select
-                              value={preferredLocation.city}
-                              onChange={(e) => handleLocationChange('preferred', 'city', e.target.value)}
-                              disabled={!preferredLocation.district}
-                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                            >
-                              <option value="">Select City</option>
-                              {cities.map(city => (
-                                <option key={city.id} value={city.id}>
-                                  {city.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div> */}
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaBriefcase className="inline mr-2" />
+                            Experience (years) <span className="text-meta-1">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            name="experience"
+                            value={formData.experience}
+                            onChange={handleChange}
+                            required
+                            step="0.1"
+                            min="0"
+                            placeholder="Enter years of experience"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          />
                         </div>
-                      </div>
 
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white text-sm">
-                          <FaBriefcase className="inline mr-2" />
-                          Job Position <span className="text-meta-1">*</span>
-                        </label>
-                        <select
-                          name="jobId"
-                          value={formData.jobId}
-                          onChange={handleChange}
-                          required
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        >
-                          <option value="">Select Job Position</option>
-                          {jobs.map(job => (
-                            <option key={job.id} value={job.id}>
-                              {job.title} - {job.type}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaBuilding className="inline mr-2" />
+                            Current Company
+                          </label>
+                          <input
+                            type="text"
+                            name="currentCompany"
+                            value={formData.currentCompany}
+                            onChange={handleChange}
+                            placeholder="Enter current company"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          />
+                        </div>
 
-                      {selectedJob && (
-                        <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaRupeeSign className="inline mr-2" />
+                            Current CTC (LPA)
+                          </label>
+                          <div className="relative">
+                            <FaRupeeSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <input
+                              type="number"
+                              name="currentCTC"
+                              value={formData.currentCTC}
+                              onChange={handleChange}
+                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 pl-10 pr-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaRupeeSign className="inline mr-2" />
+                            Expected CTC (LPA)
+                          </label>
+                          <div className="relative">
+                            <FaRupeeSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                            <input
+                              type="number"
+                              name="expectedCTC"
+                              value={formData.expectedCTC}
+                              onChange={handleChange}
+                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 pl-10 pr-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaClock className="inline mr-2" />
+                            Notice Period (days)
+                          </label>
+                          <input
+                            type="number"
+                            name="noticePeriod"
+                            value={formData.noticePeriod}
+                            onChange={handleChange}
+                            min="0"
+                            placeholder="Enter notice period"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <h3 className="text-lg text-black mb-4 flex items-center">
+                            <FaMapMarkerAlt className="mr-2" />
+                            Current Location
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                              <h4 className="font-semibold mb-2">Required Skills:</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {selectedJob.skills.map((skill, index) => (
-                                  <span
-                                    key={index}
-                                    className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
-                                  >
-                                    {skill}
-                                  </span>
+                              <label className="mb-2.5 block text-black dark:text-white">
+                                State
+                              </label>
+                              <select
+                                value={currentLocation.state}
+                                onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                              >
+                                <option value="">Select State</option>
+                                {states.map(state => (
+                                  <option key={state.iso2} value={state.iso2}>
+                                    {state.name}
+                                  </option>
                                 ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="mb-2.5 block text-black dark:text-white">
+                                District
+                              </label>
+                              <select
+                                value={currentLocation.district}
+                                onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
+                                disabled={!currentLocation.state}
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                              >
+                                <option value="">Select City</option>
+                                {districts.map(district => (
+                                  <option key={district.id} value={district.id}>
+                                    {district.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            {/* <div>
+                              <label className="mb-2.5 block text-black dark:text-white">
+                                City
+                              </label>
+                              <select
+                                value={currentLocation.city}
+                                onChange={(e) => handleLocationChange('current', 'city', e.target.value)}
+                                disabled={!currentLocation.district}
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                              >
+                                <option value="">Select City</option>
+                                {cities.map(city => (
+                                  <option key={city.id} value={city.id}>
+                                    {city.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div> */}
+                          </div>
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <h3 className="text-lg text-black mb-4 flex items-center">
+                            <FaMapMarkerAlt className="mr-2" />
+                            Preferred Location
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="mb-2.5 block text-black dark:text-white">
+                                State
+                              </label>
+                              <select
+                                value={preferredLocation.state}
+                                onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                              >
+                                <option value="">Select State</option>
+                                {states.map(state => (
+                                  <option key={state.iso2} value={state.iso2}>
+                                    {state.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="mb-2.5 block text-black dark:text-white">
+                                District
+                              </label>
+                              <select
+                                value={preferredLocation.district}
+                                onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
+                                disabled={!preferredLocation.state}
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                              >
+                                <option value="">Select City</option>
+                                {districts.map(district => (
+                                  <option key={district.id} value={district.id}>
+                                    {district.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            {/* <div>
+                              <label className="mb-2.5 block text-black dark:text-white">
+                                City
+                              </label>
+                              <select
+                                value={preferredLocation.city}
+                                onChange={(e) => handleLocationChange('preferred', 'city', e.target.value)}
+                                disabled={!preferredLocation.district}
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                              >
+                                <option value="">Select City</option>
+                                {cities.map(city => (
+                                  <option key={city.id} value={city.id}>
+                                    {city.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div> */}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white text-sm">
+                            <FaBriefcase className="inline mr-2" />
+                            Job Position <span className="text-meta-1">*</span>
+                          </label>
+                          <select
+                            name="jobId"
+                            value={formData.jobId}
+                            onChange={handleChange}
+                            required
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          >
+                            <option value="">Select Job Position</option>
+                            {jobs.map(job => (
+                              <option key={job.id} value={job.id}>
+                                {job.title} - {job.type}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {selectedJob && (
+                          <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <h4 className="font-semibold mb-2">Required Skills:</h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedJob.skills.map((skill, index) => (
+                                    <span
+                                      key={index}
+                                      className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                                    >
+                                      {skill}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold mb-2">Experience Range:</h4>
+                                <p className="text-gray-600">
+                                  {selectedJob.experienceRange[0]} - {selectedJob.experienceRange[1]} years
+                                </p>
                               </div>
                             </div>
-                            <div>
-                              <h4 className="font-semibold mb-2">Experience Range:</h4>
-                              <p className="text-gray-600">
-                                {selectedJob.experienceRange[0]} - {selectedJob.experienceRange[1]} years
+
+                            {selectedJob.questions && selectedJob.questions.length > 0 && (
+                              <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
+                                <h4 className="font-semibold mb-4">Job-Specific Questions:</h4>
+                                <div className="space-y-4">
+                                  {selectedJob.questions.map((question, index) => (
+                                    <div key={index} className="border border-stroke rounded-lg p-4 bg-white dark:bg-boxdark">
+                                      <label className="block text-black dark:text-white mb-2">
+                                        {question} <span className="text-meta-1">*</span>
+                                      </label>
+                                      <textarea
+                                        name={`job_answer_${index}`}
+                                        value={formData.job_answers[question] || ''}
+                                        onChange={(e) => {
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            job_answers: {
+                                              ...prev.job_answers,
+                                              [question]: e.target.value
+                                            }
+                                          }));
+                                        }}
+                                        required
+                                        placeholder="Enter your answer..."
+                                        rows="3"
+                                        className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white">
+                            <FaFileUpload className="inline mr-2" />
+                            Resume Upload
+                          </label>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleResumeUpload}
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          />
+                          {resume && (
+                            <p className="mt-2 text-sm text-success">
+                              Selected file: {resume.name}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white text-sm">
+                            <FaUserFriends className="inline mr-2" />
+                            Source
+                          </label>
+                          <select
+                            name="source"
+                            value={formData.source}
+                            onChange={handleChange}
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          >
+                            {sourceOptions.map(option => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {formData.source === 'Referral' && (
+                          <div>
+                            <label className="mb-2.5 block text-black dark:text-white text-sm">
+                              <FaUserFriends className="inline mr-2" />
+                              Referred By
+                            </label>
+                            <input
+                              type="text"
+                              name="referred_by"
+                              value={formData.referred_by}
+                              onChange={handleChange}
+                              placeholder="Enter referrer name"
+                              className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                            />
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="mb-2.5 block text-black dark:text-white text-sm">
+                            <FaUser className="inline mr-2" />
+                            Created By
+                          </label>
+                          <input
+                            type="text"
+                            name="created_by"
+                            value={state?.user?.username || 'N/A'}
+                            disabled
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-form-strokedark dark:bg-form-input"
+                          />
+                        </div>
+
+                        <div className="md:col-span-2 mt-4">
+                          <label className="mb-2.5 block text-black dark:text-white text-sm">
+                            <FaComments className="inline mr-2" />
+                            Notes
+                          </label>
+                          <textarea
+                            name="notes"
+                            value={formData.notes}
+                            onChange={handleChange}
+                            placeholder="Add any notes about the candidate..."
+                            rows="3"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-4 mt-6">
+                        <button
+                          type="button"
+                          onClick={() => navigate('/admin/recruitments/candidates')}
+                          className="flex justify-center rounded border border-stroke py-2 px-6 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex justify-center rounded bg-primary py-2 px-6 font-medium text-white hover:bg-opacity-90 disabled:bg-opacity-70"
+                        >
+                          {loading ? 'Saving...' : 'Save Candidate'}
+                        </button>
+                      </div>
+                    </form>
+                  </Tab.Panel>
+
+                  <Tab.Panel>
+                    <div className="p-6.5">
+                      <div className="mb-6">
+                        <h4 className="text-xl font-semibold mb-4">Bulk Upload Candidates</h4>
+                        <div className="flex items-center gap-4 mb-6">
+                          <button
+                            onClick={handleDownloadTemplate}
+                            className="flex items-center gap-2 text-primary hover:text-primary/80"
+                          >
+                            <FaDownload /> Download Template
+                          </button>
+                          <p className="text-sm text-gray-500">
+                            Download the template file, fill in the candidate details, and upload it back
+                          </p>
+                        </div>
+
+                        <div className="space-y-6">
+                          <div className="flex items-center gap-4">
+                            <div className="flex-1">
+                              <label className="mb-2.5 block font-medium text-black dark:text-white">
+                                Bulk Upload Candidates
+                              </label>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="file"
+                                  ref={fileInputRef}
+                                  onChange={handleFileChange}
+                                  accept=".xlsx,.xls"
+                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                />
+                              </div>
+                              <p className="mt-1 text-sm text-gray-500">
+                                Upload Excel file (.xlsx, .xls) with candidate details
                               </p>
+                            </div>
+
+                            <div className="flex-1">
+                              <label className="mb-2.5 block font-medium text-black dark:text-white">
+                                Upload Resumes (ZIP)
+                              </label>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="file"
+                                  ref={resumeZipInputRef}
+                                  onChange={handleResumeZipChange}
+                                  accept=".zip"
+                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                />
+                              </div>
+                              <p className="mt-1 text-sm text-gray-500">
+                                Upload ZIP file containing resumes. Resumes should be named with candidate's first name.
+                              </p>
+                            </div>
+
+                            <div className="flex items-end">
+                              <button
+                                type="button"
+                                onClick={handleBulkUpload}
+                                disabled={!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0}
+                                className={`inline-flex items-center justify-center rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 ${(!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0)
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : ''
+                                  }`}
+                              >
+                                <FaUpload className="mr-2" />
+                                {uploadStatus.isUploading ? 'Uploading...' : 'Upload'}
+                              </button>
+                              {uploadStatus.candidates.total > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={handleClearForm}
+                                  className="ml-4 inline-flex items-center justify-center rounded-md bg-gray-500 py-3 px-6 text-center font-medium text-white hover:bg-opacity-90"
+                                >
+                                  <FaTimes className="mr-2" />
+                                  Clear Results
+                                </button>
+                              )}
                             </div>
                           </div>
 
-                          {selectedJob.questions && selectedJob.questions.length > 0 && (
-                            <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
-                              <h4 className="font-semibold mb-4">Job-Specific Questions:</h4>
-                              <div className="space-y-4">
-                                {selectedJob.questions.map((question, index) => (
-                                  <div key={index} className="border border-stroke rounded-lg p-4 bg-white dark:bg-boxdark">
-                                    <label className="block text-black dark:text-white mb-2">
-                                      {question} <span className="text-meta-1">*</span>
-                                    </label>
-                                    <textarea
-                                      name={`job_answer_${index}`}
-                                      value={formData.job_answers[question] || ''}
-                                      onChange={(e) => {
-                                        setFormData(prev => ({
-                                          ...prev,
-                                          job_answers: {
-                                            ...prev.job_answers,
-                                            [question]: e.target.value
-                                          }
-                                        }));
-                                      }}
-                                      required
-                                      placeholder="Enter your answer..."
-                                      rows="3"
-                                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                                    />
+                          {(uploadStatus.candidates.total > 0 || uploadStatus.isUploading) && (
+                            <div className="mt-6">
+                              <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                                <div className="py-6 px-4 md:px-6 xl:px-7.5">
+                                  <h4 className="text-xl font-semibold text-black dark:text-white">
+                                    Resume Upload Status
+                                  </h4>
+                                </div>
+
+                                <div className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
+                                  <div className="col-span-2 flex items-center">
+                                    <p className="font-medium">Candidate Name</p>
+                                  </div>
+                                  <div className="col-span-2 flex items-center">
+                                    <p className="font-medium">Status</p>
+                                  </div>
+                                  <div className="col-span-2 flex items-center">
+                                    <p className="font-medium">File</p>
+                                  </div>
+                                  <div className="col-span-2 flex items-center">
+                                    <p className="font-medium">Message</p>
+                                  </div>
+                                </div>
+
+                                {uploadStatus.candidateStatus.map((status, index) => (
+                                  <div key={index} className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
+                                    <div className="col-span-2 flex items-center">
+                                      <p className="text-sm text-black dark:text-white">{status.name}</p>
+                                    </div>
+                                    <div className="col-span-2 flex items-center">
+                                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${status.status === 'success' ? 'bg-success/10 text-success' :
+                                        status.status === 'failed' ? 'bg-danger/10 text-danger' :
+                                          status.status === 'not-found' ? 'bg-warning/10 text-warning' :
+                                            status.status === 'processing' || status.status === 'uploading' ? 'bg-primary/10 text-primary' :
+                                              'bg-gray-100 text-gray-600'
+                                        }`}>
+                                        {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
+                                      </span>
+                                    </div>
+                                    <div className="col-span-2 flex items-center">
+                                      <p className="text-sm text-gray-500">{status.file || '-'}</p>
+                                    </div>
+                                    <div className="col-span-2 flex items-center">
+                                      <p className="text-sm text-gray-500">{status.message}</p>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           )}
                         </div>
-                      )}
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white">
-                          <FaFileUpload className="inline mr-2" />
-                          Resume Upload
-                        </label>
-                        <input
-                          type="file"
-                          accept=".pdf,.doc,.docx"
-                          onChange={handleResumeUpload}
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
-                        {resume && (
-                          <p className="mt-2 text-sm text-success">
-                            Selected file: {resume.name}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white text-sm">
-                          <FaUserFriends className="inline mr-2" />
-                          Source
-                        </label>
-                        <select
-                          name="source"
-                          value={formData.source}
-                          onChange={handleChange}
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        >
-                          {sourceOptions.map(option => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {formData.source === 'Referral' && (
-                        <div>
-                          <label className="mb-2.5 block text-black dark:text-white text-sm">
-                            <FaUserFriends className="inline mr-2" />
-                            Referred By
-                          </label>
-                          <input
-                            type="text"
-                            name="referred_by"
-                            value={formData.referred_by}
-                            onChange={handleChange}
-                            placeholder="Enter referrer name"
-                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                          />
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="mb-2.5 block text-black dark:text-white text-sm">
-                          <FaUser className="inline mr-2" />
-                          Created By
-                        </label>
-                        <input
-                          type="text"
-                          name="created_by"
-                          value={state?.user?.username || 'N/A'}
-                          disabled
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-form-strokedark dark:bg-form-input"
-                        />
-                      </div>
-
-                      <div className="md:col-span-2 mt-4">
-                        <label className="mb-2.5 block text-black dark:text-white text-sm">
-                          <FaComments className="inline mr-2" />
-                          Notes
-                        </label>
-                        <textarea
-                          name="notes"
-                          value={formData.notes}
-                          onChange={handleChange}
-                          placeholder="Add any notes about the candidate..."
-                          rows="3"
-                          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                        />
                       </div>
                     </div>
-
-                    <div className="flex justify-end gap-4 mt-6">
-                      <button
-                        type="button"
-                        onClick={() => navigate('/admin/recruitments/candidates')}
-                        className="flex justify-center rounded border border-stroke py-2 px-6 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex justify-center rounded bg-primary py-2 px-6 font-medium text-white hover:bg-opacity-90 disabled:bg-opacity-70"
-                      >
-                        {loading ? 'Saving...' : 'Save Candidate'}
-                      </button>
-                    </div>
-                  </form>
-                </Tab.Panel>
-
-                <Tab.Panel>
-                  <div className="p-6.5">
-                    <div className="mb-6">
-                      <h4 className="text-xl font-semibold mb-4">Bulk Upload Candidates</h4>
-                      <div className="flex items-center gap-4 mb-6">
-                        <button
-                          onClick={handleDownloadTemplate}
-                          className="flex items-center gap-2 text-primary hover:text-primary/80"
-                        >
-                          <FaDownload /> Download Template
-                        </button>
-                        <p className="text-sm text-gray-500">
-                          Download the template file, fill in the candidate details, and upload it back
-                        </p>
-                      </div>
-
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1">
-                            <label className="mb-2.5 block font-medium text-black dark:text-white">
-                              Bulk Upload Candidates
-                            </label>
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                accept=".xlsx,.xls"
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                              />
-                            </div>
-                            <p className="mt-1 text-sm text-gray-500">
-                              Upload Excel file (.xlsx, .xls) with candidate details
-                            </p>
-                          </div>
-
-                          <div className="flex-1">
-                            <label className="mb-2.5 block font-medium text-black dark:text-white">
-                              Upload Resumes (ZIP)
-                            </label>
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="file"
-                                ref={resumeZipInputRef}
-                                onChange={handleResumeZipChange}
-                                accept=".zip"
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                              />
-                            </div>
-                            <p className="mt-1 text-sm text-gray-500">
-                              Upload ZIP file containing resumes. Resumes should be named with candidate's first name.
-                            </p>
-                          </div>
-
-                          <div className="flex items-end">
-                            <button
-                              type="button"
-                              onClick={handleBulkUpload}
-                              disabled={!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0}
-                              className={`inline-flex items-center justify-center rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 ${(!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0)
-                                ? 'opacity-50 cursor-not-allowed'
-                                : ''
-                                }`}
-                            >
-                              <FaUpload className="mr-2" />
-                              {uploadStatus.isUploading ? 'Uploading...' : 'Upload'}
-                            </button>
-                            {uploadStatus.candidates.total > 0 && (
-                              <button
-                                type="button"
-                                onClick={handleClearForm}
-                                className="ml-4 inline-flex items-center justify-center rounded-md bg-gray-500 py-3 px-6 text-center font-medium text-white hover:bg-opacity-90"
-                              >
-                                <FaTimes className="mr-2" />
-                                Clear Results
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {(uploadStatus.candidates.total > 0 || uploadStatus.isUploading) && (
-                          <div className="mt-6">
-                            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-                              <div className="py-6 px-4 md:px-6 xl:px-7.5">
-                                <h4 className="text-xl font-semibold text-black dark:text-white">
-                                  Resume Upload Status
-                                </h4>
-                              </div>
-
-                              <div className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
-                                <div className="col-span-2 flex items-center">
-                                  <p className="font-medium">Candidate Name</p>
-                                </div>
-                                <div className="col-span-2 flex items-center">
-                                  <p className="font-medium">Status</p>
-                                </div>
-                                <div className="col-span-2 flex items-center">
-                                  <p className="font-medium">File</p>
-                                </div>
-                                <div className="col-span-2 flex items-center">
-                                  <p className="font-medium">Message</p>
-                                </div>
-                              </div>
-
-                              {uploadStatus.candidateStatus.map((status, index) => (
-                                <div key={index} className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
-                                  <div className="col-span-2 flex items-center">
-                                    <p className="text-sm text-black dark:text-white">{status.name}</p>
-                                  </div>
-                                  <div className="col-span-2 flex items-center">
-                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${status.status === 'success' ? 'bg-success/10 text-success' :
-                                      status.status === 'failed' ? 'bg-danger/10 text-danger' :
-                                        status.status === 'not-found' ? 'bg-warning/10 text-warning' :
-                                          status.status === 'processing' || status.status === 'uploading' ? 'bg-primary/10 text-primary' :
-                                            'bg-gray-100 text-gray-600'
-                                      }`}>
-                                      {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
-                                    </span>
-                                  </div>
-                                  <div className="col-span-2 flex items-center">
-                                    <p className="text-sm text-gray-500">{status.file || '-'}</p>
-                                  </div>
-                                  <div className="col-span-2 flex items-center">
-                                    <p className="text-sm text-gray-500">{status.message}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Tab.Panel>
-              </Tab.Panels>
-            </Tab.Group>
-          </div>
+                  </Tab.Panel>
+                </Tab.Panels>
+              </Tab.Group>
+            </div>
+          )}
         </div>
       </DefaultLayoutAdmin>
 

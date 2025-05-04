@@ -44,6 +44,7 @@ const JobDetails = () => {
   const [activeTab, setActiveTab] = useState('details');
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [candidatesLoading, setCandidatesLoading] = useState(false);
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -82,6 +83,7 @@ const JobDetails = () => {
 
   const fetchCandidates = async () => {
     try {
+      setCandidatesLoading(true);
       const response = await fetch(`/api/candidates/job/${id}`);
       if (!response.ok) throw new Error('Failed to fetch candidates');
       const data = await response.json();
@@ -89,6 +91,8 @@ const JobDetails = () => {
       setCandidates(data);
     } catch (error) {
       toast.error('Failed to load candidates');
+    } finally {
+      setCandidatesLoading(false);
     }
   };
 
@@ -727,7 +731,11 @@ const JobDetails = () => {
             </div>
           </div>
 
-          {getFilteredCandidates().length > 0 ? (
+          {candidatesLoading ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : getFilteredCandidates().length > 0 ? (
             <>
               <div className="rounded-lg border border-stroke dark:border-strokedark">
                 <div className="max-w-full overflow-x-auto">
