@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../../components';
-import { FaArrowLeft, FaRupeeSign, FaFileUpload, FaDownload, FaBuilding, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaUser, FaBriefcase, FaClock, FaComments, FaUserFriends, FaUpload } from 'react-icons/fa';
+import { FaArrowLeft, FaRupeeSign, FaFileUpload, FaDownload, FaBuilding, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaUser, FaBriefcase, FaClock, FaComments, FaUserFriends, FaUpload, FaTimes } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../../context/AuthContext';
 import { Tab } from '@headlessui/react';
@@ -50,7 +50,9 @@ const CandidateForm = () => {
   const [resume, setResume] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [resumeZipFile, setResumeZipFile] = useState(null);
   const fileInputRef = useRef(null);
+  const resumeZipInputRef = useRef(null);
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [uploadResults, setUploadResults] = useState(null);
   const [states, setStates] = useState([]);
@@ -66,6 +68,14 @@ const CandidateForm = () => {
   });
   const [districts, setDistricts] = useState([]);
   const [cities, setCities] = useState([]);
+  const [uploadStatus, setUploadStatus] = useState({
+    candidates: { total: 0, success: 0, failed: 0 },
+    resumes: { total: 0, success: 0, notFound: 0, failed: 0 },
+    currentResume: '',
+    isUploading: false,
+    missingResumes: [],
+    candidateStatus: []
+  });
 
   const sourceOptions = [
     'Naukri',
@@ -342,9 +352,9 @@ const CandidateForm = () => {
     try {
       const data = [
         {
-          name: 'MOHAMMAD RAFEErrrr RAFEE',
-          email: 'mrafee1910rr9rr@grmail.com',
-          phone: '78990834334490',
+          name: 'MOHAMMAD',
+          email: 'yuyunybb8y7n5yy87777hyybun@grmail.com',
+          phone: '75776753378709',
           experience: '45',
           current_location: 'Bangalore',
           preferred_location: 'Bangalore',
@@ -421,13 +431,35 @@ const CandidateForm = () => {
     }
   };
 
+  const handleResumeZipChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
+        setResumeZipFile(file);
+      } else {
+        toast.error('Please upload only ZIP files');
+        event.target.value = '';
+      }
+    }
+  };
+
   const handleBulkUpload = async (event) => {
     event.preventDefault();
 
-    if (!selectedFile) {
-      toast.error('Please select a file to upload');
+    if (!selectedFile || !resumeZipFile) {
+      toast.error('Please upload both Excel and ZIP files');
       return;
     }
+
+    setUploadStatus(prev => ({
+      ...prev,
+      isUploading: true,
+      candidates: { total: 0, success: 0, failed: 0 },
+      resumes: { total: 0, success: 0, notFound: 0, failed: 0 },
+      currentResume: '',
+      missingResumes: [],
+      candidateStatus: []
+    }));
 
     const loadingToast = toast.loading('Processing candidates...');
 
@@ -437,6 +469,7 @@ const CandidateForm = () => {
 
       if (!excelData || excelData.length === 0) {
         toast.error('No data found in the Excel file');
+        setUploadStatus(prev => ({ ...prev, isUploading: false }));
         return;
       }
 
@@ -467,8 +500,22 @@ const CandidateForm = () => {
 
       if (validCandidates.length === 0) {
         toast.error('No valid candidates found in the file');
+        setUploadStatus(prev => ({ ...prev, isUploading: false }));
         return;
       }
+
+      // Initialize candidate status and matching results
+      const matchingResults = [];
+      setUploadStatus(prev => ({
+        ...prev,
+        candidates: { ...prev.candidates, total: validCandidates.length },
+        candidateStatus: validCandidates.map(candidate => ({
+          name: candidate.name,
+          status: 'pending',
+          file: null,
+          message: 'Waiting to process...'
+        }))
+      }));
 
       // Send to backend
       const response = await fetch('/api/candidates/bulk-upload', {
@@ -488,25 +535,313 @@ const CandidateForm = () => {
       toast.dismiss(loadingToast);
 
       if (data.success) {
-        // Show success message
-        toast.success(data.message);
+        // Update candidate upload status
+        setUploadStatus(prev => ({
+          ...prev,
+          candidates: {
+            ...prev.candidates,
+            success: data.results.success.length,
+            failed: data.results.errors.length
+          }
+        }));
+
+        // Process resumes from zip file
+        if (resumeZipFile && data.results.success.length > 0) {
+          toast.loading('Processing resumes from zip file...', { id: loadingToast });
+          try {
+            const JSZip = (await import('jszip')).default;
+            const zip = await JSZip.loadAsync(resumeZipFile);
+
+            // Update total resumes to process
+            setUploadStatus(prev => ({
+              ...prev,
+              resumes: { ...prev.resumes, total: data.results.success.length }
+            }));
+
+            // Process resumes one by one
+            for (const candidate of data.results.success) {
+              const candidateName = candidate.name.toLowerCase().split(' ')[0];
+              const candidateFullName = candidate.name.toLowerCase().replace(/\s+/g, '_');
+
+              console.log('Processing candidate:', {
+                name: candidate.name,
+                candidateName: candidateName,
+                candidateFullName: candidateFullName
+              });
+
+              // Update candidate status to processing
+              setUploadStatus(prev => {
+                const newStatus = prev.candidateStatus.map(status =>
+                  status.name === candidate.name
+                    ? { ...status, status: 'processing', message: 'Looking for matching resume...' }
+                    : status
+                );
+                return {
+                  ...prev,
+                  candidateStatus: newStatus
+                };
+              });
+
+              // Find matching file with strict name matching
+              const matchingFile = Object.keys(zip.files).find(filename => {
+                const fileName = filename.toLowerCase().split('/').pop().replace(/\.[^/.]+$/, '');
+                const cleanFileName = fileName.replace(/[^a-z]/g, '');
+                const cleanCandidateName = candidateName.replace(/[^a-z]/g, '');
+                const cleanCandidateFullName = candidateFullName.replace(/[^a-z]/g, '');
+
+                const isMatch = (
+                  !zip.files[filename].dir &&
+                  (
+                    fileName === candidateName ||
+                    fileName === candidateFullName ||
+                    cleanFileName === cleanCandidateName ||
+                    cleanFileName === cleanCandidateFullName ||
+                    cleanFileName.includes(cleanCandidateName) ||
+                    cleanCandidateName.includes(cleanFileName) ||
+                    cleanFileName.startsWith(cleanCandidateName) ||
+                    cleanCandidateName.startsWith(cleanFileName)
+                  )
+                );
+
+                matchingResults.push({
+                  candidateName: candidate.name,
+                  fileName: filename,
+                  cleanFileName: cleanFileName,
+                  cleanCandidateName: cleanCandidateName,
+                  isMatch: isMatch,
+                  matchType: isMatch ? (
+                    fileName === candidateName ? 'exact' :
+                      fileName === candidateFullName ? 'full' :
+                        cleanFileName === cleanCandidateName ? 'clean-exact' :
+                          cleanFileName === cleanCandidateFullName ? 'clean-full' :
+                            cleanFileName.includes(cleanCandidateName) ? 'clean-includes' :
+                              cleanCandidateName.includes(cleanFileName) ? 'clean-included' :
+                                cleanFileName.startsWith(cleanCandidateName) ? 'clean-starts' :
+                                  'clean-starts-with'
+                  ) : 'no match'
+                });
+
+                return isMatch;
+              });
+
+              if (matchingFile) {
+                console.log('Found matching file:', {
+                  filename: matchingFile,
+                  candidateName: candidate.name,
+                  matchType: 'success'
+                });
+
+                // Update status to uploading
+                setUploadStatus(prev => {
+                  const newStatus = prev.candidateStatus.map(status =>
+                    status.name === candidate.name
+                      ? { ...status, status: 'uploading', file: matchingFile, message: 'Uploading resume...' }
+                      : status
+                  );
+                  console.log('Updated status to uploading:', newStatus);
+                  return {
+                    ...prev,
+                    candidateStatus: newStatus
+                  };
+                });
+
+                try {
+                  const file = zip.files[matchingFile];
+                  const arrayBuffer = await file.async('arraybuffer');
+                  const resumeFile = new File([arrayBuffer], matchingFile.split('/').pop(), {
+                    type: 'application/pdf'
+                  });
+
+                  console.log('Preparing to upload file:', {
+                    name: resumeFile.name,
+                    size: resumeFile.size,
+                    type: resumeFile.type
+                  });
+
+                  const formData = new FormData();
+                  formData.append('file', resumeFile);
+
+                  const uploadResponse = await fetch('/api/upload/resume', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                  });
+
+                  if (!uploadResponse.ok) {
+                    throw new Error('Failed to upload resume');
+                  }
+
+                  const uploadResult = await uploadResponse.json();
+                  console.log('Resume upload successful:', uploadResult);
+
+                  const updateResponse = await fetch(`/api/candidates/${candidate.id}`, {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                      resume_url: uploadResult.url
+                    })
+                  });
+
+                  if (updateResponse.ok) {
+                    console.log('Candidate resume URL updated successfully');
+                    setUploadStatus(prev => {
+                      const newStatus = prev.candidateStatus.map(status =>
+                        status.name === candidate.name
+                          ? { ...status, status: 'success', message: 'Resume uploaded successfully' }
+                          : status
+                      );
+                      console.log('Updated status to success:', newStatus);
+                      return {
+                        ...prev,
+                        resumes: {
+                          ...prev.resumes,
+                          success: prev.resumes.success + 1
+                        },
+                        candidateStatus: newStatus
+                      };
+                    });
+                  } else {
+                    console.error('Failed to update candidate resume URL');
+                    setUploadStatus(prev => {
+                      const newStatus = prev.candidateStatus.map(status =>
+                        status.name === candidate.name
+                          ? { ...status, status: 'failed', message: 'Failed to update resume URL' }
+                          : status
+                      );
+                      console.log('Updated status to failed:', newStatus);
+                      return {
+                        ...prev,
+                        resumes: {
+                          ...prev.resumes,
+                          failed: prev.resumes.failed + 1
+                        },
+                        candidateStatus: newStatus
+                      };
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error uploading resume:', error);
+                  setUploadStatus(prev => {
+                    const newStatus = prev.candidateStatus.map(status =>
+                      status.name === candidate.name
+                        ? { ...status, status: 'failed', message: 'Error uploading resume' }
+                        : status
+                    );
+                    console.log('Updated status to error:', newStatus);
+                    return {
+                      ...prev,
+                      resumes: {
+                        ...prev.resumes,
+                        failed: prev.resumes.failed + 1
+                      },
+                      candidateStatus: newStatus
+                    };
+                  });
+                }
+              } else {
+                console.log('No matching file found for candidate:', {
+                  candidateName: candidate.name,
+                  availableFiles: Object.keys(zip.files)
+                    .filter(f => !zip.files[f].dir)
+                    .map(f => f.split('/').pop())
+                });
+
+                setUploadStatus(prev => {
+                  const newStatus = prev.candidateStatus.map(status =>
+                    status.name === candidate.name
+                      ? {
+                        ...status,
+                        status: 'not-found',
+                        message: 'No matching resume found',
+                        file: 'Not found'
+                      }
+                      : status
+                  );
+                  console.log('Updated status to not found:', newStatus);
+                  return {
+                    ...prev,
+                    resumes: {
+                      ...prev.resumes,
+                      notFound: prev.resumes.notFound + 1
+                    },
+                    candidateStatus: newStatus,
+                    missingResumes: [
+                      ...prev.missingResumes,
+                      {
+                        candidateName: candidate.name,
+                        expectedPattern: `${candidateName}.pdf or ${candidateFullName}.pdf`,
+                        availableFiles: Object.keys(zip.files)
+                          .filter(f => !zip.files[f].dir)
+                          .map(f => f.split('/').pop())
+                      }
+                    ]
+                  };
+                });
+              }
+            }
+
+            // After processing all candidates, log the matching results
+            console.log('Matching Results Summary:', {
+              totalCandidates: data.results.success.length,
+              totalFiles: Object.keys(zip.files).length,
+              matchingResults: matchingResults,
+              unmatchedCandidates: matchingResults.filter(r => !r.isMatch)
+            });
+
+          } catch (error) {
+            console.error('Error processing zip file:', error);
+            toast.error('Failed to process some resumes from zip file');
+          }
+        }
+
+        toast.dismiss(loadingToast);
+        toast.success('Bulk upload completed successfully');
 
         // Store results and show modal
         setUploadResults(data.results);
         setShowResultsModal(true);
 
-        // Reset form
+        // Clear file inputs after successful upload
         setSelectedFile(null);
+        setResumeZipFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+        if (resumeZipInputRef.current) {
+          resumeZipInputRef.current.value = '';
+        }
+
       } else {
         toast.error(data.message || 'Failed to upload candidates');
       }
     } catch (error) {
-      toast.dismiss(loadingToast);
       console.error('Upload error:', error);
       toast.error('Failed to process candidates. Please try again.');
+    } finally {
+      setUploadStatus(prev => ({ ...prev, isUploading: false }));
+    }
+  };
+
+  const handleClearForm = () => {
+    setSelectedFile(null);
+    setResumeZipFile(null);
+    setUploadStatus(prev => ({
+      ...prev,
+      isUploading: false,
+      currentResume: '',
+      missingResumes: [],
+      candidateStatus: []
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (resumeZipInputRef.current) {
+      resumeZipInputRef.current.value = '';
     }
   };
 
@@ -1014,31 +1349,120 @@ const CandidateForm = () => {
                         </p>
                       </div>
 
-                      <div className="mb-4">
-                        <label className="mb-2.5 block font-medium text-black dark:text-white">
-                          Bulk Upload Candidates
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept=".xlsx,.xls"
-                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleBulkUpload}
-                            disabled={!selectedFile}
-                            className={`inline-flex items-center justify-center rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 ${!selectedFile ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <FaUpload className="mr-2" />
-                            Upload
-                          </button>
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <label className="mb-2.5 block font-medium text-black dark:text-white">
+                              Bulk Upload Candidates
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept=".xlsx,.xls"
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                              />
+                            </div>
+                            <p className="mt-1 text-sm text-gray-500">
+                              Upload Excel file (.xlsx, .xls) with candidate details
+                            </p>
+                          </div>
+
+                          <div className="flex-1">
+                            <label className="mb-2.5 block font-medium text-black dark:text-white">
+                              Upload Resumes (ZIP)
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="file"
+                                ref={resumeZipInputRef}
+                                onChange={handleResumeZipChange}
+                                accept=".zip"
+                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                              />
+                            </div>
+                            <p className="mt-1 text-sm text-gray-500">
+                              Upload ZIP file containing resumes. Resumes should be named with candidate's first name.
+                            </p>
+                          </div>
+
+                          <div className="flex items-end">
+                            <button
+                              type="button"
+                              onClick={handleBulkUpload}
+                              disabled={!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0}
+                              className={`inline-flex items-center justify-center rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 ${(!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0)
+                                ? 'opacity-50 cursor-not-allowed'
+                                : ''
+                                }`}
+                            >
+                              <FaUpload className="mr-2" />
+                              {uploadStatus.isUploading ? 'Uploading...' : 'Upload'}
+                            </button>
+                            {uploadStatus.candidates.total > 0 && (
+                              <button
+                                type="button"
+                                onClick={handleClearForm}
+                                className="ml-4 inline-flex items-center justify-center rounded-md bg-gray-500 py-3 px-6 text-center font-medium text-white hover:bg-opacity-90"
+                              >
+                                <FaTimes className="mr-2" />
+                                Clear Results
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Upload Excel file (.xlsx, .xls) with candidate details
-                        </p>
+
+                        {(uploadStatus.candidates.total > 0 || uploadStatus.isUploading) && (
+                          <div className="mt-6">
+                            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                              <div className="py-6 px-4 md:px-6 xl:px-7.5">
+                                <h4 className="text-xl font-semibold text-black dark:text-white">
+                                  Resume Upload Status
+                                </h4>
+                              </div>
+
+                              <div className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
+                                <div className="col-span-2 flex items-center">
+                                  <p className="font-medium">Candidate Name</p>
+                                </div>
+                                <div className="col-span-2 flex items-center">
+                                  <p className="font-medium">Status</p>
+                                </div>
+                                <div className="col-span-2 flex items-center">
+                                  <p className="font-medium">File</p>
+                                </div>
+                                <div className="col-span-2 flex items-center">
+                                  <p className="font-medium">Message</p>
+                                </div>
+                              </div>
+
+                              {uploadStatus.candidateStatus.map((status, index) => (
+                                <div key={index} className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
+                                  <div className="col-span-2 flex items-center">
+                                    <p className="text-sm text-black dark:text-white">{status.name}</p>
+                                  </div>
+                                  <div className="col-span-2 flex items-center">
+                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${status.status === 'success' ? 'bg-success/10 text-success' :
+                                      status.status === 'failed' ? 'bg-danger/10 text-danger' :
+                                        status.status === 'not-found' ? 'bg-warning/10 text-warning' :
+                                          status.status === 'processing' || status.status === 'uploading' ? 'bg-primary/10 text-primary' :
+                                            'bg-gray-100 text-gray-600'
+                                      }`}>
+                                      {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
+                                    </span>
+                                  </div>
+                                  <div className="col-span-2 flex items-center">
+                                    <p className="text-sm text-gray-500">{status.file || '-'}</p>
+                                  </div>
+                                  <div className="col-span-2 flex items-center">
+                                    <p className="text-sm text-gray-500">{status.message}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1054,6 +1478,49 @@ const CandidateForm = () => {
         onClose={() => setShowResultsModal(false)}
         results={uploadResults || { success: [], duplicates: [], errors: [] }}
       />
+
+      {uploadStatus.missingResumes.length > 0 && (
+        <div className="mt-6">
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="py-6 px-4 md:px-6 xl:px-7.5">
+              <h4 className="text-xl font-semibold text-black dark:text-white">
+                Missing Resumes
+              </h4>
+              <p className="text-sm text-gray-500 mt-2">
+                The following candidates' resumes were not found in the ZIP file:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
+              <div className="col-span-2 flex items-center">
+                <p className="font-medium">Candidate Name</p>
+              </div>
+              <div className="col-span-2 flex items-center">
+                <p className="font-medium">Expected Filename</p>
+              </div>
+              <div className="col-span-2 flex items-center">
+                <p className="font-medium">Available Files</p>
+              </div>
+            </div>
+
+            {uploadStatus.missingResumes.map((item, index) => (
+              <div key={index} className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
+                <div className="col-span-2 flex items-center">
+                  <p className="text-sm text-black dark:text-white">{item.candidateName}</p>
+                </div>
+                <div className="col-span-2 flex items-center">
+                  <p className="text-sm text-meta-1">{item.expectedPattern}</p>
+                </div>
+                <div className="col-span-2 flex items-center">
+                  <p className="text-sm text-gray-500">
+                    {item.availableFiles.join(', ')}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 };
