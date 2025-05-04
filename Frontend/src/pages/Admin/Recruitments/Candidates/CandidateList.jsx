@@ -22,6 +22,7 @@ const ITEMS_PER_PAGE = 5;
 const CandidateList = () => {
   const { dispatch, state: authState } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
   const [candidates, setCandidates] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,7 +93,6 @@ const CandidateList = () => {
       setLoading(true);
       const candidates = await fetchCandidates(dispatch);
       setCandidates(candidates);
-      console.log(candidates);
     } catch (error) {
       toast.error('Failed to load candidates');
     } finally {
@@ -102,6 +102,7 @@ const CandidateList = () => {
 
   const fetchUsers = async () => {
     try {
+      setUsersLoading(true);
       const response = await fetch('/api/users', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -113,6 +114,9 @@ const CandidateList = () => {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+    } finally {
+      setUsersLoading(false);
     }
   };
 
@@ -601,8 +605,8 @@ const CandidateList = () => {
           {/* Header Section with Actions */}
           <div className="p-4 md:p-6 xl:p-7.5">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-              {/* Add Candidate Button */}
-              <div className="w-full sm:w-auto">
+              {/* Left side - Add Candidate Button */}
+              <div className="w-full sm:w-auto flex-shrink-0">
                 <Link to="/admin/recruitments/candidates/add">
                   <ButtonOne className="w-full sm:w-auto">
                     <span className="mr-2">Add Candidate</span>
@@ -611,8 +615,8 @@ const CandidateList = () => {
                 </Link>
               </div>
 
-              {/* Search and Filter Controls */}
-              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              {/* Right side - Search and Filter Controls */}
+              <div className="w-full sm:w-auto flex flex-wrap items-center justify-end gap-3">
                 {/* Search Box with improved styling */}
                 <div className="relative flex-grow sm:flex-grow-0 sm:w-72">
                   <input
@@ -637,7 +641,7 @@ const CandidateList = () => {
                 {/* Add Excel Download Button */}
                 <button
                   onClick={handleDownloadExcel}
-                  disabled={filteredCandidates.length === 0}
+                  disabled={filteredCandidates.length === 0 || loading || usersLoading}
                   className="inline-flex items-center justify-center rounded-lg border border-success bg-success py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaFileExcel className="mr-2" />
@@ -649,46 +653,55 @@ const CandidateList = () => {
             {/* Table Container with improved spacing */}
             <div className="rounded-lg border border-stroke dark:border-strokedark">
               <div className="max-w-full overflow-x-auto">
-                <DataTable
-                  data={paginatedCandidates}
-                  columns={columns}
-                  actions={[
-                    {
-                      icon: <FaEye />,
-                      label: 'View',
-                      onClick: (candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`),
-                      show: () => true // View is always available to everyone
-                    },
-                    {
-                      icon: <FaEdit />,
-                      label: 'Edit',
-                      onClick: (candidate) => {
-                        if (checkUserPermission(candidate, authState?.user)) {
-                          navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`);
-                        } else {
-                          toast.error("You don't have permission to edit this candidate");
-                        }
+                {(loading || usersLoading) ? (
+                  <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="text-sm text-gray-500">
+                      {loading ? 'Loading candidates...' : 'Loading users...'}
+                    </p>
+                  </div>
+                ) : (
+                  <DataTable
+                    data={paginatedCandidates}
+                    columns={columns}
+                    actions={[
+                      {
+                        icon: <FaEye />,
+                        label: 'View',
+                        onClick: (candidate) => navigate(`/admin/recruitments/candidates/${candidate.uuid}`),
+                        show: () => true // View is always available to everyone
                       },
-                      show: (candidate) => checkUserPermission(candidate, authState?.user)
-                    },
-                    {
-                      icon: <BsTrash3 />,
-                      label: 'Delete',
-                      onClick: (candidate) => {
-                        if (checkUserPermission(candidate, authState?.user)) {
-                          handleDelete(candidate.uuid);
-                        } else {
-                          toast.error("You don't have permission to delete this candidate");
-                        }
+                      {
+                        icon: <FaEdit />,
+                        label: 'Edit',
+                        onClick: (candidate) => {
+                          if (checkUserPermission(candidate, authState?.user)) {
+                            navigate(`/admin/recruitments/candidates/edit/${candidate.uuid}`);
+                          } else {
+                            toast.error("You don't have permission to edit this candidate");
+                          }
+                        },
+                        show: (candidate) => checkUserPermission(candidate, authState?.user)
                       },
-                      show: (candidate) => checkUserPermission(candidate, authState?.user)
-                    }
-                  ]}
-                  statusOptions={statusOptions}
-                  onStatusChange={handleStatusChange}
-                  statusColors={statusColors}
-                  className="w-full table-auto"
-                />
+                      {
+                        icon: <BsTrash3 />,
+                        label: 'Delete',
+                        onClick: (candidate) => {
+                          if (checkUserPermission(candidate, authState?.user)) {
+                            handleDelete(candidate.uuid);
+                          } else {
+                            toast.error("You don't have permission to delete this candidate");
+                          }
+                        },
+                        show: (candidate) => checkUserPermission(candidate, authState?.user)
+                      }
+                    ]}
+                    statusOptions={statusOptions}
+                    onStatusChange={handleStatusChange}
+                    statusColors={statusColors}
+                    className="w-full table-auto"
+                  />
+                )}
               </div>
 
               {/* Pagination with improved spacing */}
