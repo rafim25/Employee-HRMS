@@ -11,7 +11,11 @@ const CandidateEdit = () => {
   const navigate = useNavigate();
   const { state } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [statesLoading, setStatesLoading] = useState(true);
   const [jobs, setJobs] = useState([]);
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -43,6 +47,16 @@ const CandidateEdit = () => {
     }
   });
   const [resume, setResume] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState({
+    state: '',
+    district: '',
+    city: ''
+  });
+  const [preferredLocation, setPreferredLocation] = useState({
+    state: '',
+    district: '',
+    city: ''
+  });
 
   const sourceOptions = [
     'Naukri',
@@ -68,16 +82,38 @@ const CandidateEdit = () => {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
 
-        if (!candidateResponse.ok || !jobsResponse.ok) {
+        // Fetch states
+        const statesResponse = await fetch('/api/locations/states', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        if (!candidateResponse.ok || !jobsResponse.ok || !statesResponse.ok) {
           throw new Error('Failed to fetch data');
         }
 
         const candidateData = await candidateResponse.json();
         const jobsData = await jobsResponse.json();
+        const statesData = await statesResponse.json();
 
         // Set selected job for job-specific questions
         const selectedJobData = jobsData.find(job => job.id === parseInt(candidateData.job_id));
         setSelectedJob(selectedJobData);
+
+        // Parse location data
+        const [currentState, currentDistrict] = candidateData.current_location?.split(', ') || ['', ''];
+        const [preferredState, preferredDistrict] = candidateData.preferred_location?.split(', ') || ['', ''];
+
+        setCurrentLocation({
+          state: currentState,
+          district: currentDistrict,
+          city: ''
+        });
+
+        setPreferredLocation({
+          state: preferredState,
+          district: preferredDistrict,
+          city: ''
+        });
 
         setFormData({
           ...candidateData,
@@ -91,15 +127,58 @@ const CandidateEdit = () => {
           }
         });
         setJobs(jobsData);
+        setStates(statesData);
       } catch (error) {
         toast.error(error.message);
       } finally {
         setLoading(false);
+        setJobsLoading(false);
+        setStatesLoading(false);
       }
     };
 
     fetchData();
   }, [id]);
+
+  const fetchDistricts = async (stateCode) => {
+    try {
+      const response = await fetch(`/api/locations/states/${stateCode}/districts`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch districts');
+      const data = await response.json();
+      setDistricts(data);
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+      toast.error('Failed to load districts');
+    }
+  };
+
+  const handleLocationChange = (type, field, value) => {
+    if (type === 'current') {
+      setCurrentLocation(prev => {
+        const newLocation = { ...prev, [field]: value };
+        if (field === 'state') {
+          fetchDistricts(value);
+          newLocation.district = '';
+          newLocation.city = '';
+        }
+        return newLocation;
+      });
+    } else {
+      setPreferredLocation(prev => {
+        const newLocation = { ...prev, [field]: value };
+        if (field === 'state') {
+          fetchDistricts(value);
+          newLocation.district = '';
+          newLocation.city = '';
+        }
+        return newLocation;
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,6 +208,12 @@ const CandidateEdit = () => {
         resumeUrl = uploadResult.url;
       }
 
+      // Get selected state and city names
+      const currentState = states.find(s => s.iso2 === currentLocation.state)?.name || '';
+      const currentDistrict = districts.find(d => d.id === currentLocation.district)?.name || '';
+      const preferredState = states.find(s => s.iso2 === preferredLocation.state)?.name || '';
+      const preferredDistrict = districts.find(d => d.id === preferredLocation.district)?.name || '';
+
       // Prepare data to send
       const dataToSend = {
         ...formData,
@@ -136,7 +221,9 @@ const CandidateEdit = () => {
         created_by: state?.user?.username || formData.created_by,
         created_by_id: state?.user?.user_id || formData.created_by_id,
         job_answers: formData.job_answers || {},
-        resume_url: resumeUrl // Use the new resume URL if uploaded, otherwise use existing
+        resume_url: resumeUrl,
+        current_location: `${currentState}, ${currentDistrict}`,
+        preferred_location: `${preferredState}, ${preferredDistrict}`
       };
 
       const response = await fetch(`/api/candidates/${id}`, {
@@ -204,7 +291,7 @@ const CandidateEdit = () => {
     }
   };
 
-  if (loading) {
+  if (loading || jobsLoading || statesLoading) {
     return (
       <DefaultLayoutAdmin>
         <div className="flex justify-center items-center min-h-[400px]">
@@ -356,32 +443,92 @@ const CandidateEdit = () => {
               />
             </div>
 
-            <div>
-              <label className="mb-2.5 block text-black dark:text-white">
+            <div className="md:col-span-2">
+              <h3 className="text-lg text-black mb-4 flex items-center">
+                <FaMapMarkerAlt className="mr-2" />
                 Current Location
-              </label>
-              <input
-                type="text"
-                name="current_location"
-                value={formData.current_location}
-                onChange={handleChange}
-                placeholder="Enter current location"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    State
+                  </label>
+                  <select
+                    value={currentLocation.state}
+                    onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select State</option>
+                    {states.map(state => (
+                      <option key={state.iso2} value={state.iso2}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    District
+                  </label>
+                  <select
+                    value={currentLocation.district}
+                    onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
+                    disabled={!currentLocation.state}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select District</option>
+                    {districts.map(district => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="mb-2.5 block text-black dark:text-white">
+            <div className="md:col-span-2">
+              <h3 className="text-lg text-black mb-4 flex items-center">
+                <FaMapMarkerAlt className="mr-2" />
                 Preferred Location
-              </label>
-              <input
-                type="text"
-                name="preferred_location"
-                value={formData.preferred_location}
-                onChange={handleChange}
-                placeholder="Enter preferred location"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    State
+                  </label>
+                  <select
+                    value={preferredLocation.state}
+                    onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select State</option>
+                    {states.map(state => (
+                      <option key={state.iso2} value={state.iso2}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    District
+                  </label>
+                  <select
+                    value={preferredLocation.district}
+                    onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
+                    disabled={!preferredLocation.state}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select District</option>
+                    {districts.map(district => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div>

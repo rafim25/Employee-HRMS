@@ -365,12 +365,30 @@ const CandidateDetails = () => {
                     <p className="text-black dark:text-white">{candidate.notice_period} days</p>
                   </div>
                   <div>
+                    <span className="text-sm text-gray-500">Current Company</span>
+                    <p className="text-black dark:text-white">{candidate.current_company || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Location Details */}
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke p-4 dark:border-strokedark">
+                <h4 className="text-xl font-semibold text-black dark:text-white flex items-center">
+                  <FaMapMarkerAlt className="mr-2" />
+                  Location Details
+                </h4>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
                     <span className="text-sm text-gray-500">Current Location</span>
-                    <p className="text-black dark:text-white">{candidate.current_location}</p>
+                    <p className="text-black dark:text-white">{candidate.current_location || 'Not specified'}</p>
                   </div>
                   <div>
                     <span className="text-sm text-gray-500">Preferred Location</span>
-                    <p className="text-black dark:text-white">{candidate.preferred_location}</p>
+                    <p className="text-black dark:text-white">{candidate.preferred_location || 'Not specified'}</p>
                   </div>
                 </div>
               </div>

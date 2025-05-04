@@ -78,6 +78,8 @@ const CandidateForm = () => {
     missingResumes: [],
     candidateStatus: []
   });
+  const [districtsCache, setDistrictsCache] = useState({});
+  const [citiesCache, setCitiesCache] = useState({});
 
   const sourceOptions = [
     'Naukri',
@@ -137,6 +139,11 @@ const CandidateForm = () => {
   }, []);
 
   const fetchDistricts = async (stateCode) => {
+    if (districtsCache[stateCode]) {
+      setDistricts(districtsCache[stateCode]);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/locations/states/${stateCode}/districts`, {
         headers: {
@@ -146,6 +153,7 @@ const CandidateForm = () => {
       if (!response.ok) throw new Error('Failed to fetch districts');
       const data = await response.json();
       setDistricts(data);
+      setDistrictsCache(prev => ({ ...prev, [stateCode]: data }));
     } catch (error) {
       console.error('Error fetching districts:', error);
       toast.error('Failed to load districts');
@@ -153,6 +161,12 @@ const CandidateForm = () => {
   };
 
   const fetchCities = async (stateCode, districtName) => {
+    const cacheKey = `${stateCode}-${districtName}`;
+    if (citiesCache[cacheKey]) {
+      setCities(citiesCache[cacheKey]);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/locations/states/${stateCode}/districts/${encodeURIComponent(districtName)}/cities`, {
         headers: {
@@ -173,6 +187,7 @@ const CandidateForm = () => {
       }
 
       setCities(data);
+      setCitiesCache(prev => ({ ...prev, [cacheKey]: data }));
     } catch (error) {
       console.error('Error fetching cities:', error);
       toast.error('Failed to load cities');
@@ -261,7 +276,13 @@ const CandidateForm = () => {
         resumeUrl = uploadResult.url;
       }
 
-      // Prepare candidate data
+      // Get selected state and city names
+      const currentState = states.find(s => s.iso2 === currentLocation.state)?.name || '';
+      const currentDistrict = districts.find(d => d.id === currentLocation.district)?.name || '';
+      const preferredState = states.find(s => s.iso2 === preferredLocation.state)?.name || '';
+      const preferredDistrict = districts.find(d => d.id === preferredLocation.district)?.name || '';
+
+      // Prepare candidate data with proper location format
       const candidateData = {
         name: formData.name,
         email: formData.email,
@@ -271,8 +292,8 @@ const CandidateForm = () => {
         current_ctc: formData.currentCTC,
         expected_ctc: formData.expectedCTC,
         notice_period: formData.noticePeriod,
-        current_location: formData.currentLocation,
-        preferred_location: formData.preferredLocation,
+        current_location: `${currentState}, ${currentDistrict}`,
+        preferred_location: `${preferredState}, ${preferredDistrict}`,
         job_id: parseInt(formData.jobId),
         job_answers: formData.job_answers,
         rejection_reason: formData.rejection_reason,
@@ -312,7 +333,6 @@ const CandidateForm = () => {
       toast.error(error.message || 'Failed to save candidate');
 
       // If there was an error and we uploaded a resume, we should clean it up
-      // You'll need to implement this endpoint
       if (resumeUrl) {
         try {
           await fetch(`/api/upload/resume/${encodeURIComponent(resumeUrl)}`, {
