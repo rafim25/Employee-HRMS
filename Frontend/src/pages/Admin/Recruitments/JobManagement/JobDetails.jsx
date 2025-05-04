@@ -253,7 +253,8 @@ const JobDetails = () => {
     { value: 'shortlisted', label: 'Shortlisted' },
     { value: 'interviewed', label: 'Interviewed' },
     { value: 'selected', label: 'Selected' },
-    { value: 'rejected', label: 'Rejected' }
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'joined', label: 'Joined' }
   ];
 
   // Add status colors
@@ -263,6 +264,7 @@ const JobDetails = () => {
     shortlisted: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
     interviewed: 'bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer',
     selected: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+    joined: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
     rejected: 'bg-danger/10 text-danger pointer-events-none opacity-75'
   };
 

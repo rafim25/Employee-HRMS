@@ -29,6 +29,7 @@ const DataTable = ({
     rejected: 'bg-status-danger-light text-status-danger',
     hold: 'bg-status-gray-light text-status-gray',
     interested: 'bg-status-warning-light text-status-warning',
+    joined: 'bg-status-success-light text-status-success',
     ...statusColors
   };
 

@@ -38,13 +38,13 @@ const EmployeeDashboard = () => {
 
   const getStatusColor = (status) => {
     const statusColors = {
-      applied: 'bg-warning/10 text-warning',
-      screening: 'bg-info/10 text-info',
-      shortlisted: 'bg-success/10 text-success',
-      interviewed: 'bg-primary/10 text-primary',
-      selected: 'bg-success/10 text-success',
-      rejected: 'bg-danger/10 text-danger',
-      on_hold: 'bg-gray-500/10 text-gray-500'
+        applied: 'bg-warning/10 text-warning hover:bg-warning hover:text-white cursor-pointer',
+      screening: 'bg-info/10 text-info hover:bg-info hover:text-white cursor-pointer',
+      shortlisted: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+      interviewed: 'bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer',
+      selected: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+      joined: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+      rejected: 'bg-danger/10 text-danger pointer-events-none opacity-75'
     };
 
     return statusColors[status?.toLowerCase()] || 'bg-gray-100 text-gray-500';

@@ -63,7 +63,7 @@ const Candidate = db.define('candidates', {
         }
     },
     application_status: {
-        type: Sequelize.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected'),
+        type: Sequelize.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'joined'),
         allowNull: false,
         defaultValue: 'applied'
     },

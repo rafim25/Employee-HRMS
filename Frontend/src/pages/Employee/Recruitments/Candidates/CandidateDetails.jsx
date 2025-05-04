@@ -86,12 +86,13 @@ const CandidateDetails = () => {
     if (!status) return null;
 
     const statusColors = {
-      applied: 'bg-warning/10 text-warning',
-      screening: 'bg-info/10 text-info',
-      shortlisted: 'bg-success/10 text-success',
-      interviewed: 'bg-primary/10 text-primary',
-      selected: 'bg-success/10 text-success',
-      rejected: 'bg-danger/10 text-danger'
+      applied: 'bg-warning/10 text-warning hover:bg-warning hover:text-white cursor-pointer',
+      screening: 'bg-info/10 text-info hover:bg-info hover:text-white cursor-pointer',
+      shortlisted: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+      interviewed: 'bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer',
+      selected: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+      joined: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+      rejected: 'bg-danger/10 text-danger pointer-events-none opacity-75'
     };
 
     const normalizedStatus = status.toLowerCase();

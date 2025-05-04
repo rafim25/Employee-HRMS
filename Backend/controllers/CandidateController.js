@@ -616,7 +616,7 @@ export const updateCandidateStatus = async (req, res) => {
             return res.status(404).json({ message: 'Candidate not found' });
         }
 
-        const validStatuses = ['applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected'];
+        const validStatuses = ['applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'joined'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ message: 'Invalid status value' });
         }

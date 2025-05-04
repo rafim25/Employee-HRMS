@@ -13,7 +13,7 @@ const CandidateStatusHistory = db.define('candidate_status_histories', {
         allowNull: false
     },
     status: {
-        type: Sequelize.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected'),
+        type: Sequelize.ENUM('applied', 'screening', 'shortlisted', 'interviewed', 'selected', 'rejected', 'joined'),
         allowNull: false
     },
     changed_by: {

@@ -48,6 +48,7 @@ const CandidateList = () => {
     { value: 'interviewed', label: 'Interviewed' },
     { value: 'selected', label: 'Selected' },
     { value: 'rejected', label: 'Rejected' },
+    { value: 'joined', label: 'Joined' },
     // { value: 'on_hold', label: 'On Hold' }
   ];
 
@@ -58,6 +59,7 @@ const CandidateList = () => {
     shortlisted: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
     interviewed: 'bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer',
     selected: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
+    joined: 'bg-success/10 text-success hover:bg-success hover:text-white cursor-pointer',
     rejected: 'bg-danger/10 text-danger pointer-events-none opacity-75',
     // on_hold: 'bg-gray-500/10 text-gray-500 pointer-events-none opacity-75'
   };
