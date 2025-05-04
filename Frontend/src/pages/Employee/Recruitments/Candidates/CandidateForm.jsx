@@ -15,6 +15,8 @@ const CandidateForm = () => {
   const { state } = useAuth();
   const [loading, setLoading] = useState(false);
   const [jobs, setJobs] = useState([]);
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,8 +26,14 @@ const CandidateForm = () => {
     currentCTC: '',
     expectedCTC: '',
     noticePeriod: '',
-    currentLocation: '',
-    preferredLocation: '',
+    currentLocation: {
+      state: '',
+      district: ''
+    },
+    preferredLocation: {
+      state: '',
+      district: ''
+    },
     jobId: '',
     resumeUrl: '',
     notes: '',
@@ -74,8 +82,83 @@ const CandidateForm = () => {
       }
     };
 
+    const fetchStates = async () => {
+      try {
+        const response = await fetch('/api/locations/states', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch states');
+        const data = await response.json();
+        setStates(data);
+      } catch (error) {
+        console.error('Error fetching states:', error);
+        toast.error('Failed to load states');
+      }
+    };
+
     fetchJobs();
+    fetchStates();
   }, []);
+
+  const fetchDistricts = async (stateCode) => {
+    try {
+      const response = await fetch(`/api/locations/states/${stateCode}/districts`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch districts');
+      const data = await response.json();
+      setDistricts(data);
+    } catch (error) {
+      console.error('Error fetching districts:', error);
+      toast.error('Failed to load districts');
+    }
+  };
+
+  const handleLocationChange = (type, field, value) => {
+    if (type === 'current') {
+      if (field === 'state') {
+        fetchDistricts(value);
+        setFormData(prev => ({
+          ...prev,
+          currentLocation: {
+            state: value,
+            district: ''
+          }
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          currentLocation: {
+            ...prev.currentLocation,
+            [field]: value
+          }
+        }));
+      }
+    } else {
+      if (field === 'state') {
+        fetchDistricts(value);
+        setFormData(prev => ({
+          ...prev,
+          preferredLocation: {
+            state: value,
+            district: ''
+          }
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          preferredLocation: {
+            ...prev.preferredLocation,
+            [field]: value
+          }
+        }));
+      }
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,6 +205,12 @@ const CandidateForm = () => {
         resumeUrl = uploadResult.url;
       }
 
+      // Get selected state and district names
+      const currentState = states.find(s => s.iso2 === formData.currentLocation.state)?.name || '';
+      const currentDistrict = districts.find(d => d.id === formData.currentLocation.district)?.name || '';
+      const preferredState = states.find(s => s.iso2 === formData.preferredLocation.state)?.name || '';
+      const preferredDistrict = districts.find(d => d.id === formData.preferredLocation.district)?.name || '';
+
       // Prepare candidate data
       const candidateData = {
         name: formData.name,
@@ -132,8 +221,8 @@ const CandidateForm = () => {
         current_ctc: formData.currentCTC,
         expected_ctc: formData.expectedCTC,
         notice_period: formData.noticePeriod,
-        current_location: formData.currentLocation,
-        preferred_location: formData.preferredLocation,
+        current_location: `${currentState}, ${currentDistrict}`,
+        preferred_location: `${preferredState}, ${preferredDistrict}`,
         job_id: parseInt(formData.jobId),
         job_answers: formData.job_answers,
         rejection_reason: formData.rejection_reason,
@@ -348,34 +437,92 @@ const CandidateForm = () => {
               />
             </div>
 
-            <div>
-              <label className="mb-2.5 block text-black dark:text-white">
-                <FaMapMarkerAlt className="inline mr-2" />
+            <div className="md:col-span-2">
+              <h3 className="text-lg text-black mb-4 flex items-center">
+                <FaMapMarkerAlt className="mr-2" />
                 Current Location
-              </label>
-              <input
-                type="text"
-                name="currentLocation"
-                value={formData.currentLocation}
-                onChange={handleChange}
-                placeholder="Enter current location"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    State
+                  </label>
+                  <select
+                    value={formData.currentLocation.state}
+                    onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select State</option>
+                    {states.map(state => (
+                      <option key={state.iso2} value={state.iso2}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    District
+                  </label>
+                  <select
+                    value={formData.currentLocation.district}
+                    onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
+                    disabled={!formData.currentLocation.state}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select District</option>
+                    {districts.map(district => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="mb-2.5 block text-black dark:text-white">
-                <FaMapMarkerAlt className="inline mr-2" />
+            <div className="md:col-span-2">
+              <h3 className="text-lg text-black mb-4 flex items-center">
+                <FaMapMarkerAlt className="mr-2" />
                 Preferred Location
-              </label>
-              <input
-                type="text"
-                name="preferredLocation"
-                value={formData.preferredLocation}
-                onChange={handleChange}
-                placeholder="Enter preferred location"
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    State
+                  </label>
+                  <select
+                    value={formData.preferredLocation.state}
+                    onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select State</option>
+                    {states.map(state => (
+                      <option key={state.iso2} value={state.iso2}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    District
+                  </label>
+                  <select
+                    value={formData.preferredLocation.district}
+                    onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
+                    disabled={!formData.preferredLocation.state}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                  >
+                    <option value="">Select District</option>
+                    {districts.map(district => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -397,6 +544,82 @@ const CandidateForm = () => {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {selectedJob && (
+              <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Required Skills:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedJob.skills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Experience Range:</h4>
+                    <p className="text-gray-600">
+                      {selectedJob.experienceRange[0]} - {selectedJob.experienceRange[1]} years
+                    </p>
+                  </div>
+                </div>
+
+                {selectedJob.questions && selectedJob.questions.length > 0 && (
+                  <div className="md:col-span-2 mt-4 border-t border-stroke pt-4">
+                    <h4 className="font-semibold mb-4">Job-Specific Questions:</h4>
+                    <div className="space-y-4">
+                      {selectedJob.questions.map((question, index) => (
+                        <div key={index} className="border border-stroke rounded-lg p-4 bg-white dark:bg-boxdark">
+                          <label className="block text-black dark:text-white mb-2">
+                            {question} <span className="text-meta-1">*</span>
+                          </label>
+                          <textarea
+                            name={`job_answer_${index}`}
+                            value={formData.job_answers[question] || ''}
+                            onChange={(e) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                job_answers: {
+                                  ...prev.job_answers,
+                                  [question]: e.target.value
+                                }
+                              }));
+                            }}
+                            required
+                            placeholder="Enter your answer..."
+                            rows="3"
+                            className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="mb-2.5 block text-black dark:text-white">
+                <FaFileUpload className="inline mr-2" />
+                Resume Upload
+              </label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleResumeUpload}
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+              {resume && (
+                <p className="mt-2 text-sm text-success">
+                  Selected file: {resume.name}
+                </p>
+              )}
             </div>
 
             <div>
@@ -435,24 +658,6 @@ const CandidateForm = () => {
               </div>
             )}
 
-            <div>
-              <label className="mb-2.5 block text-black dark:text-white">
-                <FaFileUpload className="inline mr-2" />
-                Resume Upload
-              </label>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleResumeUpload}
-                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
-              {resume && (
-                <p className="mt-2 text-sm text-success">
-                  Selected file: {resume.name}
-                </p>
-              )}
-            </div>
-
             <div className="md:col-span-2">
               <label className="mb-2.5 block text-black dark:text-white text-sm">
                 <FaComments className="inline mr-2" />
@@ -468,38 +673,6 @@ const CandidateForm = () => {
               />
             </div>
           </div>
-
-          {selectedJob && selectedJob.questions && selectedJob.questions.length > 0 && (
-            <div className="mt-6 border-t border-stroke pt-6">
-              <h4 className="font-semibold mb-4">Job-Specific Questions:</h4>
-              <div className="space-y-4">
-                {selectedJob.questions.map((question, index) => (
-                  <div key={index} className="border border-stroke rounded-lg p-4">
-                    <label className="block text-black dark:text-white mb-2">
-                      {question} <span className="text-meta-1">*</span>
-                    </label>
-                    <textarea
-                      name={`job_answer_${index}`}
-                      value={formData.job_answers[question] || ''}
-                      onChange={(e) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          job_answers: {
-                            ...prev.job_answers,
-                            [question]: e.target.value
-                          }
-                        }));
-                      }}
-                      required
-                      placeholder="Enter your answer..."
-                      rows="3"
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="flex justify-end gap-4.5 mt-6">
             <button

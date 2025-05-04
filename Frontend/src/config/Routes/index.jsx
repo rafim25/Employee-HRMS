@@ -307,6 +307,28 @@ const AppRoutes = () => {
           <EmployeeJobForm />
         </ProtectedRoute>
       } />
+      <Route path="/employee/recruitments/job-management/add" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeJobForm />
+        </ProtectedRoute>
+      } />
+
+      {/* Employee Skill Management Routes */}
+      <Route path="/employee/recruitments/skill-management" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <SkillList />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/skill-management/add" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <SkillForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/skill-management/edit/:id" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EditSkill />
+        </ProtectedRoute>
+      } />
 
       {/* Route Not Found/404 */}
       <Route path="*" element={<NotFound />} />
