@@ -197,8 +197,19 @@ const CandidateList = () => {
     }
   ];
 
-  const handleApplyFilters = () => {
-    // Apply your filters logic here
+  const handleApplyFilters = (shouldReset = false) => {
+    if (shouldReset) {
+      setFilters({
+        status: '',
+        source: '',
+        createdBy: '',
+        experience: { min: '', max: '' },
+        location: '',
+        dateRange: { start: '', end: '' },
+        salary: { min: '', max: '' },
+        jobApplied: ''
+      });
+    }
     setShowFilterModal(false);
   };
 
@@ -726,8 +737,8 @@ const CandidateList = () => {
         {/* Filter Modal */}
         <FilterModal
           isOpen={showFilterModal}
-          onClose={() => setShowFilterModal(false)}
-          onApply={handleApplyFilters}
+          onClose={() => handleApplyFilters(true)}
+          onApply={() => handleApplyFilters(false)}
           onReset={handleResetFilters}
           filters={filters}
           setFilters={setFilters}

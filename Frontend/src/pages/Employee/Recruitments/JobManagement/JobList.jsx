@@ -156,16 +156,17 @@ const JobList = () => {
       job?.description?.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
 
-    const matchesType = !filters.type || job.type === filters.type;
-    const matchesSalary = (!filters.salary.min || job.minSalary >= filters.salary.min) &&
-      (!filters.salary.max || job.maxSalary <= filters.salary.max);
+    const matchesType = !filters.type || job.type?.toLowerCase() === filters.type?.toLowerCase();
+    const matchesSalary = (!filters.salary.min || job.minSalary >= Number(filters.salary.min)) &&
+      (!filters.salary.max || job.maxSalary <= Number(filters.salary.max));
     const matchesLocation = !filters.location ||
       job.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
       job.state?.toLowerCase().includes(filters.location.toLowerCase());
     const matchesSkills = !filters.skills.length ||
       filters.skills.every(skill => job.skills?.includes(skill));
+    const matchesStatus = !filters.status || job.status?.toLowerCase() === filters.status?.toLowerCase();
 
-    return matchesType && matchesSalary && matchesLocation && matchesSkills;
+    return matchesType && matchesSalary && matchesLocation && matchesSkills && matchesStatus;
   });
 
   const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);

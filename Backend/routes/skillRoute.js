@@ -13,8 +13,8 @@ const router = express.Router();
 // Basic routes without /api/skills prefix
 router.get('/', verify_User, getSkills);
 router.get('/:id', verify_User, getSkillById);
-router.post('/', verify_User, admin_Only, createSkill);
-router.patch('/:id', verify_User, admin_Only, updateSkill);  // Make sure this exists
-router.delete('/:id', verify_User, admin_Only, deleteSkill);
+router.post('/', verify_User, createSkill);
+router.patch('/:id', verify_User, updateSkill);  // Make sure this exists
+router.delete('/:id', verify_User, deleteSkill);
 
 export default router; 

@@ -40,6 +40,9 @@ import EmployeeCandidateDetails from '../../pages/Employee/Recruitments/Candidat
 import EmployeeJobList from '../../pages/Employee/Recruitments/JobManagement/JobList'
 import EmployeeJobDetails from '../../pages/Employee/Recruitments/JobManagement/JobDetails'
 import EmployeeJobForm from '../../pages/Employee/Recruitments/JobManagement/JobForm'
+import EmployeeSkillList from '../../pages/Employee/Recruitments/SkillManagement/SkillList'
+import EmployeeSkillForm from '../../pages/Employee/Recruitments/SkillManagement/SkillForm'
+import EmployeeEditSkill from '../../pages/Employee/Recruitments/SkillManagement/EditSkill'
 
 const AppRoutes = () => {
   return (
@@ -316,17 +319,17 @@ const AppRoutes = () => {
       {/* Employee Skill Management Routes */}
       <Route path="/employee/recruitments/skill-management" element={
         <ProtectedRoute allowedRoles={['user']}>
-          <SkillList />
+          <EmployeeSkillList />
         </ProtectedRoute>
       } />
       <Route path="/employee/recruitments/skill-management/add" element={
         <ProtectedRoute allowedRoles={['user']}>
-          <SkillForm />
+          <EmployeeSkillForm />
         </ProtectedRoute>
       } />
       <Route path="/employee/recruitments/skill-management/edit/:id" element={
         <ProtectedRoute allowedRoles={['user']}>
-          <EditSkill />
+          <EmployeeEditSkill />
         </ProtectedRoute>
       } />
 

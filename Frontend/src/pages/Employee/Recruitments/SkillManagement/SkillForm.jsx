@@ -1,0 +1,130 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import DefaultLayoutEmployee from '../../../../layout/DefaultLayoutPegawai';
+import { BreadcrumbPegawai } from '../../../../components';
+import { FaTools, FaSave, FaTimes } from 'react-icons/fa';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../../../context/AuthContext';
+import axiosInstance from '../../../../services/api';
+
+const SkillForm = () => {
+  const navigate = useNavigate();
+  const { state: authState } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    created_by: authState?.user?.username || '',
+    created_by_id: authState?.user?.user_id || null
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const skillData = {
+        name: formData.name,
+        description: formData.description,
+        created_by: authState?.user?.username,
+        created_by_id: authState?.user?.user_id
+      };
+
+      const response = await axiosInstance.post('/api/skills', skillData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      toast.success('Skill created successfully');
+      navigate('/employee/recruitments/skill-management');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create skill');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <DefaultLayoutEmployee>
+      <BreadcrumbPegawai pageName="Add New Skill" icon={FaTools} />
+
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <form onSubmit={handleSubmit} className="p-6.5">
+          {/* Skill Details Section */}
+          <div className="mb-6 rounded-sm border border-stroke py-4 px-6.5 dark:border-strokedark">
+            <div className="flex items-center gap-3 mb-4">
+              <FaTools className="text-xl text-primary" />
+              <h3 className="font-medium text-black dark:text-white">
+                Skill Details
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="mb-3 block text-sm font-medium text-black dark:text-white">
+                  Skill Name <span className="text-meta-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter skill name"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="mb-3 block text-sm font-medium text-black dark:text-white">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="4"
+                  placeholder="Enter skill description"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={() => navigate('/employee/recruitments/skill-management')}
+              className="flex items-center justify-center gap-2 rounded-lg border border-stroke py-2 px-6 text-black hover:bg-gray-100 dark:border-strokedark dark:text-white dark:hover:bg-boxdark"
+            >
+              <FaTimes />
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center justify-center gap-2 rounded-lg bg-primary py-2 px-6 text-white hover:bg-opacity-90"
+            >
+              <FaSave />
+              {loading ? 'Creating...' : 'Create Skill'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </DefaultLayoutEmployee>
+  );
+};
+
+export default SkillForm; 

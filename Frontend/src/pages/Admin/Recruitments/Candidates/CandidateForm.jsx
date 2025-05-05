@@ -10,6 +10,7 @@ import { downloadCandidateTemplate } from '../../../../utils/excelTemplates';
 import { api } from '../../../../services/api';
 import * as XLSX from 'xlsx';
 import BulkUploadResultsModal from '../../../../components/molecules/Modal/BulkUploadResultsModal';
+import axiosInstance from '../../../../services/api';
 
 const CandidateForm = () => {
   const navigate = useNavigate();
@@ -27,8 +28,16 @@ const CandidateForm = () => {
     currentCTC: '',
     expectedCTC: '',
     noticePeriod: '',
-    currentLocation: '',
-    preferredLocation: '',
+    currentLocation: {
+      state: '',
+      district: '',
+      districtName: ''
+    },
+    preferredLocation: {
+      state: '',
+      district: '',
+      districtName: ''
+    },
     jobId: '',
     resumeUrl: '',
     notes: '',
@@ -61,13 +70,17 @@ const CandidateForm = () => {
   const [currentLocation, setCurrentLocation] = useState({
     state: '',
     district: '',
-    city: ''
+    districtName: ''
   });
   const [preferredLocation, setPreferredLocation] = useState({
     state: '',
     district: '',
-    city: ''
+    districtName: ''
   });
+  const [currentDistricts, setCurrentDistricts] = useState([]);
+  const [preferredDistricts, setPreferredDistricts] = useState([]);
+  const [currentDistrictsLoading, setCurrentDistrictsLoading] = useState(false);
+  const [preferredDistrictsLoading, setPreferredDistrictsLoading] = useState(false);
   const [districts, setDistricts] = useState([]);
   const [cities, setCities] = useState([]);
   const [uploadStatus, setUploadStatus] = useState({
@@ -138,10 +151,11 @@ const CandidateForm = () => {
     fetchStates();
   }, []);
 
-  const fetchDistricts = async (stateCode) => {
-    if (districtsCache[stateCode]) {
-      setDistricts(districtsCache[stateCode]);
-      return;
+  const fetchDistricts = async (stateCode, type) => {
+    if (type === 'current') {
+      setCurrentDistrictsLoading(true);
+    } else {
+      setPreferredDistrictsLoading(true);
     }
 
     try {
@@ -152,11 +166,20 @@ const CandidateForm = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch districts');
       const data = await response.json();
-      setDistricts(data);
-      setDistrictsCache(prev => ({ ...prev, [stateCode]: data }));
+      if (type === 'current') {
+        setCurrentDistricts(data);
+      } else {
+        setPreferredDistricts(data);
+      }
     } catch (error) {
       console.error('Error fetching districts:', error);
       toast.error('Failed to load districts');
+    } finally {
+      if (type === 'current') {
+        setCurrentDistrictsLoading(false);
+      } else {
+        setPreferredDistrictsLoading(false);
+      }
     }
   };
 
@@ -197,33 +220,37 @@ const CandidateForm = () => {
 
   const handleLocationChange = (type, field, value) => {
     if (type === 'current') {
-      setCurrentLocation(prev => {
-        const newLocation = { ...prev, [field]: value };
-        if (field === 'state') {
-          fetchDistricts(value);
-          newLocation.district = '';
-          newLocation.city = '';
-        }
-        // else if (field === 'district') {
-        //   fetchCities(newLocation.state, value);
-        //   newLocation.city = '';
-        // }
-        return newLocation;
-      });
+      if (field === 'state') {
+        fetchDistricts(value, 'current');
+        setCurrentLocation({
+          state: value,
+          district: '',
+          districtName: ''
+        });
+      } else {
+        const selectedDistrict = currentDistricts.find(d => d.id.toString() === value.toString());
+        setCurrentLocation(prev => ({
+          ...prev,
+          district: value,
+          districtName: selectedDistrict?.name || ''
+        }));
+      }
     } else {
-      setPreferredLocation(prev => {
-        const newLocation = { ...prev, [field]: value };
-        if (field === 'state') {
-          fetchDistricts(value);
-          newLocation.district = '';
-          newLocation.city = '';
-        }
-        // else if (field === 'district') {
-        //   fetchCities(newLocation.state, value);
-        //   newLocation.city = '';
-        // }
-        return newLocation;
-      });
+      if (field === 'state') {
+        fetchDistricts(value, 'preferred');
+        setPreferredLocation({
+          state: value,
+          district: '',
+          districtName: ''
+        });
+      } else {
+        const selectedDistrict = preferredDistricts.find(d => d.id.toString() === value.toString());
+        setPreferredLocation(prev => ({
+          ...prev,
+          district: value,
+          districtName: selectedDistrict?.name || ''
+        }));
+      }
     }
   };
 
@@ -232,57 +259,40 @@ const CandidateForm = () => {
     setLoading(true);
 
     try {
-      // First check if candidate already exists
-      const checkDuplicateResponse = await fetch('/api/candidates/check-duplicate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          phone: formData.phone,
-          name: formData.name
-        })
+      // Get selected state names
+      const currentState = states.find(s => s.iso2 === currentLocation.state)?.name || '';
+      const preferredState = states.find(s => s.iso2 === preferredLocation.state)?.name || '';
+
+      // Check for duplicate candidate
+      const checkDuplicateResponse = await axiosInstance.post('/api/candidates/check-duplicate', {
+        email: formData.email,
+        phone: formData.phone,
+        name: formData.name
       });
 
-      const duplicateData = await checkDuplicateResponse.json();
-
-      if (duplicateData.isDuplicate) {
-        toast.error(duplicateData.message || 'Candidate already exists');
+      if (checkDuplicateResponse.data.isDuplicate) {
+        toast.error(checkDuplicateResponse.data.message || 'Candidate already exists');
         setLoading(false);
         return;
       }
 
-      // If no duplicate, proceed with resume upload
+      // Handle resume upload if present
       let resumeUrl = '';
       if (resume) {
         const formData = new FormData();
         formData.append('file', resume);
 
-        const uploadResponse = await fetch('/api/upload/resume', {
-          method: 'POST',
+        const uploadResponse = await axiosInstance.post('/api/upload/resume', formData, {
           headers: {
+            'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: formData
+          }
         });
 
-        if (!uploadResponse.ok) {
-          throw new Error('Failed to upload resume');
-        }
-
-        const uploadResult = await uploadResponse.json();
-        resumeUrl = uploadResult.url;
+        resumeUrl = uploadResponse.data.url;
       }
 
-      // Get selected state and city names
-      const currentState = states.find(s => s.iso2 === currentLocation.state)?.name || '';
-      const currentDistrict = districts.find(d => d.id === currentLocation.district)?.name || '';
-      const preferredState = states.find(s => s.iso2 === preferredLocation.state)?.name || '';
-      const preferredDistrict = districts.find(d => d.id === preferredLocation.district)?.name || '';
-
-      // Prepare candidate data with proper location format
+      // Prepare candidate data
       const candidateData = {
         name: formData.name,
         email: formData.email,
@@ -292,59 +302,37 @@ const CandidateForm = () => {
         current_ctc: formData.currentCTC,
         expected_ctc: formData.expectedCTC,
         notice_period: formData.noticePeriod,
-        current_location: `${currentState}, ${currentDistrict}`,
-        preferred_location: `${preferredState}, ${preferredDistrict}`,
+        current_location: currentLocation.districtName ?
+          `${currentState}, ${currentLocation.districtName}` :
+          currentState,
+        preferred_location: preferredLocation.districtName ?
+          `${preferredState}, ${preferredLocation.districtName}` :
+          preferredState,
         job_id: parseInt(formData.jobId),
         job_answers: formData.job_answers,
         rejection_reason: formData.rejection_reason,
-        rejection_details: {
-          ...formData.rejection_details,
-          rejected_by: state?.user?.username || '',
-          rejected_at: formData.rejection_reason ? new Date().toISOString() : null
-        },
+        rejection_details: formData.rejection_details,
         notes: formData.notes,
         source: formData.source,
         referred_by: formData.referred_by,
-        resume_url: resumeUrl,
+        resume_url: resumeUrl || formData.resumeUrl,
         created_by: state?.user?.username || '',
         created_by_id: state?.user?.user_id || null,
       };
 
       // Create candidate
-      const response = await fetch('/api/candidates', {
-        method: 'POST',
+      await axiosInstance.post('/api/candidates', candidateData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(candidateData)
+        }
       });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to create candidate');
-      }
 
       toast.success('Candidate added successfully');
       navigate('/admin/recruitments/candidates');
     } catch (error) {
       console.error('Error:', error);
-      toast.error(error.message || 'Failed to save candidate');
-
-      // If there was an error and we uploaded a resume, we should clean it up
-      if (resumeUrl) {
-        try {
-          await fetch(`/api/upload/resume/${encodeURIComponent(resumeUrl)}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          });
-        } catch (cleanupError) {
-          console.error('Failed to cleanup uploaded resume:', cleanupError);
-        }
-      }
+      toast.error(error.response?.data?.message || 'Failed to save candidate');
     } finally {
       setLoading(false);
     }
@@ -1093,38 +1081,27 @@ const CandidateForm = () => {
                               <label className="mb-2.5 block text-black dark:text-white">
                                 District
                               </label>
-                              <select
-                                value={currentLocation.district}
-                                onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
-                                disabled={!currentLocation.state}
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                              >
-                                <option value="">Select City</option>
-                                {districts.map(district => (
-                                  <option key={district.id} value={district.id}>
-                                    {district.name}
-                                  </option>
-                                ))}
-                              </select>
+                              <div className="relative">
+                                <select
+                                  value={currentLocation.district}
+                                  onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
+                                  disabled={!currentLocation.state || currentDistrictsLoading}
+                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                >
+                                  <option value="">Select District</option>
+                                  {currentDistricts.map(district => (
+                                    <option key={district.id} value={district.id}>
+                                      {district.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                {currentDistrictsLoading && (
+                                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            {/* <div>
-                              <label className="mb-2.5 block text-black dark:text-white">
-                                City
-                              </label>
-                              <select
-                                value={currentLocation.city}
-                                onChange={(e) => handleLocationChange('current', 'city', e.target.value)}
-                                disabled={!currentLocation.district}
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                              >
-                                <option value="">Select City</option>
-                                {cities.map(city => (
-                                  <option key={city.id} value={city.id}>
-                                    {city.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div> */}
                           </div>
                         </div>
 
@@ -1155,38 +1132,27 @@ const CandidateForm = () => {
                               <label className="mb-2.5 block text-black dark:text-white">
                                 District
                               </label>
-                              <select
-                                value={preferredLocation.district}
-                                onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
-                                disabled={!preferredLocation.state}
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                              >
-                                <option value="">Select City</option>
-                                {districts.map(district => (
-                                  <option key={district.id} value={district.id}>
-                                    {district.name}
-                                  </option>
-                                ))}
-                              </select>
+                              <div className="relative">
+                                <select
+                                  value={preferredLocation.district}
+                                  onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
+                                  disabled={!preferredLocation.state || preferredDistrictsLoading}
+                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                >
+                                  <option value="">Select District</option>
+                                  {preferredDistricts.map(district => (
+                                    <option key={district.id} value={district.id}>
+                                      {district.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                {preferredDistrictsLoading && (
+                                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            {/* <div>
-                              <label className="mb-2.5 block text-black dark:text-white">
-                                City
-                              </label>
-                              <select
-                                value={preferredLocation.city}
-                                onChange={(e) => handleLocationChange('preferred', 'city', e.target.value)}
-                                disabled={!preferredLocation.district}
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                              >
-                                <option value="">Select City</option>
-                                {cities.map(city => (
-                                  <option key={city.id} value={city.id}>
-                                    {city.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div> */}
                           </div>
                         </div>
 

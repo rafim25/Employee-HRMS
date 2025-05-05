@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEdit, FaFilter, FaPlus, FaUser, FaDownload, FaEllipsisV } from 'react-icons/fa';
+import { FaEye, FaEdit, FaFilter, FaPlus, FaUser, FaDownload, FaEllipsisV, FaFileExcel } from 'react-icons/fa';
 import { BiSearch } from 'react-icons/bi';
 import toast from 'react-hot-toast';
 import DefaultLayoutEmployee from '../../../../layout/DefaultLayoutPegawai';
@@ -13,6 +13,7 @@ import { MdSource } from 'react-icons/md';
 import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
 import { checkUserPermission } from '../../../../utils/permissions';
 import { fetchCandidates, updateCandidateStatus } from '../../../../context/actions/candidateActions';
+import * as XLSX from 'xlsx';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -139,7 +140,18 @@ const CandidateList = () => {
     }
   ];
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = (shouldReset = false) => {
+    if (shouldReset) {
+      setFilters({
+        status: '',
+        source: '',
+        experience: { min: '', max: '' },
+        location: '',
+        dateRange: { start: '', end: '' },
+        salary: { min: '', max: '' },
+        jobApplied: ''
+      });
+    }
     setShowFilterModal(false);
   };
 
@@ -244,7 +256,40 @@ const CandidateList = () => {
       setSelectedCandidate(null);
     } catch (error) {
       console.error('Error rejecting candidate:', error);
-      toast.error('Failed to reject candidate');
+      toast.error('Failed to reject candidate, please ask admin to reject candidate');
+    }
+  };
+
+  const handleDownloadExcel = () => {
+    try {
+      const candidatesForExcel = filteredCandidates.map(candidate => ({
+        'Candidate ID': candidate.uuid || 'N/A',
+        'Name': candidate.name || 'N/A',
+        'Email': candidate.email || 'N/A',
+        'Phone': candidate.phone || 'N/A',
+        'Job Applied': candidate.job?.title || 'N/A',
+        'Status': candidate.application_status || 'N/A',
+        'Source': candidate.source || 'N/A',
+        'Experience': candidate.experience || 'N/A',
+        'Current Company': candidate.current_company || 'N/A',
+        'Current CTC': candidate.current_ctc ? `₹${candidate.current_ctc}` : 'N/A',
+        'Expected CTC': candidate.expected_ctc ? `₹${candidate.expected_ctc}` : 'N/A',
+        'Notice Period': candidate.notice_period ? `${candidate.notice_period} days` : 'N/A',
+        'Current Location': candidate.current_location || 'N/A',
+        'Preferred Location': candidate.preferred_location || 'N/A',
+        'Applied Date': format(new Date(candidate.createdAt), 'MMM dd, yyyy') || 'N/A',
+        'Created By': candidate.created_by || 'N/A'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(candidatesForExcel);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Candidates');
+      XLSX.writeFile(wb, 'candidates_list.xlsx');
+
+      toast.success('Excel file downloaded successfully');
+    } catch (error) {
+      console.error('Error generating Excel:', error);
+      toast.error('Failed to generate Excel file');
     }
   };
 
@@ -256,14 +301,17 @@ const CandidateList = () => {
       candidate.phone?.includes(searchTerm) ||
       candidate.job?.title?.toLowerCase().includes(searchLower);
 
-    const matchesStatus = !filters.status || candidate.status === filters.status;
+    const matchesStatus = !filters.status || candidate.application_status === filters.status;
     const matchesSource = !filters.source || candidate.source === filters.source;
     const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
       (!filters.experience.max || candidate.experience <= Number(filters.experience.max));
     const matchesLocation = !filters.location ||
-      candidate.current_location?.toLowerCase().includes(filters.location.toLowerCase());
+      candidate.current_location?.toLowerCase().includes(filters.location.toLowerCase()) ||
+      candidate.preferred_location?.toLowerCase().includes(filters.location.toLowerCase());
     const matchesDateRange = (!filters.dateRange.start || new Date(candidate.createdAt) >= new Date(filters.dateRange.start)) &&
       (!filters.dateRange.end || new Date(candidate.createdAt) <= new Date(filters.dateRange.end));
+    const matchesSalary = (!filters.salary.min || candidate.expected_salary >= Number(filters.salary.min)) &&
+      (!filters.salary.max || candidate.expected_salary <= Number(filters.salary.max));
     const matchesJob = !filters.jobApplied || candidate.job?.title === filters.jobApplied;
 
     return matchesSearch &&
@@ -272,6 +320,7 @@ const CandidateList = () => {
       matchesExperience &&
       matchesLocation &&
       matchesDateRange &&
+      matchesSalary &&
       matchesJob;
   });
 
@@ -448,11 +497,11 @@ const CandidateList = () => {
               </Link>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="w-full sm:w-auto flex flex-wrap items-center justify-end gap-3">
               <div className="relative flex-grow sm:flex-grow-0 sm:w-72">
                 <input
                   type="text"
-                  placeholder="Search candidates..."
+                  placeholder="Search by name, email, phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full rounded-lg border border-stroke bg-transparent py-3 pl-12 pr-4 outline-none focus:border-primary focus:ring-1 focus:ring-primary dark:border-strokedark dark:bg-meta-4 dark:focus:border-primary"
@@ -466,6 +515,15 @@ const CandidateList = () => {
               >
                 <FaFilter className="mr-2" />
                 Filters
+              </button>
+
+              <button
+                onClick={handleDownloadExcel}
+                disabled={filteredCandidates.length === 0 || loading}
+                className="inline-flex items-center justify-center rounded-lg border border-success bg-success py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaFileExcel className="mr-2" />
+                Export Excel
               </button>
             </div>
           </div>
@@ -503,8 +561,8 @@ const CandidateList = () => {
 
       <FilterModal
         isOpen={showFilterModal}
-        onClose={() => setShowFilterModal(false)}
-        onApply={handleApplyFilters}
+        onClose={() => handleApplyFilters(true)}
+        onApply={() => handleApplyFilters(false)}
         onReset={handleResetFilters}
         filters={filters}
         setFilters={setFilters}

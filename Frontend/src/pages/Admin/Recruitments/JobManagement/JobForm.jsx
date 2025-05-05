@@ -46,6 +46,7 @@ const JobForm = () => {
     const [userOptions, setUserOptions] = useState([]);
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
+    const [loadingDistricts, setLoadingDistricts] = useState(false);
 
     useEffect(() => {
         const fetchSkills = async () => {
@@ -54,14 +55,11 @@ const JobForm = () => {
                     withCredentials: true
                 });
 
-                // Remove duplicates using Set and create unique skills list
                 const uniqueSkills = [...new Set(response.data.map(skill => skill.name))];
-
-                // Create options list with unique values
                 const skillsList = uniqueSkills.map(skill => ({
                     value: skill,
                     label: skill
-                })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically
+                })).sort((a, b) => a.label.localeCompare(b.label));
 
                 setSkillOptions(skillsList);
             } catch (error) {
@@ -108,6 +106,7 @@ const JobForm = () => {
     }, []);
 
     const fetchDistricts = async (stateCode) => {
+        setLoadingDistricts(true);
         try {
             const response = await fetch(`/api/locations/states/${stateCode}/districts`, {
                 headers: {
@@ -120,6 +119,8 @@ const JobForm = () => {
         } catch (error) {
             console.error('Error fetching districts:', error);
             toast.error('Failed to load districts');
+        } finally {
+            setLoadingDistricts(false);
         }
     };
 
@@ -278,10 +279,13 @@ const JobForm = () => {
                         <form>
                             <div className='p-6.5'>
                                 {/* Job Details Section */}
-                                <div className='mb-4.5 p-4 bg-gray-100 rounded'>
-                                    <h4 className='font-medium text-black dark:text-white mb-4 flex items-center'>
-                                        <FaBriefcase className='mr-2' /> Job Details
-                                    </h4>
+                                <div className='mb-6 rounded-sm border border-stroke py-4 px-6.5 dark:border-strokedark'>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <FaBriefcase className="text-xl text-primary" />
+                                        <h3 className="font-medium text-black dark:text-white">
+                                            Job Details
+                                        </h3>
+                                    </div>
                                     <div className='mb-4.5 flex flex-col xl:flex-row gap-6'>
                                         <div className='w-full xl:w-1/2'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
@@ -340,10 +344,13 @@ const JobForm = () => {
                                 </div>
 
                                 {/* Location and Salary Section */}
-                                <div className='mb-4.5 p-4 bg-gray-100 rounded'>
-                                    <h4 className='font-medium text-black dark:text-white mb-4 flex items-center'>
-                                        <FaMapMarkerAlt className='mr-2' /> Location and Salary
-                                    </h4>
+                                <div className='mb-6 rounded-sm border border-stroke py-4 px-6.5 dark:border-strokedark'>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <FaMapMarkerAlt className="text-xl text-primary" />
+                                        <h3 className="font-medium text-black dark:text-white">
+                                            Location and Salary
+                                        </h3>
+                                    </div>
                                     <div className='mb-4.5 flex flex-col xl:flex-row gap-6'>
                                         <div className='w-full xl:w-1/2'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
@@ -365,16 +372,21 @@ const JobForm = () => {
                                             </select>
                                         </div>
 
-                                        <div className='w-full xl:w-1/2'>
+                                        <div className='w-full xl:w-1/2 relative'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
                                                 City <span className='text-meta-1'>*</span>
                                             </label>
+                                            {loadingDistricts && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-boxdark/50 z-10">
+                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                                                </div>
+                                            )}
                                             <select
                                                 name='city'
                                                 value={jobData.city}
                                                 onChange={(e) => handleLocationChange('city', e.target.value)}
                                                 required
-                                                disabled={!jobData.state}
+                                                disabled={!jobData.state || loadingDistricts}
                                                 className='w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
                                             >
                                                 <option value=''>Select City</option>
@@ -459,10 +471,13 @@ const JobForm = () => {
                                 </div>
 
                                 {/* Additional Details Section */}
-                                <div className='mb-4.5 p-4 bg-gray-100 rounded'>
-                                    <h4 className='font-medium text-black dark:text-white mb-4 flex items-center'>
-                                        <FaInfoCircle className='mr-2' /> Additional Details
-                                    </h4>
+                                <div className='mb-6 rounded-sm border border-stroke py-4 px-6.5 dark:border-strokedark'>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <FaInfoCircle className="text-xl text-primary" />
+                                        <h3 className="font-medium text-black dark:text-white">
+                                            Additional Details
+                                        </h3>
+                                    </div>
                                     <div className='mb-4.5'>
                                         <label className='mb-2.5 block text-black dark:text-white'>
                                             Experience Range (Years) <span className='text-meta-1'>*</span>
@@ -552,10 +567,13 @@ const JobForm = () => {
                                 </div>
 
                                 {/* Questions Section */}
-                                <div className='mb-4.5 p-4 bg-gray-100 rounded'>
-                                    <h4 className='font-medium text-black dark:text-white mb-4 flex items-center'>
-                                        <FaQuestionCircle className='mr-2' /> Interview Questions
-                                    </h4>
+                                <div className='mb-6 rounded-sm border border-stroke py-4 px-6.5 dark:border-strokedark'>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <FaQuestionCircle className="text-xl text-primary" />
+                                        <h3 className="font-medium text-black dark:text-white">
+                                            Interview Questions
+                                        </h3>
+                                    </div>
                                     <div className='space-y-3'>
                                         {jobData.questions.map((question, index) => (
                                             question.trim() && (
@@ -604,10 +622,13 @@ const JobForm = () => {
                                 </div>
 
                                 {/* Client Details Section */}
-                                <div className='mb-4.5 p-4 bg-gray-100 rounded'>
-                                    <h4 className='font-medium text-black dark:text-white mb-4 flex items-center'>
-                                        <FaUser className='mr-2' /> Client Details
-                                    </h4>
+                                <div className='mb-6 rounded-sm border border-stroke py-4 px-6.5 dark:border-strokedark'>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <FaUser className="text-xl text-primary" />
+                                        <h3 className="font-medium text-black dark:text-white">
+                                            Client Details
+                                        </h3>
+                                    </div>
                                     <div className='mb-4.5 flex flex-col xl:flex-row gap-6'>
                                         <div className='w-full xl:w-1/2'>
                                             <label className='mb-2.5 block text-black dark:text-white'>
@@ -689,7 +710,7 @@ const JobForm = () => {
                     </div>
                 </div>
             </div>
-        </DefaultLayoutAdmin >
+        </DefaultLayoutAdmin>
     );
 };
 
