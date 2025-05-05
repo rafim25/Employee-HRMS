@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { FaCalendar, FaUser, FaHotel, FaMoneyBillWave, FaSpinner, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import toast from "react-hot-toast";
 import TopNavigation from '../../components/molecules/TopNavigation/index';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
