@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface VideoHeroProps {
@@ -21,9 +21,10 @@ const VideoHero: React.FC<VideoHeroProps> = ({
   children
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [bufferedPercentage, setBufferedPercentage] = useState(0);
 
   useEffect(() => {
-    // For local videos, ensure they play continuously
     if (videoRef.current && videoSrc) {
       const video = videoRef.current;
 
@@ -32,18 +33,41 @@ const VideoHero: React.FC<VideoHeroProps> = ({
         console.error("Error playing video:", error);
       });
 
+      // Handle buffering
+      const handleProgress = () => {
+        if (video.buffered.length > 0) {
+          const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+          const duration = video.duration;
+          const percentage = (bufferedEnd / duration) * 100;
+          setBufferedPercentage(percentage);
+        }
+      };
+
+      const handleWaiting = () => setIsBuffering(true);
+      const handlePlaying = () => setIsBuffering(false);
+
+      // Add event listeners
+      video.addEventListener('progress', handleProgress);
+      video.addEventListener('waiting', handleWaiting);
+      video.addEventListener('playing', handlePlaying);
+
       // Check if video is paused and restart it
       const checkVideo = setInterval(() => {
-        if (video.paused) {
+        if (video.paused && !isBuffering) {
           video.play().catch(error => {
             console.error("Error restarting video:", error);
           });
         }
       }, 2000);
 
-      return () => clearInterval(checkVideo);
+      return () => {
+        clearInterval(checkVideo);
+        video.removeEventListener('progress', handleProgress);
+        video.removeEventListener('waiting', handleWaiting);
+        video.removeEventListener('playing', handlePlaying);
+      };
     }
-  }, [videoSrc]);
+  }, [videoSrc, isBuffering]);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
@@ -74,19 +98,36 @@ const VideoHero: React.FC<VideoHeroProps> = ({
             />
           </div>
         ) : videoSrc ? (
-          // Local Video
-          <video
-            ref={videoRef}
-            className="absolute top-0 left-0 w-full h-full object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-          >
-            <source src={videoSrc} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          // Local Video with buffering indicator
+          <div className="relative w-full h-full">
+            <video
+              ref={videoRef}
+              className="absolute top-0 left-0 w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+            >
+              <source src={videoSrc} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            {isBuffering && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div className="text-white text-lg">Loading video...</div>
+              </div>
+            )}
+            {/* Buffering progress bar */}
+            <div
+              className="absolute bottom-0 left-0 h-1 bg-white/30 w-full"
+              style={{ display: bufferedPercentage < 100 ? 'block' : 'none' }}
+            >
+              <div
+                className="h-full bg-white/70 transition-all duration-300"
+                style={{ width: `${bufferedPercentage}%` }}
+              />
+            </div>
+          </div>
         ) : null}
       </div>
 
