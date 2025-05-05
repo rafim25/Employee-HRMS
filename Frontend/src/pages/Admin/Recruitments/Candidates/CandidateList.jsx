@@ -82,7 +82,7 @@ const CandidateList = () => {
   useEffect(() => {
     loadCandidates();
     fetchUsers();
-  }, [dispatch, currentPage]);
+  }, [dispatch]);
 
   useEffect(() => {
     setCurrentPage(1);
