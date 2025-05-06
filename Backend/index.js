@@ -64,6 +64,7 @@ const app = express();
 
 // Define allowed origins
 const allowedOrigins = [
+  "http://13.50.235.78",
   "http://13.50.235.78/",
   'http://localhost:5173',
   'http://13.60.189.178',
