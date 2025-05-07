@@ -23,15 +23,52 @@ const VideoHero: React.FC<VideoHeroProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isBuffering, setIsBuffering] = useState(false);
   const [bufferedPercentage, setBufferedPercentage] = useState(0);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
   useEffect(() => {
     if (videoRef.current && videoSrc) {
       const video = videoRef.current;
 
-      // Set video to play automatically
-      video.play().catch(error => {
-        console.error("Error playing video:", error);
-      });
+      // Implement video caching
+      const cacheVideo = async () => {
+        try {
+          // Check if video is already in cache
+          const cache = await caches.open('video-cache');
+          const cachedResponse = await cache.match(videoSrc);
+
+          if (cachedResponse) {
+            // Use cached video
+            const blob = await cachedResponse.blob();
+            const url = URL.createObjectURL(blob);
+            video.src = url;
+            setIsVideoLoaded(true);
+          } else {
+            // Fetch and cache video
+            const response = await fetch(videoSrc);
+            await cache.put(videoSrc, response.clone());
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            video.src = url;
+            setIsVideoLoaded(true);
+          }
+        } catch (error) {
+          console.error('Error caching video:', error);
+          // Fallback to direct video source if caching fails
+          video.src = videoSrc;
+          setIsVideoLoaded(true);
+        }
+      };
+
+      cacheVideo();
+
+      // Set video to play automatically once loaded
+      const playVideo = async () => {
+        try {
+          await video.play();
+        } catch (error) {
+          console.error("Error playing video:", error);
+        }
+      };
 
       // Handle buffering
       const handleProgress = () => {
@@ -45,18 +82,21 @@ const VideoHero: React.FC<VideoHeroProps> = ({
 
       const handleWaiting = () => setIsBuffering(true);
       const handlePlaying = () => setIsBuffering(false);
+      const handleLoadedData = () => {
+        setIsVideoLoaded(true);
+        playVideo();
+      };
 
       // Add event listeners
       video.addEventListener('progress', handleProgress);
       video.addEventListener('waiting', handleWaiting);
       video.addEventListener('playing', handlePlaying);
+      video.addEventListener('loadeddata', handleLoadedData);
 
       // Check if video is paused and restart it
       const checkVideo = setInterval(() => {
-        if (video.paused && !isBuffering) {
-          video.play().catch(error => {
-            console.error("Error restarting video:", error);
-          });
+        if (video.paused && !isBuffering && isVideoLoaded) {
+          playVideo();
         }
       }, 2000);
 
@@ -65,9 +105,14 @@ const VideoHero: React.FC<VideoHeroProps> = ({
         video.removeEventListener('progress', handleProgress);
         video.removeEventListener('waiting', handleWaiting);
         video.removeEventListener('playing', handlePlaying);
+        video.removeEventListener('loadeddata', handleLoadedData);
+        // Cleanup object URL
+        if (video.src.startsWith('blob:')) {
+          URL.revokeObjectURL(video.src);
+        }
       };
     }
-  }, [videoSrc, isBuffering]);
+  }, [videoSrc, isBuffering, isVideoLoaded]);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
@@ -151,8 +196,9 @@ const VideoHero: React.FC<VideoHeroProps> = ({
           </p>
           {ctaText && ctaLink && (
             <Link
-              ref={ctaLink}
-              className="inline-block rounded-full bg-primary px-8 py-4 text-base font-semibold text-white transition duration-300 ease-in-out hover:bg-primary/80" to={''}            >
+              to={ctaLink}
+              className="inline-block rounded-full bg-primary px-8 py-4 text-base font-semibold text-white transition duration-300 ease-in-out hover:bg-primary/80"
+            >
               {ctaText}
             </Link>
           )}
