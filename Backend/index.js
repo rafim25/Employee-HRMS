@@ -69,7 +69,9 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://13.60.189.178',
   'http://13.60.189.178:3002',
-  'http://13.60.189.178:5173'
+  'http://13.60.189.178:5173',
+  'https://unnathiforestview.com',
+  'https://unnathiforestview.com/'
 ];
 
 // CORS middleware
