@@ -14,7 +14,7 @@ const PublicLayout = ({ children }) => {
       {/* Hero Section */}
       <ImageHero
         imageSrc="/images/resort-bg.jpg"
-        title="Forest View Resort"
+        title="Unnathi Forest View"
         subtitle="Experience luxury and tranquility in the heart of nature"
       />
 

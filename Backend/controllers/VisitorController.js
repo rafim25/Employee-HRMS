@@ -7,21 +7,28 @@ export const registerVisitor = async (req, res) => {
   try {
     const { name, email, password, phone, address, country, city, postal_code } = req.body;
 
+    console.log('Registration attempt for:', { email, name });
+
     // Check if visitor already exists
     const existingVisitor = await Visitor.findOne({
       where: { email }
     });
 
     if (existingVisitor) {
+      console.log('Email already registered:', email);
       return res.status(400).json({ msg: "Email already registered" });
     }
+
+    // Generate visitor_id
+    const visitor_id = `VIS-${uuidv4().substring(0, 8)}`;
+    console.log('Generated visitor_id:', visitor_id);
 
     // Hash password
     const hashedPassword = await argon2.hash(password);
 
     // Create new visitor
     const visitor = await Visitor.create({
-      visitor_id: `VIS-${uuidv4().substring(0, 8)}`,
+      visitor_id,
       name,
       email,
       password: hashedPassword,
@@ -32,6 +39,12 @@ export const registerVisitor = async (req, res) => {
       postal_code,
       status: 'active',
       last_login: new Date()
+    });
+
+    console.log('Visitor created successfully:', {
+      visitor_id: visitor.visitor_id,
+      email: visitor.email,
+      name: visitor.name
     });
 
     // Set session
@@ -54,24 +67,33 @@ export const loginVisitor = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt for:', email);
+
     // Find visitor by email
     const visitor = await Visitor.findOne({
       where: { email }
     });
 
     if (!visitor) {
+      console.log('Visitor not found:', email);
       return res.status(404).json({ msg: "Visitor not found" });
     }
 
     // Verify password
     const isValidPassword = await argon2.verify(visitor.password, password);
     if (!isValidPassword) {
+      console.log('Invalid password for:', email);
       return res.status(400).json({ msg: "Invalid password" });
     }
 
     // Update last login
     await visitor.update({
       last_login: new Date()
+    });
+
+    console.log('Login successful for:', {
+      visitor_id: visitor.visitor_id,
+      email: visitor.email
     });
 
     // Set session
@@ -206,8 +228,10 @@ export const getAllVisitors = async (req, res) => {
 export const getVisitorById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`Fetching visitor with ID: ${id}`);
-    const visitor = await Visitor.findByPk(id, {
+    console.log(`Fetching visitor with visitor_id: ${id}`);
+    
+    const visitor = await Visitor.findOne({
+      where: { visitor_id: id },
       include: [{
         model: Booking,
         as: 'bookings',
@@ -216,15 +240,24 @@ export const getVisitorById = async (req, res) => {
     });
 
     if (!visitor) {
-      console.log(`Visitor with ID ${id} not found`);
-      return res.status(404).json({ message: 'Visitor not found' });
+      console.log(`Visitor with visitor_id ${id} not found`);
+      return res.status(404).json({ 
+        message: 'Visitor not found',
+        visitor_id: id
+      });
     }
 
-    console.log('Visitor found:', visitor.toJSON());
-    res.json(visitor);
+    // Remove password from response
+    const { password, ...visitorData } = visitor.toJSON();
+    console.log('Visitor found:', visitorData);
+    res.json(visitorData);
   } catch (error) {
     console.error('Error in getVisitorById:', error);
-    res.status(500).json({ message: 'Error fetching visitor', error: error.message });
+    res.status(500).json({ 
+      message: 'Error fetching visitor', 
+      error: error.message,
+      visitor_id: req.params.id
+    });
   }
 };
 
@@ -242,7 +275,21 @@ export const createVisitor = async (req, res) => {
     } = req.body;
 
     console.log('Creating new visitor with data:', req.body);
+
+    // Check if visitor already exists
+    const existingVisitor = await Visitor.findOne({
+      where: { email }
+    });
+
+    if (existingVisitor) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    // Generate visitor_id
+    const visitor_id = `VIS-${uuidv4().substring(0, 8)}`;
+
     const visitor = await Visitor.create({
+      visitor_id,
       name,
       email,
       phone,
@@ -250,11 +297,14 @@ export const createVisitor = async (req, res) => {
       id_type,
       id_number,
       notes,
-      status: 'active'
+      status: 'active',
+      last_login: new Date()
     });
 
-    console.log('Visitor created successfully:', visitor.toJSON());
-    res.status(201).json(visitor);
+    // Remove password from response
+    const { password, ...visitorData } = visitor.toJSON();
+    console.log('Visitor created successfully:', visitorData);
+    res.status(201).json(visitorData);
   } catch (error) {
     console.error('Error in createVisitor:', error);
     res.status(500).json({ message: 'Error creating visitor', error: error.message });
@@ -325,5 +375,48 @@ export const getVisitorBookings = async (req, res) => {
   } catch (error) {
     console.error('Error fetching visitor bookings:', error);
     res.status(500).json({ message: 'Error fetching visitor bookings' });
+  }
+};
+
+// Ensure visitor exists
+export const ensureVisitorExists = async (req, res) => {
+  try {
+    const { email, name, phone } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    // Check if visitor exists
+    let visitor = await Visitor.findOne({
+      where: { email }
+    });
+
+    if (!visitor) {
+      // Create new visitor if doesn't exist
+      const visitor_id = `VIS-${uuidv4().substring(0, 8)}`;
+      visitor = await Visitor.create({
+        visitor_id,
+        name: name || email.split('@')[0], // Use part of email as name if not provided
+        email,
+        phone: phone || '',
+        status: 'active',
+        last_login: new Date()
+      });
+      console.log('Created new visitor:', visitor.visitor_id);
+    } else {
+      // Update last login
+      await visitor.update({
+        last_login: new Date()
+      });
+      console.log('Found existing visitor:', visitor.visitor_id);
+    }
+
+    // Remove password from response
+    const { password, ...visitorData } = visitor.toJSON();
+    res.json(visitorData);
+  } catch (error) {
+    console.error('Error in ensureVisitorExists:', error);
+    res.status(500).json({ message: 'Error ensuring visitor exists', error: error.message });
   }
 }; 

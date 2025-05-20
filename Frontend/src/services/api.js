@@ -1,43 +1,50 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
-
-console.log("BASE_URL", import.meta.env);
-const axiosInstance = axios.create({
-  baseURL: BASE_URL,
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3002",
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true,
 });
 
-// Add response interceptor
-axiosInstance.interceptors.response.use(
+// Add request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const auth = localStorage.getItem("auth");
+    if (auth) {
+      const { visitor_id } = JSON.parse(auth);
+      config.headers["X-Visitor-ID"] = visitor_id;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle errors
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear any stored user data
-      localStorage.removeItem("user");
-
-      // Show session expiry message
-      toast.error("Session expired. Please login again.");
-
-      // Redirect to login page after a short delay to allow toast to be visible
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1500);
+      // Clear auth data and redirect to login
+      localStorage.removeItem("auth");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
 );
 
-export const api = {
-  get: (url, config = {}) => axiosInstance.get(url, config),
-  post: (url, data, config = {}) => axiosInstance.post(url, data, config),
-  put: (url, data, config = {}) => axiosInstance.put(url, data, config),
-  delete: (url, config = {}) => axiosInstance.delete(url, config),
-  patch: (url, data, config = {}) => axiosInstance.patch(url, data, config),
+export const apiFunctions = {
+  get: (url, config = {}) => api.get(url, config),
+  post: (url, data, config = {}) => api.post(url, data, config),
+  put: (url, data, config = {}) => api.put(url, data, config),
+  delete: (url, config = {}) => api.delete(url, config),
+  patch: (url, data, config = {}) => api.patch(url, data, config),
 };
 
-export default axiosInstance;
+// Export both the api instance and apiFunctions
+export { api };
+export default api;

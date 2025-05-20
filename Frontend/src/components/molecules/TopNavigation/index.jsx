@@ -32,8 +32,8 @@ const TopNavigation = ({ onLoginClick }) => {
   }, []);
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = '+919900220446';
-    const message = 'Hi, I would like to know more about your projects.';
+    const phoneNumber = '+918123432999';
+    const message = 'Hi, I would like to know more about booking a room.';
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 

@@ -5,7 +5,8 @@ import {
   createVisitor,
   updateVisitor,
   deleteVisitor,
-  getVisitorBookings
+  getVisitorBookings,
+  ensureVisitorExists
 } from '../controllers/VisitorController.js';
 
 const router = express.Router();
@@ -18,6 +19,9 @@ router.get('/:id', getVisitorById);
 
 // Create new visitor
 router.post('/', createVisitor);
+
+// Ensure visitor exists
+router.post('/ensure', ensureVisitorExists);
 
 // Update visitor
 router.put('/:id', updateVisitor);

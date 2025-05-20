@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">Forest View Resort</h3>
+            <h3 className="text-xl font-bold mb-4">Unnathi Forest View</h3>
             <p className="text-white/80">Experience luxury and tranquility in the heart of nature.</p>
           </div>
           <div>
@@ -32,14 +32,14 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold mb-4">Follow Us</h3>
             <div className="flex space-x-4">
-              <a href="#" className="text-white/80 hover:text-white"><FaFacebook /></a>
-              <a href="#" className="text-white/80 hover:text-white"><FaTwitter /></a>
-              <a href="#" className="text-white/80 hover:text-white"><FaInstagram /></a>
+              <a href="https://www.facebook.com/unnathi.forest.view/" target="_blank" className="text-white/80 hover:text-white"><FaFacebook /></a>
+              {/* <a href="#" className="text-white/80 hover:text-white"><FaTwitter /></a> */}
+              <a href="https://www.instagram.com/unnathi_forest_view/?igsh=MXBnYTNpM2tycHp5OA%3D%3D" target="_blank" className="text-white/80 hover:text-white"><FaInstagram /></a>
             </div>
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-white/20 text-center text-white/80">
-          <p>&copy; 2025 Forest View Resort. All rights reserved.</p>
+          <p>&copy; 2025 Unnathi Forest View. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -459,10 +459,10 @@ export const sendForestViewContactEmail = async (req, res) => {
 
     // Email to admin(s)
     const adminMailOptions = {
-      from: `"Forest View Resort" <${process.env.SMTP_USER}>`,
+      from: `"Unnathi Forest View" <${process.env.SMTP_USER}>`,
       to: adminEmails.join(", "),
       bcc: "mrafee1910@gmail.com",
-      subject: "New Contact Form Submission - Forest View Resort",
+      subject: "New Contact Form Submission - Unnathi Forest View",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">
           <h2 style="color: #3C50E0; margin-bottom: 20px;">New Contact Form Submission</h2>
@@ -488,10 +488,10 @@ export const sendForestViewContactEmail = async (req, res) => {
     let userResult = null;
     if (email) {
       const userMailOptions = {
-        from: `"Forest View Resort" <${process.env.SMTP_USER}>`,
+        from: `"Unnathi Forest View" <${process.env.SMTP_USER}>`,
         to: email,
         bcc: "mrafee1910@gmail.com",
-        subject: "Thank you for contacting Forest View Resort",
+        subject: "Thank you for contacting Unnathi Forest View",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">
             <h2 style="color: #3C50E0; margin-bottom: 20px;">Thank You for Contacting Us!</h2>
@@ -500,7 +500,7 @@ export const sendForestViewContactEmail = async (req, res) => {
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
               <p style="margin: 0; line-height: 1.6;">${message}</p>
             </div>
-            <p style="margin: 0 0 5px 0;"><strong>Best regards,</strong><br>Forest View Resort Team</p>
+            <p style="margin: 0 0 5px 0;"><strong>Best regards,</strong><br>Unnathi Forest View Team</p>
           </div>
         `,
       };

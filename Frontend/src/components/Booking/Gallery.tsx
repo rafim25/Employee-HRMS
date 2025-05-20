@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose } from 'react-icons/io5';
 
@@ -12,12 +12,29 @@ interface GalleryImage {
 }
 
 interface GalleryProps {
-  images: GalleryImage[];
+  images?: GalleryImage[];
   isAdminLogin?: boolean;
 }
 
-const Gallery: React.FC<GalleryProps> = ({ images, isAdminLogin = false }) => {
+const Gallery: React.FC<GalleryProps> = ({ images: propImages, isAdminLogin = false }) => {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [images, setImages] = useState<GalleryImage[]>([]);
+
+  useEffect(() => {
+    if (propImages) {
+      setImages(propImages);
+    } else {
+      // Generate gallery images array
+      const galleryImages: GalleryImage[] = Array.from({ length: 24 }, (_, index) => ({
+        id: index + 1,
+        src: `/gallery/gallery_${(index + 1).toString().padStart(3, '0')}.jpg`,
+        alt: `Gallery Image ${index + 1}`,
+        width: 800,
+        height: 600
+      }));
+      setImages(galleryImages);
+    }
+  }, [propImages]);
 
   return (
     <div className={`w-full ${isAdminLogin ? 'relative z-10' : ''}`}>

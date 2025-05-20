@@ -22,8 +22,8 @@ const outdoorActivitiesData = [
   // },
   {
     image: '/images/activity/fire-camp.jpg',
-    title: 'Camping',
-    description: 'Spend a night under the stars with our fully equipped camping experience. Includes tent setup, bonfire, and stargazing.',
+    title: 'Night DJ',
+    description: 'Enjoy the night with our DJ and music. Perfect for party lovers and music enthusiasts.',
     duration: 'Overnight',
     difficulty: 'Easy'
   },
@@ -57,7 +57,7 @@ const outdoorActivitiesData = [
   },
   {
     image: '/images/activity/games.jpg',
-    title: 'Lake Boating',
+    title: 'Kioki Boat Ride',
     description: 'Explore the serene lake with our rowboats, paddle boats, or guided boat tours. Enjoy the peaceful surroundings and wildlife spotting.',
     duration: '1-2 hours',
     difficulty: 'Easy'
@@ -80,8 +80,8 @@ const indoorGamesData = [
     difficulty: 'Easy to Moderate'
   },
   {
-    image: '/images/indoor/table-tennis.jpg',
-    title: 'Table Tennis',
+    image: '/images/indoor/badminton.jpg',
+    title: 'Badminton',
     description: 'Test your reflexes and coordination with our table tennis facilities. Suitable for players of all skill levels.',
     duration: '30-60 minutes',
     difficulty: 'Easy to Moderate'
@@ -307,7 +307,7 @@ const Activities = () => {
                   Activities & Dining
                 </h1>
                 <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                  Experience the best of adventure and cuisine at Forest View Resort
+                  Experience the best of adventure and cuisine at Unnathi Forest View
                 </p>
               </motion.div>
               {/* Tabs */}

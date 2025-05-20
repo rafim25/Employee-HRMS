@@ -8,7 +8,7 @@ const Home = () => {
       {/* Fixed Background Hero */}
       <ImageHero
         imageSrc="/images/resort-bg.jpg"
-        title="Welcome to Forest View Resort"
+        title="Welcome to Unnathi Forest View"
         subtitle="Experience luxury and tranquility in the heart of nature"
         ctaText="Book Now"
         ctaLink="/reservation"

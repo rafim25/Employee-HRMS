@@ -94,14 +94,14 @@ const Gallery = () => {
                 Our Gallery
               </h1>
               <p className="text-xl text-white/90 max-w-2xl mx-auto">
-                Explore the beauty and luxury of Forest View Resort.
+                Explore the beauty and luxury of Unnathi Forest View.
               </p>
             </motion.div>
             {/* Glassmorphism wrapper */}
             <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 md:p-10">
               {/* <h2 className="text-2xl font-bold text-center mb-4 text-white drop-shadow-lg">Discover Our World</h2>
               <p className="text-center text-white/90 mb-6 max-w-2xl mx-auto drop-shadow-md text-base">
-                Immerse yourself in the stunning visuals of Forest View Resort. From luxurious accommodations to breathtaking landscapes, our gallery showcases the perfect blend of comfort and natural beauty.
+                Immerse yourself in the stunning visuals of Unnathi Forest View. From luxurious accommodations to breathtaking landscapes, our gallery showcases the perfect blend of comfort and natural beauty.
               </p> */}
 
               {/* Masonry layout using columns */}

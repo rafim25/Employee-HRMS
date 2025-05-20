@@ -43,7 +43,7 @@ const rooms = [
     image: '/gallery/image5.jpg',
     title: 'Forest View Suite',
     description: 'Luxurious suite with panoramic forest views and private balcony',
-    price: 299,
+    price: 2250,
     amenities: [
       { icon: <FaBed />, text: 'King Bed' },
       { icon: <FaUsers />, text: '2 Guests' },
@@ -75,7 +75,7 @@ const ForestView = () => {
       <section className="relative h-[80vh]">
         <img
           src="/gallery/image7.jpg"
-          alt="Forest View Resort"
+          alt="Unnathi Forest View"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/50">
@@ -86,7 +86,7 @@ const ForestView = () => {
               transition={{ duration: 0.8 }}
               className="max-w-2xl text-white"
             >
-              <h1 className="text-5xl font-bold mb-4">Welcome to Forest View Resort</h1>
+              <h1 className="text-5xl font-bold mb-4">Welcome to Unnathi Forest View</h1>
               <p className="text-xl mb-8">Experience luxury and tranquility in the heart of nature</p>
               <button className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors">
                 Book Your Stay

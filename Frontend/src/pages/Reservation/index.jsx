@@ -244,15 +244,7 @@ const Reservation = () => {
     }
 
     if (isAuthenticated) {
-      toast.error('You are already logged in', {
-        style: {
-          background: '#ff0000',
-          color: '#ffffff',
-          padding: '16px',
-          borderRadius: '8px',
-          fontSize: '16px',
-        }
-      });
+      toast.error('You are already logged in');
       return;
     }
 
@@ -261,6 +253,7 @@ const Reservation = () => {
 
     try {
       const response = await axios.post('/api/visitors/register', registrationData);
+
       if (response.data.msg === "Registration successful") {
         toast.success('Registration successful!', {
           id: loadingToast,
@@ -273,7 +266,7 @@ const Reservation = () => {
           }
         });
 
-        // Store authentication data in context using SET_USER action
+        // Store authentication data in context
         dispatch({
           type: SET_USER,
           payload: {
@@ -296,7 +289,7 @@ const Reservation = () => {
         // Update guest information
         setGuestInfo({
           ...guestInfo,
-          name: registrationData.name,
+          fullName: registrationData.name,
           email: registrationData.email,
           phone: registrationData.phone
         });
@@ -440,43 +433,47 @@ const Reservation = () => {
       return;
     }
 
+    if (!user?.visitor_id) {
+      toast.error('Please register or login first');
+      return;
+    }
+
     setIsBooking(true);
     setBookingError(null);
 
     try {
-      const response = await fetch('http://localhost:3002/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // First, verify if visitor exists
+      const visitorResponse = await axios.get(`/api/visitors/${user.visitor_id}`);
+
+      if (!visitorResponse.data) {
+        throw new Error('Visitor not found. Please register first.');
+      }
+
+      const visitorData = visitorResponse.data;
+      console.log('Visitor data:', visitorData);
+
+      const bookingResponse = await axios.post('/api/bookings', {
+        visitor_id: visitorData.visitor_id,
+        room_id: selectedRoom.room_id,
+        check_in_date: searchData.checkIn.toISOString(),
+        check_out_date: searchData.checkOut.toISOString(),
+        number_of_guests: searchData.adults + searchData.children,
+        guest_info: {
+          full_name: guestInfo.fullName,
+          email: guestInfo.email,
+          phone: guestInfo.phone,
+          gender: guestInfo.gender,
+          date_of_birth: guestInfo.dateOfBirth,
+          govt_id_type: guestInfo.govtIdType,
+          govt_id_number: guestInfo.govtIdNumber,
+          special_requests: guestInfo.specialRequests
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          visitor_id: user.visitor_id,
-          room_id: selectedRoom.room_id,
-          check_in_date: searchData.checkIn.toISOString(),
-          check_out_date: searchData.checkOut.toISOString(),
-          number_of_guests: searchData.adults + searchData.children,
-          guest_info: {
-            full_name: guestInfo.fullName,
-            email: guestInfo.email,
-            phone: guestInfo.phone,
-            gender: guestInfo.gender,
-            date_of_birth: guestInfo.dateOfBirth,
-            govt_id_type: guestInfo.govtIdType,
-            govt_id_number: guestInfo.govtIdNumber,
-            special_requests: guestInfo.specialRequests
-          },
-          payment_method: guestInfo.paymentOption,
-          payment_status: guestInfo.paymentOption === 'qr' ? 'pending' : 'pending_checkin',
-          total_amount: selectedRoom.current_price
-        })
+        payment_method: guestInfo.paymentOption,
+        payment_status: guestInfo.paymentOption === 'qr' ? 'pending' : 'pending_checkin',
+        total_amount: selectedRoom.price_per_night
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.msg || 'Failed to create booking');
-      }
+      const data = bookingResponse.data;
 
       // Show success message
       toast.success('Booking confirmed successfully!');
@@ -488,16 +485,13 @@ const Reservation = () => {
         origin: { y: 0.6 }
       });
 
-      // Log the response data to see its structure
-      console.log('Booking response data:', data);
-
-      // Set booking success data with proper error handling
+      // Set booking success data
       setBookingSuccess({
-        booking_id: data.booking_id || data.id || 'N/A',
+        booking_id: data.booking_id,
         room: {
           room_id: selectedRoom.room_id,
           room_type: selectedRoom.room_type,
-          price_per_night: selectedRoom.current_price
+          price_per_night: selectedRoom.price_per_night
         },
         check_in: searchData.checkIn,
         check_out: searchData.checkOut,
@@ -508,7 +502,7 @@ const Reservation = () => {
           phone: guestInfo.phone
         },
         payment_method: guestInfo.paymentOption,
-        total_amount: selectedRoom.current_price
+        total_amount: selectedRoom.price_per_night
       });
 
       // If payment is at check-in, show instructions
@@ -516,7 +510,7 @@ const Reservation = () => {
         toast.success('Please pay at the hotel during check-in.');
       }
 
-      // Reset form or redirect
+      // Reset form
       setSelectedRoom(null);
       setGuestInfo({
         fullName: '',
@@ -531,7 +525,7 @@ const Reservation = () => {
         selectedRoom: null
       });
 
-      // After setting bookingSuccess, also reset activeSection
+      // Move back to search section
       setActiveSection('search');
 
     } catch (error) {
@@ -736,7 +730,7 @@ const Reservation = () => {
       </div>
       <ImageHero
         imageSrc="/images/resort-bg.jpg"
-        title="Forest View Resort"
+        title="Unnathi Forest View"
         subtitle="Experience luxury and tranquility in the heart of nature"
       />
 

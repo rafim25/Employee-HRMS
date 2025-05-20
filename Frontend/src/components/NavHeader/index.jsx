@@ -8,7 +8,7 @@ const NavHeader = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-primary">Forest View Resort</span>
+            <span className="text-xl font-bold text-primary">Unnathi Forest View</span>
           </Link>
 
           {/* Navigation Links */}
