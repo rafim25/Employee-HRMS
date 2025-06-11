@@ -52,6 +52,7 @@ const app = express();
 
 // Define allowed origins
 const allowedOrigins = [
+  'https://sevenwingstechnologies.in',
   'https://sevenwingstechnologies.in/',
   'http://localhost:5173',
   'http://13.60.189.178',
@@ -66,7 +67,13 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
+    // Check if the origin matches any of our allowed origins
+    const isAllowed = allowedOrigins.some(allowedOrigin => 
+      origin === allowedOrigin || origin.startsWith(allowedOrigin)
+    );
+    
+    if (!isAllowed) {
+      console.log('CORS blocked for origin:', origin);
       return callback(new Error('CORS policy violation'), false);
     }
     return callback(null, true);
