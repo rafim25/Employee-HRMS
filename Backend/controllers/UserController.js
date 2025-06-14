@@ -359,7 +359,7 @@ export const deleteUser = async (req, res) => {
 
 export const updatePassword = async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { newPassword } = req.body;
     const userId = req.params.id;
 
     console.log("Attempting password update for user:", userId);
@@ -378,23 +378,7 @@ export const updatePassword = async (req, res) => {
 
     console.log("Found user:", user.username);
 
-    // Trim any whitespace from the stored password hash
-    const storedPassword = user.password.trim();
-    console.log("Stored password (after trim):", storedPassword);
-
     try {
-      // Compare the stored password with the provided current password
-      const isPasswordValid = await argon2.verify(
-        storedPassword,
-        currentPassword
-      );
-      console.log("Password verification result:", isPasswordValid);
-
-      if (!isPasswordValid) {
-        return res.status(400).json({ msg: "Current password is incorrect" });
-      }
-
-      // If we get here, the current password is correct
       // Hash new password
       const hashedNewPassword = await argon2.hash(newPassword, {
         type: argon2.argon2id,
@@ -410,9 +394,9 @@ export const updatePassword = async (req, res) => {
       );
 
       res.json({ msg: "Password updated successfully" });
-    } catch (verifyError) {
-      console.error("Password verification error:", verifyError);
-      return res.status(400).json({ msg: "Error verifying current password" });
+    } catch (error) {
+      console.error("Password update error:", error);
+      return res.status(400).json({ msg: "Error updating password" });
     }
   } catch (error) {
     console.error("Error in password update:", error);
