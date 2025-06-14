@@ -17,6 +17,7 @@ const EditUser = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [userData, setUserData] = useState({
         username: '',
         email: '',
@@ -35,6 +36,11 @@ const EditUser = () => {
     });
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [passwordData, setPasswordData] = useState({
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [passwordError, setPasswordError] = useState('');
 
     useEffect(() => {
         const loadUser = async () => {
@@ -86,6 +92,51 @@ const EditUser = () => {
 
             setPhoto(file);
             setPhotoPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handlePasswordChange = (e) => {
+        const { name, value } = e.target;
+        setPasswordData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+        setPasswordError('');
+
+        // Validate passwords
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setPasswordError('New passwords do not match');
+            return;
+        }
+
+        if (passwordData.newPassword.length < 6) {
+            setPasswordError('New password must be at least 6 characters long');
+            return;
+        }
+
+        const loadingToast = toast.loading('Updating password...');
+        try {
+            const response = await api.patch(`/api/users/${userId}/password`, {
+                newPassword: passwordData.newPassword
+            });
+
+            toast.success('Password updated successfully', {
+                id: loadingToast
+            });
+            setShowPasswordModal(false);
+            setPasswordData({
+                newPassword: '',
+                confirmPassword: ''
+            });
+        } catch (error) {
+            toast.error(error.response?.data?.msg || 'Failed to update password', {
+                id: loadingToast
+            });
+            setPasswordError(error.response?.data?.msg || 'Failed to update password');
         }
     };
 
@@ -203,6 +254,73 @@ const EditUser = () => {
         <DefaultLayoutAdmin>
             <BreadcrumbAdmin pageName='Edit User' />
 
+            {/* Password Update Modal */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-boxdark rounded-sm shadow-default p-6 max-w-md w-full">
+                        <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">Set New Password</h3>
+                        <form onSubmit={handlePasswordUpdate}>
+                            <div className="mb-4">
+                                <label className="mb-2.5 block text-black dark:text-white">
+                                    New Password <span className="text-meta-1">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    name="newPassword"
+                                    value={passwordData.newPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    placeholder="Enter new password"
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
+                            </div>
+                            <div className="mb-4">
+                                <label className="mb-2.5 block text-black dark:text-white">
+                                    Confirm New Password <span className="text-meta-1">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    value={passwordData.confirmPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    placeholder="Confirm new password"
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                                />
+                            </div>
+                            {passwordError && (
+                                <div className="mb-4 text-danger text-sm">
+                                    {passwordError}
+                                </div>
+                            )}
+                            <div className="flex justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowPasswordModal(false);
+                                        setPasswordData({
+                                            newPassword: '',
+                                            confirmPassword: ''
+                                        });
+                                        setPasswordError('');
+                                    }}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90"
+                                >
+                                    Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
@@ -241,14 +359,23 @@ const EditUser = () => {
                             <h3 className='font-medium text-black dark:text-white'>
                                 Edit User Data
                             </h3>
-                            <button
-                                type="button"
-                                onClick={() => setShowDeleteModal(true)}
-                                className="flex items-center gap-2 text-danger hover:text-opacity-90"
-                            >
-                                <FaTrash />
-                                <span>Delete User</span>
-                            </button>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPasswordModal(true)}
+                                    className="flex items-center gap-2 text-primary hover:text-opacity-90"
+                                >
+                                    <span>Change Password</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteModal(true)}
+                                    className="flex items-center gap-2 text-danger hover:text-opacity-90"
+                                >
+                                    <FaTrash />
+                                    <span>Delete User</span>
+                                </button>
+                            </div>
                         </div>
 
                         {error && (
