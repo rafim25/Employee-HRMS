@@ -19,6 +19,7 @@ const ITEMS_PER_PAGE = 5;
 
 const CandidateList = () => {
   const { state: authState } = useAuth();
+  const { dispatch } = useAuth();
   const [loading, setLoading] = useState(true);
   const [candidates, setCandidates] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -67,7 +68,7 @@ const CandidateList = () => {
 
   useEffect(() => {
     loadCandidates();
-    fetchUsers();
+    // fetchUsers();
   }, [dispatch]);
 
   useEffect(() => {
