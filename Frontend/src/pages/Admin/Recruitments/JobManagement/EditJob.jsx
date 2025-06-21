@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchJobById, updateJob } from '../../../../context/actions/jobActions';
@@ -29,6 +29,9 @@ const EditJob = () => {
   const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [userOptions, setUserOptions] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const initialLoadRef = useRef(true);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [jobData, setJobData] = useState({
     title: '',
     type: '',
@@ -111,6 +114,7 @@ const EditJob = () => {
   }, []);
 
   const fetchDistricts = async (stateCode) => {
+    setLoadingDistricts(true);
     try {
       const response = await fetch(`/api/locations/states/${stateCode}/districts`, {
         headers: {
@@ -123,16 +127,36 @@ const EditJob = () => {
     } catch (error) {
       console.error('Error fetching districts:', error);
       toast.error('Failed to load districts');
+      setDistricts([]); // Set empty array on error
+    } finally {
+      setLoadingDistricts(false);
     }
   };
 
   const handleLocationChange = (field, value) => {
+    console.log('handleLocationChange called:', { field, value, currentState: jobData.state, currentCity: jobData.city });
+
     if (field === 'state') {
-      fetchDistricts(value);
+      // Only reset city if this is a genuine user change (not during initial load)
+      if (!initialLoadRef.current && jobData.state !== value) {
+        console.log('User manually changed state, resetting city');
+        fetchDistricts(value);
+        setJobData(prev => ({
+          ...prev,
+          state: value,
+          city: ''
+        }));
+      } else {
+        console.log('Not a user change, preserving city');
+        setJobData(prev => ({
+          ...prev,
+          state: value
+        }));
+      }
+    } else if (field === 'city') {
       setJobData(prev => ({
         ...prev,
-        state: value,
-        city: '' // Reset city when state changes
+        city: value
       }));
     } else {
       setJobData(prev => ({
@@ -152,6 +176,7 @@ const EditJob = () => {
           // Convert date string to Date object if it exists
           const deadline = jobDetails.deadline ? new Date(jobDetails.deadline) : null;
 
+          // Set job data directly without triggering handleLocationChange
           setJobData({
             ...jobDetails,
             deadline,
@@ -161,6 +186,14 @@ const EditJob = () => {
             skills: jobDetails.skills || [],
             editable_by: jobDetails.editable_by || [],
           });
+
+          // If job has a state, fetch districts for that state after setting data
+          if (jobDetails.state) {
+            setTimeout(() => {
+              fetchDistricts(jobDetails.state);
+            }, 100);
+          }
+
           toast.success('Job details loaded', { id: loadingToast });
         }
       } catch (error) {
@@ -169,10 +202,21 @@ const EditJob = () => {
         navigate('/admin/recruitments/job-management');
       } finally {
         setLoading(false);
+        setIsInitialLoad(false); // Mark initial load as complete
+        // Use timeout to ensure all state updates are complete
+        setTimeout(() => {
+          initialLoadRef.current = false;
+          console.log('Initial load completed, user interactions now allowed');
+        }, 500);
       }
     };
     loadJob();
   }, [id, dispatch, navigate]);
+
+  // Debug useEffect to monitor jobData changes
+  useEffect(() => {
+    console.log('jobData changed:', { state: jobData.state, city: jobData.city, isInitialLoad: initialLoadRef.current });
+  }, [jobData.state, jobData.city]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -382,7 +426,18 @@ const EditJob = () => {
                 <select
                   name="state"
                   value={jobData.state}
-                  onChange={(e) => handleLocationChange('state', e.target.value)}
+                  onChange={(e) => {
+                    // Only call handleLocationChange if not in initial load
+                    if (!initialLoadRef.current) {
+                      handleLocationChange('state', e.target.value);
+                    } else {
+                      // During initial load, just update the state without triggering location change logic
+                      setJobData(prev => ({
+                        ...prev,
+                        state: e.target.value
+                      }));
+                    }
+                  }}
                   required
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 >
@@ -399,21 +454,28 @@ const EditJob = () => {
                 <label className="mb-3 block text-sm font-medium text-black dark:text-white">
                   City <span className="text-meta-1">*</span>
                 </label>
-                <select
-                  name="city"
-                  value={jobData.city}
-                  onChange={(e) => handleLocationChange('city', e.target.value)}
-                  required
-                  disabled={!jobData.state}
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                >
-                  <option value="">Select City</option>
-                  {districts.map(district => (
-                    <option key={district.id} value={district.name}>
-                      {district.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  {loadingDistricts && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-boxdark/50 z-10">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  )}
+                  <select
+                    name="city"
+                    value={jobData.city || ''}
+                    onChange={(e) => handleLocationChange('city', e.target.value)}
+                    required
+                    disabled={!jobData.state || loadingDistricts}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  >
+                    <option value="">Select City</option>
+                    {districts.map(district => (
+                      <option key={district.id} value={district.name}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
