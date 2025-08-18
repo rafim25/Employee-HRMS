@@ -6,7 +6,7 @@ import { AiOutlineArrowLeft } from 'react-icons/ai'
 import { RxDashboard } from 'react-icons/rx'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
-import { FaBed, FaUsers, FaCalendarCheck, FaMoneyBillWave, FaKey, FaSignOutAlt, FaChartBar } from 'react-icons/fa'
+import { FaBed, FaUsers, FaCalendarCheck, FaMoneyBillWave, FaKey, FaSignOutAlt, FaChartBar, FaPlus } from 'react-icons/fa'
 
 const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
