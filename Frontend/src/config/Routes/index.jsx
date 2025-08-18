@@ -55,6 +55,7 @@ import RoomTypeDetails from '../../pages/Admin/Rooms/RoomTypeDetails'
 import BookingList from '../../pages/Admin/Bookings/BookingList'
 import BookingCalendar from '../../pages/Admin/Bookings/BookingCalendar'
 import BookingDetails from '../../pages/Admin/Bookings/BookingDetails'
+import AddBooking from '../../pages/Admin/Bookings/AddBooking'
 import VisitorList from '../../pages/Admin/Visitors/VisitorList'
 import VisitorCheckIn from '../../pages/Admin/Visitors/VisitorCheckIn'
 import VisitorDetails from '../../pages/Admin/Visitors/VisitorDetails'
@@ -132,6 +133,11 @@ const AppRoutes = () => {
       <Route path='/admin/bookings/list' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <BookingList />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/bookings/add-booking' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AddBooking />
         </ProtectedRoute>
       } />
       <Route path='/admin/bookings/calendar' element={

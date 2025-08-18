@@ -122,20 +122,15 @@ const RoomForm = () => {
                   <label className="mb-2.5 block text-black dark:text-white">
                     Room Type <span className="text-meta-1">*</span>
                   </label>
-                  <select
+                  <input
+                    type="text"
                     name="room_type"
                     value={formData.room_type}
                     onChange={handleChange}
                     required
+                    placeholder="Enter room type"
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                  >
-                    <option value="">Select a room type</option>
-                    {roomTypes.map(type => (
-                      <option key={type.room_type_id} value={type.name}>
-                        {type.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <div>

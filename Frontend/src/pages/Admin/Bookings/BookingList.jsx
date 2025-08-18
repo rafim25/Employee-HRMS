@@ -7,6 +7,7 @@ import Pagination from '../../../components/molecules/Pagination/Pagination';
 
 const BookingList = () => {
   const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -15,6 +16,11 @@ const BookingList = () => {
   const [cancellationNotes, setCancellationNotes] = useState('');
   const [showActionsDropdown, setShowActionsDropdown] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    bookingId: '',
+    startDate: '',
+    endDate: ''
+  });
   const itemsPerPage = 8;
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -46,6 +52,7 @@ const BookingList = () => {
       const data = await response.json();
       console.log('Fetched bookings:', data);
       setBookings(data);
+      setFilteredBookings(data);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast.error('Failed to fetch bookings');
@@ -122,16 +129,67 @@ const BookingList = () => {
     }
   };
 
+  // Filter bookings based on criteria
+  const filterBookings = () => {
+    let filtered = [...bookings];
+
+    // Filter by booking ID
+    if (filters.bookingId) {
+      filtered = filtered.filter(booking =>
+        booking.booking_id.toString().toLowerCase().includes(filters.bookingId.toLowerCase())
+      );
+    }
+
+    // Filter by date range
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      filtered = filtered.filter(booking =>
+        new Date(booking.check_in_date) >= startDate
+      );
+    }
+
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59); // Set to end of day
+      filtered = filtered.filter(booking =>
+        new Date(booking.check_out_date) <= endDate
+      );
+    }
+
+    setFilteredBookings(filtered);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  // Apply filters when filter values change
+  useEffect(() => {
+    filterBookings();
+  }, [filters, bookings]);
+
   // Calculate paginated data
   const getPaginatedBookings = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return bookings.slice(startIndex, endIndex);
+    return filteredBookings.slice(startIndex, endIndex);
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
     setShowActionsDropdown(null); // Close any open dropdowns
+  };
+
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      bookingId: '',
+      startDate: '',
+      endDate: ''
+    });
   };
 
   if (loading) {
@@ -154,6 +212,64 @@ const BookingList = () => {
       <div className="mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-black">Booking Management</h1>
+          <button
+            onClick={() => navigate('/admin/bookings/add-booking')}
+            className="inline-flex items-center justify-center rounded-md bg-primary py-2 px-6 text-center font-medium text-white hover:bg-opacity-90"
+          >
+            Add New Booking
+          </button>
+        </div>
+
+        {/* Filter Section */}
+        <div className="mb-6 rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <h3 className="text-lg font-semibold text-black dark:text-white mb-4">Filter Bookings</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                Booking ID
+              </label>
+              <input
+                type="text"
+                value={filters.bookingId}
+                onChange={(e) => handleFilterChange('bookingId', e.target.value)}
+                placeholder="Enter booking ID"
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-2 px-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={clearFilters}
+                className="w-full rounded border border-stroke py-2 px-4 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+            Showing {filteredBookings.length} of {bookings.length} bookings
+          </div>
         </div>
         <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
           <div className="max-w-full overflow-x-auto py-4">
@@ -226,11 +342,11 @@ const BookingList = () => {
               </tbody>
             </table>
             {/* Pagination */}
-            {bookings.length > 0 && (
+            {filteredBookings.length > 0 && (
               <div className="mt-4">
                 <Pagination
                   currentPage={currentPage}
-                  totalItems={bookings.length}
+                  totalItems={filteredBookings.length}
                   itemsPerPage={itemsPerPage}
                   onPageChange={handlePageChange}
                   showingText="Showing bookings"
