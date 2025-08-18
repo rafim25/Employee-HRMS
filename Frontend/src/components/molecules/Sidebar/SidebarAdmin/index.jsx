@@ -219,6 +219,20 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                           </li>
                           <li>
                             <NavLink
+                              to='/admin/bookings/add-booking'
+                              className={({ isActive }) =>
+                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
+                                (isActive && '!text-white')
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <FaPlus className="w-4 h-4" />
+                                Add Booking
+                              </div>
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
                               to='/admin/bookings/calendar'
                               className={({ isActive }) =>
                                 'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
