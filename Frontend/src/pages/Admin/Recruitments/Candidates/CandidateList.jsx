@@ -16,13 +16,12 @@ import { MdSource } from 'react-icons/md';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 import { checkUserPermission } from '../../../../utils/permissions';
 import * as XLSX from 'xlsx';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const ITEMS_PER_PAGE = 50;
 
 const CandidateList = () => {
   const { dispatch, state: authState } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [usersLoading, setUsersLoading] = useState(true);
   const [candidates, setCandidates] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,6 +56,7 @@ const CandidateList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const queryClient = useQueryClient();
 
   const navigate = useNavigate();
 
@@ -95,16 +95,8 @@ const CandidateList = () => {
   // Add user from Redux state
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filters]);
-
-  useEffect(() => {
-    loadCandidates(currentPage);
-  }, [currentPage, searchTerm, filters]);
 
   const hasSearchOrFilters = () =>
     !!searchTerm.trim() ||
@@ -142,11 +134,10 @@ const CandidateList = () => {
     return params;
   };
 
-  const loadCandidates = async (page = 1) => {
-    try {
-      setLoading(true);
-      const params = buildCandidateQueryParams(page, ITEMS_PER_PAGE);
-
+  const candidatesQuery = useQuery({
+    queryKey: ['candidates', authState?.user?.user_id, currentPage, searchTerm, filters],
+    queryFn: async () => {
+      const params = buildCandidateQueryParams(currentPage, ITEMS_PER_PAGE);
       const endpoint = hasSearchOrFilters()
         ? '/api/candidates/search'
         : '/api/candidates/paginated';
@@ -161,36 +152,59 @@ const CandidateList = () => {
         throw new Error('Failed to load candidates');
       }
 
-      const result = await response.json();
-      setCandidates(result?.data || []);
-      setTotalPages(result?.pagination?.totalPages || 1);
-      setTotalRecords(result?.pagination?.totalRecords || 0);
-    } catch (error) {
-      toast.error('Failed to load candidates');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-  const fetchUsers = async () => {
-    try {
-      setUsersLoading(true);
+  useEffect(() => {
+    if (candidatesQuery.data) {
+      setCandidates(candidatesQuery.data?.data || []);
+      setTotalPages(candidatesQuery.data?.pagination?.totalPages || 1);
+      setTotalRecords(candidatesQuery.data?.pagination?.totalRecords || 0);
+    }
+  }, [candidatesQuery.data]);
+
+  useEffect(() => {
+    if (candidatesQuery.error) {
+      toast.error(candidatesQuery.error.message || 'Failed to load candidates');
+    }
+  }, [candidatesQuery.error]);
+
+  const loading = candidatesQuery.isLoading || candidatesQuery.isFetching;
+  const usersQuery = useQuery({
+    queryKey: ['users', authState?.user?.user_id],
+    queryFn: async () => {
       const response = await fetch('/api/users', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
+      if (!response.ok) {
+        throw new Error('Failed to load users');
       }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error('Failed to load users');
-    } finally {
-      setUsersLoading(false);
+      return response.json();
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (usersQuery.data) {
+      setUsers(usersQuery.data || []);
     }
-  };
+  }, [usersQuery.data]);
+
+  useEffect(() => {
+    if (usersQuery.error) {
+      toast.error(usersQuery.error.message || 'Failed to load users');
+    }
+  }, [usersQuery.error]);
+
+  const usersLoading = usersQuery.isLoading || usersQuery.isFetching;
 
   const filterConfig = [
     {
@@ -342,6 +356,7 @@ const CandidateList = () => {
             : candidate
         )
       );
+      queryClient.invalidateQueries({ queryKey: ['candidates'] });
 
       toast.success(`Status updated to ${newStatus}`);
     } catch (error) {
@@ -391,6 +406,7 @@ const CandidateList = () => {
             : candidate
         )
       );
+      queryClient.invalidateQueries({ queryKey: ['candidates'] });
 
       toast.success('Candidate rejected successfully');
       setShowRejectionModal(false);
@@ -417,8 +433,7 @@ const CandidateList = () => {
     try {
       await deleteCandidate(dispatch, candidateToDelete);
       toast.success('Candidate deleted successfully');
-      // Refresh the candidates list
-      loadCandidates();
+      queryClient.invalidateQueries({ queryKey: ['candidates'] });
     } catch (error) {
       toast.error('Failed to delete candidate');
     } finally {
