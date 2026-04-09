@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../../../components';
 import { useAuth } from '../../../../context/AuthContext';
-import { fetchCandidates, updateCandidateStatus, deleteCandidate } from '../../../../context/actions/candidateActions';
+import { deleteCandidate } from '../../../../context/actions/candidateActions';
 import DataTable from '../../../../components/molecules/DataTable/DataTable';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
 import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
@@ -17,7 +17,7 @@ import DeleteConfirmationModal from '../../../../components/DeleteConfirmationMo
 import { checkUserPermission } from '../../../../utils/permissions';
 import * as XLSX from 'xlsx';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 50;
 
 const CandidateList = () => {
   const { dispatch, state: authState } = useAuth();
@@ -39,10 +39,24 @@ const CandidateList = () => {
     salary: { min: '', max: '' },
     jobApplied: ''
   });
+  const [tempFilters, setTempFilters] = useState({
+    status: '',
+    source: '',
+    createdBy: '',
+    experience: { min: '', max: '' },
+    location: '',
+    dateRange: {
+      start: '',
+      end: ''
+    },
+    salary: { min: '', max: '' },
+    jobApplied: ''
+  });
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(ITEMS_PER_PAGE);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   const navigate = useNavigate();
 
@@ -76,23 +90,81 @@ const CandidateList = () => {
   // Add these state variables at the top with other states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [candidateToDelete, setCandidateToDelete] = useState(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Add user from Redux state
 
   useEffect(() => {
-    loadCandidates();
     fetchUsers();
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filters]);
 
-  const loadCandidates = async () => {
+  useEffect(() => {
+    loadCandidates(currentPage);
+  }, [currentPage, searchTerm, filters]);
+
+  const hasSearchOrFilters = () =>
+    !!searchTerm.trim() ||
+    !!filters.status ||
+    !!filters.source ||
+    !!filters.createdBy ||
+    !!filters.jobApplied ||
+    !!filters.location ||
+    !!filters.experience.min ||
+    !!filters.experience.max ||
+    !!filters.salary.min ||
+    !!filters.salary.max ||
+    !!filters.dateRange.start ||
+    !!filters.dateRange.end;
+
+  const buildCandidateQueryParams = (page = 1, limit = ITEMS_PER_PAGE) => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+
+    if (searchTerm.trim()) params.append('search', searchTerm.trim());
+    if (filters.status) params.append('status', filters.status);
+    if (filters.source) params.append('source', filters.source);
+    if (filters.createdBy) params.append('createdBy', filters.createdBy);
+    if (filters.jobApplied) params.append('jobApplied', filters.jobApplied);
+    if (filters.location) params.append('location', filters.location);
+    if (filters.experience.min) params.append('minExperience', filters.experience.min);
+    if (filters.experience.max) params.append('maxExperience', filters.experience.max);
+    if (filters.salary.min) params.append('minSalary', filters.salary.min);
+    if (filters.salary.max) params.append('maxSalary', filters.salary.max);
+    if (filters.dateRange.start) params.append('fromDate', filters.dateRange.start);
+    if (filters.dateRange.end) params.append('toDate', filters.dateRange.end);
+
+    return params;
+  };
+
+  const loadCandidates = async (page = 1) => {
     try {
       setLoading(true);
-      const candidates = await fetchCandidates(dispatch);
-      setCandidates(candidates);
+      const params = buildCandidateQueryParams(page, ITEMS_PER_PAGE);
+
+      const endpoint = hasSearchOrFilters()
+        ? '/api/candidates/search'
+        : '/api/candidates/paginated';
+
+      const response = await fetch(`${endpoint}?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load candidates');
+      }
+
+      const result = await response.json();
+      setCandidates(result?.data || []);
+      setTotalPages(result?.pagination?.totalPages || 1);
+      setTotalRecords(result?.pagination?.totalRecords || 0);
     } catch (error) {
       toast.error('Failed to load candidates');
     } finally {
@@ -199,7 +271,7 @@ const CandidateList = () => {
 
   const handleApplyFilters = (shouldReset = false) => {
     if (shouldReset) {
-      setFilters({
+      const resetFilters = {
         status: '',
         source: '',
         createdBy: '',
@@ -208,13 +280,19 @@ const CandidateList = () => {
         dateRange: { start: '', end: '' },
         salary: { min: '', max: '' },
         jobApplied: ''
-      });
+      };
+      setTempFilters(resetFilters);
+      setFilters(resetFilters);
+      setCurrentPage(1);
+      return;
     }
+    setFilters(tempFilters);
+    setCurrentPage(1);
     setShowFilterModal(false);
   };
 
   const handleResetFilters = () => {
-    setFilters({
+    setTempFilters({
       status: '',
       source: '',
       createdBy: '',
@@ -469,44 +547,8 @@ const CandidateList = () => {
     }
   ];
 
-  const filteredCandidates = candidates.filter(candidate => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm ||
-      candidate.name?.toLowerCase().includes(searchLower) ||
-      candidate.email?.toLowerCase().includes(searchLower) ||
-      candidate.phone?.includes(searchTerm) ||
-      candidate.job?.title?.toLowerCase().includes(searchLower);
-
-    const matchesStatus = !filters.status || candidate.application_status === filters.status;
-    const matchesSource = !filters.source || candidate.source === filters.source;
-    const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
-      (!filters.experience.max || candidate.experience <= Number(filters.experience.max));
-    const matchesLocation = !filters.location ||
-      candidate.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
-      candidate.state?.toLowerCase().includes(filters.location.toLowerCase());
-    const matchesDateRange = (!filters.dateRange.start || new Date(candidate.createdAt) >= new Date(filters.dateRange.start)) &&
-      (!filters.dateRange.end || new Date(candidate.createdAt) <= new Date(filters.dateRange.end));
-    const matchesSalary = (!filters.salary.min || candidate.expected_salary >= Number(filters.salary.min)) &&
-      (!filters.salary.max || candidate.expected_salary <= Number(filters.salary.max));
-    const matchesJob = !filters.jobApplied || candidate.job?.title === filters.jobApplied;
-    const matchesCreatedBy = !filters.createdBy || candidate.created_by_id === filters.createdBy;
-
-    return matchesSearch &&
-      matchesStatus &&
-      matchesSource &&
-      matchesExperience &&
-      matchesLocation &&
-      matchesDateRange &&
-      matchesSalary &&
-      matchesJob &&
-      matchesCreatedBy;
-  });
-
-  // Keep this calculation
-  const totalPages = Math.ceil(filteredCandidates.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
+  const startIndex = candidates.length > 0 ? ((currentPage - 1) * ITEMS_PER_PAGE) + 1 : 0;
+  const endIndex = ((currentPage - 1) * ITEMS_PER_PAGE) + candidates.length;
 
   // Update the Pagination component with this simplified version
   const Pagination = ({ currentPage, totalPages, onPageChange }) => {
@@ -572,9 +614,37 @@ const CandidateList = () => {
   const canAddCandidate = authState?.user?.role === 'admin' || authState?.user?.permissions?.includes('create_candidate');
 
   // Add this function for Excel download
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     try {
-      const candidatesForExcel = filteredCandidates.map(candidate => ({
+      setExportLoading(true);
+      const exportLimit = 200;
+      let exportPage = 1;
+      let exportTotalPages = 1;
+      let allCandidates = [];
+
+      const endpoint = hasSearchOrFilters()
+        ? '/api/candidates/search'
+        : '/api/candidates/paginated';
+
+      do {
+        const exportParams = buildCandidateQueryParams(exportPage, exportLimit);
+        const response = await fetch(`${endpoint}?${exportParams.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch candidates for export');
+        }
+
+        const result = await response.json();
+        allCandidates = allCandidates.concat(result?.data || []);
+        exportTotalPages = result?.pagination?.totalPages || 1;
+        exportPage += 1;
+      } while (exportPage <= exportTotalPages);
+
+      const candidatesForExcel = allCandidates.map(candidate => ({
         'Candidate ID': candidate.uuid || 'N/A',
         'Name': candidate.name || 'N/A',
         'Email': candidate.email || 'N/A',
@@ -598,10 +668,12 @@ const CandidateList = () => {
       XLSX.utils.book_append_sheet(wb, ws, 'Candidates');
       XLSX.writeFile(wb, 'candidates_list.xlsx');
 
-      toast.success('Excel file downloaded successfully');
+      toast.success(`Excel downloaded with ${allCandidates.length} candidates`);
     } catch (error) {
       console.error('Error generating Excel:', error);
       toast.error('Failed to generate Excel file');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -642,7 +714,10 @@ const CandidateList = () => {
 
                 {/* Filter Button */}
                 <button
-                  onClick={() => setShowFilterModal(true)}
+                  onClick={() => {
+                    setTempFilters(filters);
+                    setShowFilterModal(true);
+                  }}
                   className="inline-flex items-center justify-center rounded-lg border border-primary bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out"
                 >
                   <FaFilter className="mr-2" />
@@ -652,11 +727,11 @@ const CandidateList = () => {
                 {/* Add Excel Download Button */}
                 <button
                   onClick={handleDownloadExcel}
-                  disabled={filteredCandidates.length === 0 || loading || usersLoading}
+                  disabled={loading || usersLoading || exportLoading || totalRecords === 0}
                   className="inline-flex items-center justify-center rounded-lg border border-success bg-success py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaFileExcel className="mr-2" />
-                  Export Excel
+                  {exportLoading ? 'Exporting...' : 'Export Excel'}
                 </button>
               </div>
             </div>
@@ -673,7 +748,7 @@ const CandidateList = () => {
                   </div>
                 ) : (
                   <DataTable
-                    data={paginatedCandidates}
+                    data={candidates}
                     columns={columns}
                     actions={[
                       {
@@ -719,9 +794,9 @@ const CandidateList = () => {
               <div className="p-4 md:p-6 border-t border-stroke dark:border-strokedark">
                 <div className='flex justify-between items-center flex-col md:flex-row gap-4'>
                   <div className='text-sm text-gray-500 dark:text-gray-400'>
-                    Showing {filteredCandidates.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredCandidates.length)} of {filteredCandidates.length} Candidates
+                    Showing {totalRecords === 0 ? '0-0' : `${startIndex}-${endIndex}`} of {totalRecords} Candidates
                   </div>
-                  {filteredCandidates.length > 0 && (
+                  {totalRecords > 0 && (
                     <Pagination
                       currentPage={currentPage}
                       totalPages={totalPages}
@@ -737,11 +812,11 @@ const CandidateList = () => {
         {/* Filter Modal */}
         <FilterModal
           isOpen={showFilterModal}
-          onClose={() => handleApplyFilters(true)}
+          onClose={() => setShowFilterModal(false)}
           onApply={() => handleApplyFilters(false)}
           onReset={handleResetFilters}
-          filters={filters}
-          setFilters={setFilters}
+          filters={tempFilters}
+          setFilters={setTempFilters}
           config={filterConfig}
         />
 

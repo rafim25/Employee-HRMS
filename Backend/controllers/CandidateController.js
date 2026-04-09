@@ -289,6 +289,224 @@ export const getCandidates = async (req, res) => {
     }
 };
 
+const candidateIncludeConfig = [
+    {
+        model: Job,
+        as: 'job',
+        attributes: ['id', 'title', 'type', 'city', 'state', 'questions']
+    },
+    {
+        model: User,
+        as: 'creator',
+        attributes: ['user_id', 'username', 'email'],
+    }
+];
+
+const candidateAttributesConfig = [
+    'id', 'uuid', 'name', 'email', 'phone',
+    'experience', 'current_company', 'current_ctc',
+    'expected_ctc', 'notice_period', 'current_location',
+    'preferred_location', 'resume_url', 'status', 'application_status',
+    'notes', 'source', 'referred_by',
+    'created_by', 'created_by_id',
+    'createdAt', 'updatedAt',
+    'job_answers',
+    'rejection_details',
+    'rejection_reason'
+];
+
+const enrichCandidateData = async (candidate) => {
+    const plainCandidate = candidate.get({ plain: true });
+
+    try {
+        if (plainCandidate.job_answers) {
+            plainCandidate.job_answers = typeof plainCandidate.job_answers === 'string'
+                ? JSON.parse(plainCandidate.job_answers)
+                : plainCandidate.job_answers;
+        }
+
+        if (plainCandidate.rejection_details) {
+            const rejectionDetails = typeof plainCandidate.rejection_details === 'string'
+                ? JSON.parse(plainCandidate.rejection_details)
+                : plainCandidate.rejection_details;
+
+            if (plainCandidate.status === 'rejected') {
+                plainCandidate.rejection_information = {
+                    reason: plainCandidate.rejection_reason,
+                    ...rejectionDetails
+                };
+            }
+        }
+
+        if (plainCandidate.job?.questions && plainCandidate.job_answers) {
+            plainCandidate.questionnaire = plainCandidate.job.questions.map(question => ({
+                question: question,
+                answer: plainCandidate.job_answers[question] || 'Not answered'
+            }));
+        }
+
+        return await processResumeForCandidate(plainCandidate);
+    } catch (error) {
+        console.error(`Error enriching candidate ${plainCandidate.id}:`, error);
+        return plainCandidate;
+    }
+};
+
+const buildCandidateWhereClause = (query = {}) => {
+    const where = {};
+    const andConditions = [];
+
+    const {
+        source,
+        createdBy,
+        status,
+        search,
+        jobTitle,
+        jobApplied,
+        location,
+        minSalary,
+        maxSalary,
+        minExperience,
+        maxExperience,
+        fromDate,
+        toDate
+    } = query;
+
+    if (source) where.source = source;
+    if (createdBy) where.created_by_id = createdBy;
+    if (status) where.application_status = status;
+
+    if (search) {
+        andConditions.push({
+            [Op.or]: [
+                { name: { [Op.like]: `%${search}%` } },
+                { email: { [Op.like]: `%${search}%` } },
+                { phone: { [Op.like]: `%${search}%` } }
+            ]
+        });
+    }
+
+    const jobFilter = jobTitle || jobApplied;
+    if (jobFilter) {
+        andConditions.push({
+            '$job.title$': { [Op.like]: `%${jobFilter}%` }
+        });
+    }
+
+    if (location) {
+        andConditions.push({
+            [Op.or]: [
+                { current_location: { [Op.like]: `%${location}%` } },
+                { preferred_location: { [Op.like]: `%${location}%` } }
+            ]
+        });
+    }
+
+    if (minExperience || maxExperience) {
+        where.experience = {};
+        if (minExperience) where.experience[Op.gte] = Number(minExperience);
+        if (maxExperience) where.experience[Op.lte] = Number(maxExperience);
+    }
+
+    if (minSalary || maxSalary) {
+        where.expected_ctc = {};
+        if (minSalary) where.expected_ctc[Op.gte] = Number(minSalary);
+        if (maxSalary) where.expected_ctc[Op.lte] = Number(maxSalary);
+    }
+
+    if (fromDate || toDate) {
+        where.createdAt = {};
+        if (fromDate) where.createdAt[Op.gte] = new Date(fromDate);
+        if (toDate) where.createdAt[Op.lte] = new Date(toDate);
+    }
+
+    if (andConditions.length > 0) {
+        where[Op.and] = andConditions;
+    }
+
+    return where;
+};
+
+export const getCandidatesPaginated = async (req, res) => {
+    try {
+        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+        const limit = Math.max(parseInt(req.query.limit || '50', 10), 1);
+        const offset = (page - 1) * limit;
+
+        const where = buildCandidateWhereClause(req.query);
+
+        const { rows, count } = await Candidate.findAndCountAll({
+            where,
+            include: candidateIncludeConfig,
+            attributes: candidateAttributesConfig,
+            order: [['createdAt', 'DESC']],
+            limit,
+            offset,
+            distinct: true
+        });
+
+        const processedCandidates = await Promise.all(
+            rows.map(candidate => enrichCandidateData(candidate))
+        );
+
+        return res.json({
+            data: processedCandidates,
+            pagination: {
+                page,
+                limit,
+                totalRecords: count,
+                totalPages: Math.ceil(count / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching paginated candidates:', error);
+        return res.status(500).json({
+            msg: 'Error fetching paginated candidates',
+            error: error.message
+        });
+    }
+};
+
+export const searchCandidates = async (req, res) => {
+    try {
+        const where = buildCandidateWhereClause(req.query);
+        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+        const limit = Math.max(parseInt(req.query.limit || '50', 10), 1);
+        const offset = (page - 1) * limit;
+
+        const { rows, count } = await Candidate.findAndCountAll({
+            where,
+            include: candidateIncludeConfig,
+            attributes: candidateAttributesConfig,
+            order: [['createdAt', 'DESC']],
+            limit,
+            offset,
+            distinct: true
+        });
+
+        const processedCandidates = await Promise.all(
+            rows.map(candidate => enrichCandidateData(candidate))
+        );
+
+        return res.json({
+            data: processedCandidates,
+            count: processedCandidates.length,
+            pagination: {
+                page,
+                limit,
+                totalRecords: count,
+                totalPages: Math.ceil(count / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Error searching candidates:', error);
+        return res.status(500).json({
+            msg: 'Error searching candidates',
+            error: error.message
+        });
+    }
+};
+
 export const getCandidateById = async (req, res) => {
     try {
         const candidate = await Candidate.findOne({

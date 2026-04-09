@@ -1,6 +1,8 @@
 import express from "express";
 import {
   getCandidates,
+  getCandidatesPaginated,
+  searchCandidates,
   getCandidateById,
   getCandidatesByJob,
   createCandidate,
@@ -25,6 +27,8 @@ const router = express.Router();
 
 // Admin routes
 router.get('/api/candidates', verifyUser, getCandidates);
+router.get('/api/candidates/paginated', verifyUser, getCandidatesPaginated);
+router.get('/api/candidates/search', verifyUser, searchCandidates);
 router.get('/api/candidates/:id', verifyUser, getCandidateById);
 router.post('/api/candidates', verifyUser, createCandidate);
 router.put('/api/candidates/:id', verifyUser, adminOnly, checkPermission, updateCandidate);
