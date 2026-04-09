@@ -318,6 +318,39 @@ const CandidateList = () => {
     });
   };
 
+  const resetFilters = () => {
+    const reset = {
+      status: '',
+      source: '',
+      createdBy: '',
+      experience: { min: '', max: '' },
+      location: '',
+      dateRange: { start: '', end: '' },
+      salary: { min: '', max: '' },
+      jobApplied: ''
+    };
+
+    setFilters(reset);
+    setTempFilters(reset);
+    setCurrentPage(1);
+  };
+
+  const getAppliedFiltersCount = () => {
+    let count = 0;
+    if (filters.status) count += 1;
+    if (filters.source) count += 1;
+    if (filters.createdBy) count += 1;
+    if (filters.jobApplied) count += 1;
+    if (filters.location) count += 1;
+    if (filters.experience.min || filters.experience.max) count += 1;
+    if (filters.salary.min || filters.salary.max) count += 1;
+    if (filters.dateRange.start || filters.dateRange.end) count += 1;
+    return count;
+  };
+
+  const appliedFiltersCount = getAppliedFiltersCount();
+  const hasAppliedFilters = appliedFiltersCount > 0;
+
   // Update the handleStatusChange function
   const handleStatusChange = async (candidateId, newStatus) => {
     const candidate = candidates.find(c => c.uuid === candidateId);
@@ -733,11 +766,24 @@ const CandidateList = () => {
                     setTempFilters(filters);
                     setShowFilterModal(true);
                   }}
-                  className="inline-flex items-center justify-center rounded-lg border border-primary bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out"
+                  className={`inline-flex items-center justify-center rounded-lg border py-3 px-6 text-center font-medium transition-all duration-200 ease-in-out ${
+                    hasAppliedFilters
+                      ? 'border-warning bg-warning text-white hover:bg-opacity-90'
+                      : 'border-primary bg-primary text-white hover:bg-opacity-90'
+                  }`}
                 >
                   <FaFilter className="mr-2" />
-                  Filters
+                  Filters {hasAppliedFilters ? `(${appliedFiltersCount})` : ''}
                 </button>
+
+                {hasAppliedFilters && (
+                  <button
+                    onClick={resetFilters}
+                    className="inline-flex items-center justify-center rounded-lg border border-danger bg-danger py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 transition-all duration-200 ease-in-out"
+                  >
+                    Clear Filters
+                  </button>
+                )}
 
                 {/* Add Excel Download Button */}
                 <button
