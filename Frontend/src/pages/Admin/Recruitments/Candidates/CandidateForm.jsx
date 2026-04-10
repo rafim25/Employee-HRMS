@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../../components';
@@ -11,14 +11,15 @@ import { api } from '../../../../services/api';
 import * as XLSX from 'xlsx';
 import BulkUploadResultsModal from '../../../../components/molecules/Modal/BulkUploadResultsModal';
 import axiosInstance from '../../../../services/api';
+import { fetchJobs } from '../../../../context/actions/jobActions';
 
 const CandidateForm = () => {
   const navigate = useNavigate();
   const { dispatch, state } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { jobs, loading } = state;
+  const [loadingPage, setLoadingPage] = useState(false);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [statesLoading, setStatesLoading] = useState(true);
-  const [jobs, setJobs] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -138,29 +139,20 @@ const CandidateForm = () => {
     'Other'
   ];
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setJobsLoading(true);
-        const response = await fetch('/api/jobs', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch jobs');
-        const data = await response.json();
-        console.log('Fetched jobs:', data);
-        setJobs(data);
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-        toast.error('Failed to load jobs');
-      } finally {
-        setJobsLoading(false);
-      }
-    };
+  const loadJobs = useCallback(async () => {
+    try {
+      await fetchJobs(dispatch);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to fetch jobs';
+      toast.error(errorMessage);
+    } finally {
+      setJobsLoading(false);
+    }
+  }, [dispatch]);
 
-    fetchJobs();
-  }, []);
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
   useEffect(() => {
     const fetchStates = async () => {
@@ -334,7 +326,7 @@ const CandidateForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingPage(true);
 
     try {
       // Get selected state names
@@ -350,7 +342,7 @@ const CandidateForm = () => {
 
       if (checkDuplicateResponse.data.isDuplicate) {
         toast.error(checkDuplicateResponse.data.message || 'Candidate already exists');
-        setLoading(false);
+        setLoadingPage(false);
         return;
       }
 
@@ -412,14 +404,14 @@ const CandidateForm = () => {
       console.error('Error:', error);
       toast.error(error.response?.data?.message || 'Failed to save candidate');
     } finally {
-      setLoading(false);
+      setLoadingPage(false);
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'jobId') {
-      const job = jobs.find(j => j.id === parseInt(value));
+      const job = jobs?.find(j => j.id === parseInt(value));
       setSelectedJob(job);
       setFormData(prev => ({
         ...prev,
@@ -442,7 +434,7 @@ const CandidateForm = () => {
     }
   };
 
-  const filteredJobs = jobs.filter(job =>
+  const filteredJobs = jobs?.filter(job =>
     !jobSearchTerm.trim() ||
     job.title?.toLowerCase().includes(jobSearchTerm.toLowerCase()) ||
     job.type?.toLowerCase().includes(jobSearchTerm.toLowerCase())
@@ -1188,53 +1180,53 @@ const CandidateForm = () => {
                                 </div>
                               </div>
                             ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="mb-2.5 block text-black dark:text-white">
-                                  State
-                                </label>
-                                <select
-                                  value={currentLocation.state}
-                                  onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
-                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                                >
-                                  <option value="">Select State</option>
-                                  {states.map(state => (
-                                    <option key={state.iso2} value={state.iso2}>
-                                      {state.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div>
-                                <label className="mb-2.5 block text-black dark:text-white">
-                                  District
-                                </label>
-                                <div className="relative">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">
+                                    State
+                                  </label>
                                   <select
-                                    value={currentLocation.district}
-                                    onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
-                                    disabled={!currentLocation.state || currentDistrictsLoading}
+                                    value={currentLocation.state}
+                                    onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
                                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
                                   >
-                                    <option value="">Select District</option>
-                                    {currentDistricts.map(district => (
-                                      <option key={district.id} value={district.id}>
-                                        {district.name}
+                                    <option value="">Select State</option>
+                                    {states.map(state => (
+                                      <option key={state.iso2} value={state.iso2}>
+                                        {state.name}
                                       </option>
                                     ))}
                                   </select>
-                                  {currentDistrictsLoading && (
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                                    </div>
+                                </div>
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">
+                                    District
+                                  </label>
+                                  <div className="relative">
+                                    <select
+                                      value={currentLocation.district}
+                                      onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
+                                      disabled={!currentLocation.state || currentDistrictsLoading}
+                                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                    >
+                                      <option value="">Select District</option>
+                                      {currentDistricts.map(district => (
+                                        <option key={district.id} value={district.id}>
+                                          {district.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {currentDistrictsLoading && (
+                                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {districtFetchFailed.current && (
+                                    <p className="mt-2 text-xs text-danger">District API failed. Use manual entry option.</p>
                                   )}
                                 </div>
-                                {districtFetchFailed.current && (
-                                  <p className="mt-2 text-xs text-danger">District API failed. Use manual entry option.</p>
-                                )}
                               </div>
-                            </div>
                             )}
                           </div>
 
@@ -1276,53 +1268,53 @@ const CandidateForm = () => {
                                 </div>
                               </div>
                             ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="mb-2.5 block text-black dark:text-white">
-                                  State
-                                </label>
-                                <select
-                                  value={preferredLocation.state}
-                                  onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
-                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
-                                >
-                                  <option value="">Select State</option>
-                                  {states.map(state => (
-                                    <option key={state.iso2} value={state.iso2}>
-                                      {state.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div>
-                                <label className="mb-2.5 block text-black dark:text-white">
-                                  District
-                                </label>
-                                <div className="relative">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">
+                                    State
+                                  </label>
                                   <select
-                                    value={preferredLocation.district}
-                                    onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
-                                    disabled={!preferredLocation.state || preferredDistrictsLoading}
+                                    value={preferredLocation.state}
+                                    onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
                                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
                                   >
-                                    <option value="">Select District</option>
-                                    {preferredDistricts.map(district => (
-                                      <option key={district.id} value={district.id}>
-                                        {district.name}
+                                    <option value="">Select State</option>
+                                    {states.map(state => (
+                                      <option key={state.iso2} value={state.iso2}>
+                                        {state.name}
                                       </option>
                                     ))}
                                   </select>
-                                  {preferredDistrictsLoading && (
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                                    </div>
+                                </div>
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">
+                                    District
+                                  </label>
+                                  <div className="relative">
+                                    <select
+                                      value={preferredLocation.district}
+                                      onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
+                                      disabled={!preferredLocation.state || preferredDistrictsLoading}
+                                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                    >
+                                      <option value="">Select District</option>
+                                      {preferredDistricts.map(district => (
+                                        <option key={district.id} value={district.id}>
+                                          {district.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {preferredDistrictsLoading && (
+                                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {districtFetchFailed.preferred && (
+                                    <p className="mt-2 text-xs text-danger">District API failed. Use manual entry option.</p>
                                   )}
                                 </div>
-                                {districtFetchFailed.preferred && (
-                                  <p className="mt-2 text-xs text-danger">District API failed. Use manual entry option.</p>
-                                )}
                               </div>
-                            </div>
                             )}
                           </div>
                         </div>
@@ -1550,10 +1542,10 @@ const CandidateForm = () => {
                         </button>
                         <button
                           type="submit"
-                          disabled={loading}
+                          disabled={loadingPage}
                           className="flex justify-center rounded bg-primary py-2 px-6 font-medium text-white hover:bg-opacity-90 disabled:bg-opacity-70"
                         >
-                          {loading ? 'Saving...' : 'Save Candidate'}
+                          {loadingPage ? 'Saving...' : 'Save Candidate'}
                         </button>
                       </div>
                     </form>
