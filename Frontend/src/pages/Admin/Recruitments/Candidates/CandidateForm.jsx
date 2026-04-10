@@ -106,6 +106,27 @@ const CandidateForm = () => {
   });
   const [jobSearchTerm, setJobSearchTerm] = useState('');
   const [showJobMatches, setShowJobMatches] = useState(false);
+  const LOCATION_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
+
+  const readLocationCache = (key) => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed?.timestamp || Date.now() - parsed.timestamp > LOCATION_CACHE_TTL_MS) return null;
+      return parsed.data;
+    } catch {
+      return null;
+    }
+  };
+
+  const writeLocationCache = (key, data) => {
+    try {
+      localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data }));
+    } catch {
+      // ignore
+    }
+  };
 
   const sourceOptions = [
     'Naukri',
@@ -145,6 +166,13 @@ const CandidateForm = () => {
     const fetchStates = async () => {
       try {
         setStatesLoading(true);
+        const cachedStates = readLocationCache('location_states_in_v1');
+        if (cachedStates) {
+          setStates(cachedStates);
+          setStatesFetchFailed(false);
+          return;
+        }
+
         const response = await fetch('/api/locations/states', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -153,6 +181,7 @@ const CandidateForm = () => {
         if (!response.ok) throw new Error('Failed to fetch states');
         const data = await response.json();
         setStates(data);
+        writeLocationCache('location_states_in_v1', data);
         setStatesFetchFailed(false);
       } catch (error) {
         console.error('Error fetching states:', error);
@@ -174,6 +203,19 @@ const CandidateForm = () => {
     }
 
     try {
+      const cacheKey = `location_districts_in_${stateCode}_v1`;
+      const cachedDistricts = readLocationCache(cacheKey);
+      if (cachedDistricts) {
+        if (type === 'current') {
+          setCurrentDistricts(cachedDistricts);
+          setDistrictFetchFailed(prev => ({ ...prev, current: false }));
+        } else {
+          setPreferredDistricts(cachedDistricts);
+          setDistrictFetchFailed(prev => ({ ...prev, preferred: false }));
+        }
+        return;
+      }
+
       const response = await fetch(`/api/locations/states/${stateCode}/districts`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -188,6 +230,7 @@ const CandidateForm = () => {
         setPreferredDistricts(data);
         setDistrictFetchFailed(prev => ({ ...prev, preferred: false }));
       }
+      writeLocationCache(cacheKey, data);
     } catch (error) {
       console.error('Error fetching districts:', error);
       toast.error('Failed to load districts');
@@ -213,6 +256,14 @@ const CandidateForm = () => {
     }
 
     try {
+      const lsKey = `location_cities_in_${stateCode}_${districtName}_v1`;
+      const cachedCities = readLocationCache(lsKey);
+      if (cachedCities) {
+        setCities(cachedCities);
+        setCitiesCache(prev => ({ ...prev, [cacheKey]: cachedCities }));
+        return;
+      }
+
       const response = await fetch(`/api/locations/states/${stateCode}/districts/${encodeURIComponent(districtName)}/cities`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -233,6 +284,7 @@ const CandidateForm = () => {
 
       setCities(data);
       setCitiesCache(prev => ({ ...prev, [cacheKey]: data }));
+      writeLocationCache(lsKey, data);
     } catch (error) {
       console.error('Error fetching cities:', error);
       toast.error('Failed to load cities');

@@ -11,6 +11,25 @@ import {
 } from "../types";
 
 let isLoading = false;
+const JOBS_CACHE_KEY = "jobs_list_cache_v1";
+const JOBS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+const readCache = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore
+  }
+};
 
 export const fetchJobs = async (dispatch) => {
   if (isLoading) return;
@@ -19,11 +38,21 @@ export const fetchJobs = async (dispatch) => {
     isLoading = true;
     dispatch({ type: SET_JOB_LOADING, payload: true });
 
+    const cached = readCache(JOBS_CACHE_KEY);
+    if (cached?.timestamp && Date.now() - cached.timestamp < JOBS_CACHE_TTL_MS && Array.isArray(cached.data)) {
+      dispatch({
+        type: SET_JOB_LIST,
+        payload: cached.data,
+      });
+      return;
+    }
+
     const response = await api.get(JOB_ENDPOINTS.LIST);
     dispatch({
       type: SET_JOB_LIST,
       payload: response.data,
     });
+    writeCache(JOBS_CACHE_KEY, { timestamp: Date.now(), data: response.data });
     toast.success("Jobs fetched successfully");
   } catch (error) {
     console.error("Error fetching jobs:", error);
