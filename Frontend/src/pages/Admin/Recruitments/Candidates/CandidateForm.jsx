@@ -69,11 +69,13 @@ const CandidateForm = () => {
   const [states, setStates] = useState([]);
   const [currentLocation, setCurrentLocation] = useState({
     state: '',
+    stateName: '',
     district: '',
     districtName: ''
   });
   const [preferredLocation, setPreferredLocation] = useState({
     state: '',
+    stateName: '',
     district: '',
     districtName: ''
   });
@@ -93,6 +95,17 @@ const CandidateForm = () => {
   });
   const [districtsCache, setDistrictsCache] = useState({});
   const [citiesCache, setCitiesCache] = useState({});
+  const [manualLocationMode, setManualLocationMode] = useState({
+    current: false,
+    preferred: false
+  });
+  const [statesFetchFailed, setStatesFetchFailed] = useState(false);
+  const [districtFetchFailed, setDistrictFetchFailed] = useState({
+    current: false,
+    preferred: false
+  });
+  const [jobSearchTerm, setJobSearchTerm] = useState('');
+  const [showJobMatches, setShowJobMatches] = useState(false);
 
   const sourceOptions = [
     'Naukri',
@@ -140,9 +153,11 @@ const CandidateForm = () => {
         if (!response.ok) throw new Error('Failed to fetch states');
         const data = await response.json();
         setStates(data);
+        setStatesFetchFailed(false);
       } catch (error) {
         console.error('Error fetching states:', error);
         toast.error('Failed to load states');
+        setStatesFetchFailed(true);
       } finally {
         setStatesLoading(false);
       }
@@ -168,12 +183,19 @@ const CandidateForm = () => {
       const data = await response.json();
       if (type === 'current') {
         setCurrentDistricts(data);
+        setDistrictFetchFailed(prev => ({ ...prev, current: false }));
       } else {
         setPreferredDistricts(data);
+        setDistrictFetchFailed(prev => ({ ...prev, preferred: false }));
       }
     } catch (error) {
       console.error('Error fetching districts:', error);
       toast.error('Failed to load districts');
+      if (type === 'current') {
+        setDistrictFetchFailed(prev => ({ ...prev, current: true }));
+      } else {
+        setDistrictFetchFailed(prev => ({ ...prev, preferred: true }));
+      }
     } finally {
       if (type === 'current') {
         setCurrentDistrictsLoading(false);
@@ -222,8 +244,10 @@ const CandidateForm = () => {
     if (type === 'current') {
       if (field === 'state') {
         fetchDistricts(value, 'current');
+        const selectedState = states.find(s => s.iso2 === value);
         setCurrentLocation({
           state: value,
+          stateName: selectedState?.name || '',
           district: '',
           districtName: ''
         });
@@ -238,8 +262,10 @@ const CandidateForm = () => {
     } else {
       if (field === 'state') {
         fetchDistricts(value, 'preferred');
+        const selectedState = states.find(s => s.iso2 === value);
         setPreferredLocation({
           state: value,
+          stateName: selectedState?.name || '',
           district: '',
           districtName: ''
         });
@@ -260,8 +286,8 @@ const CandidateForm = () => {
 
     try {
       // Get selected state names
-      const currentState = states.find(s => s.iso2 === currentLocation.state)?.name || '';
-      const preferredState = states.find(s => s.iso2 === preferredLocation.state)?.name || '';
+      const currentState = currentLocation.stateName || states.find(s => s.iso2 === currentLocation.state)?.name || '';
+      const preferredState = preferredLocation.stateName || states.find(s => s.iso2 === preferredLocation.state)?.name || '';
 
       // Check for duplicate candidate
       const checkDuplicateResponse = await axiosInstance.post('/api/candidates/check-duplicate', {
@@ -362,6 +388,23 @@ const CandidateForm = () => {
         [name]: value
       }));
     }
+  };
+
+  const filteredJobs = jobs.filter(job =>
+    !jobSearchTerm.trim() ||
+    job.title?.toLowerCase().includes(jobSearchTerm.toLowerCase()) ||
+    job.type?.toLowerCase().includes(jobSearchTerm.toLowerCase())
+  );
+
+  const handleJobSearchSelect = (job) => {
+    setFormData(prev => ({
+      ...prev,
+      jobId: String(job.id),
+      answers: {}
+    }));
+    setSelectedJob(job);
+    setJobSearchTerm(`${job.title} - ${job.type}`);
+    setShowJobMatches(false);
   };
 
   const handleDownloadTemplate = async () => {
@@ -1054,105 +1097,181 @@ const CandidateForm = () => {
                           />
                         </div>
 
-                        <div className="md:col-span-2">
-                          <h3 className="text-lg text-black mb-4 flex items-center">
-                            <FaMapMarkerAlt className="mr-2" />
-                            Current Location
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="mb-2.5 block text-black dark:text-white">
-                                State
-                              </label>
-                              <select
-                                value={currentLocation.state}
-                                onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h3 className="text-lg text-black mb-4 flex items-center">
+                              <FaMapMarkerAlt className="mr-2" />
+                              Current Location
+                            </h3>
+                            <div className="mb-3">
+                              <button
+                                type="button"
+                                onClick={() => setManualLocationMode(prev => ({ ...prev, current: !prev.current }))}
+                                className="text-sm text-primary underline"
                               >
-                                <option value="">Select State</option>
-                                {states.map(state => (
-                                  <option key={state.iso2} value={state.iso2}>
-                                    {state.name}
-                                  </option>
-                                ))}
-                              </select>
+                                {manualLocationMode.current ? 'Use API dropdown selection' : 'Enter location manually'}
+                              </button>
                             </div>
-                            <div>
-                              <label className="mb-2.5 block text-black dark:text-white">
-                                District
-                              </label>
-                              <div className="relative">
+                            {manualLocationMode.current || statesFetchFailed ? (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">State</label>
+                                  <input
+                                    type="text"
+                                    value={currentLocation.stateName || ''}
+                                    onChange={(e) => setCurrentLocation(prev => ({ ...prev, state: '', stateName: e.target.value }))}
+                                    placeholder="Enter state"
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">District</label>
+                                  <input
+                                    type="text"
+                                    value={currentLocation.districtName || ''}
+                                    onChange={(e) => setCurrentLocation(prev => ({ ...prev, district: '', districtName: e.target.value }))}
+                                    placeholder="Enter district"
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="mb-2.5 block text-black dark:text-white">
+                                  State
+                                </label>
                                 <select
-                                  value={currentLocation.district}
-                                  onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
-                                  disabled={!currentLocation.state || currentDistrictsLoading}
+                                  value={currentLocation.state}
+                                  onChange={(e) => handleLocationChange('current', 'state', e.target.value)}
                                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
                                 >
-                                  <option value="">Select District</option>
-                                  {currentDistricts.map(district => (
-                                    <option key={district.id} value={district.id}>
-                                      {district.name}
+                                  <option value="">Select State</option>
+                                  {states.map(state => (
+                                    <option key={state.iso2} value={state.iso2}>
+                                      {state.name}
                                     </option>
                                   ))}
                                 </select>
-                                {currentDistrictsLoading && (
-                                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                                  </div>
+                              </div>
+                              <div>
+                                <label className="mb-2.5 block text-black dark:text-white">
+                                  District
+                                </label>
+                                <div className="relative">
+                                  <select
+                                    value={currentLocation.district}
+                                    onChange={(e) => handleLocationChange('current', 'district', e.target.value)}
+                                    disabled={!currentLocation.state || currentDistrictsLoading}
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                  >
+                                    <option value="">Select District</option>
+                                    {currentDistricts.map(district => (
+                                      <option key={district.id} value={district.id}>
+                                        {district.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {currentDistrictsLoading && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                    </div>
+                                  )}
+                                </div>
+                                {districtFetchFailed.current && (
+                                  <p className="mt-2 text-xs text-danger">District API failed. Use manual entry option.</p>
                                 )}
                               </div>
                             </div>
+                            )}
                           </div>
-                        </div>
 
-                        <div className="md:col-span-2">
-                          <h3 className="text-lg text-black mb-4 flex items-center">
-                            <FaMapMarkerAlt className="mr-2" />
-                            Preferred Location
-                          </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="mb-2.5 block text-black dark:text-white">
-                                State
-                              </label>
-                              <select
-                                value={preferredLocation.state}
-                                onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
-                                className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                          <div>
+                            <h3 className="text-lg text-black mb-4 flex items-center">
+                              <FaMapMarkerAlt className="mr-2" />
+                              Preferred Location
+                            </h3>
+                            <div className="mb-3">
+                              <button
+                                type="button"
+                                onClick={() => setManualLocationMode(prev => ({ ...prev, preferred: !prev.preferred }))}
+                                className="text-sm text-primary underline"
                               >
-                                <option value="">Select State</option>
-                                {states.map(state => (
-                                  <option key={state.iso2} value={state.iso2}>
-                                    {state.name}
-                                  </option>
-                                ))}
-                              </select>
+                                {manualLocationMode.preferred ? 'Use API dropdown selection' : 'Enter location manually'}
+                              </button>
                             </div>
-                            <div>
-                              <label className="mb-2.5 block text-black dark:text-white">
-                                District
-                              </label>
-                              <div className="relative">
+                            {manualLocationMode.preferred || statesFetchFailed ? (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">State</label>
+                                  <input
+                                    type="text"
+                                    value={preferredLocation.stateName || ''}
+                                    onChange={(e) => setPreferredLocation(prev => ({ ...prev, state: '', stateName: e.target.value }))}
+                                    placeholder="Enter state"
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="mb-2.5 block text-black dark:text-white">District</label>
+                                  <input
+                                    type="text"
+                                    value={preferredLocation.districtName || ''}
+                                    onChange={(e) => setPreferredLocation(prev => ({ ...prev, district: '', districtName: e.target.value }))}
+                                    placeholder="Enter district"
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="mb-2.5 block text-black dark:text-white">
+                                  State
+                                </label>
                                 <select
-                                  value={preferredLocation.district}
-                                  onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
-                                  disabled={!preferredLocation.state || preferredDistrictsLoading}
+                                  value={preferredLocation.state}
+                                  onChange={(e) => handleLocationChange('preferred', 'state', e.target.value)}
                                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
                                 >
-                                  <option value="">Select District</option>
-                                  {preferredDistricts.map(district => (
-                                    <option key={district.id} value={district.id}>
-                                      {district.name}
+                                  <option value="">Select State</option>
+                                  {states.map(state => (
+                                    <option key={state.iso2} value={state.iso2}>
+                                      {state.name}
                                     </option>
                                   ))}
                                 </select>
-                                {preferredDistrictsLoading && (
-                                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                                  </div>
+                              </div>
+                              <div>
+                                <label className="mb-2.5 block text-black dark:text-white">
+                                  District
+                                </label>
+                                <div className="relative">
+                                  <select
+                                    value={preferredLocation.district}
+                                    onChange={(e) => handleLocationChange('preferred', 'district', e.target.value)}
+                                    disabled={!preferredLocation.state || preferredDistrictsLoading}
+                                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
+                                  >
+                                    <option value="">Select District</option>
+                                    {preferredDistricts.map(district => (
+                                      <option key={district.id} value={district.id}>
+                                        {district.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {preferredDistrictsLoading && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                    </div>
+                                  )}
+                                </div>
+                                {districtFetchFailed.preferred && (
+                                  <p className="mt-2 text-xs text-danger">District API failed. Use manual entry option.</p>
                                 )}
                               </div>
                             </div>
+                            )}
                           </div>
                         </div>
 
@@ -1161,6 +1280,56 @@ const CandidateForm = () => {
                             <FaBriefcase className="inline mr-2" />
                             Job Position <span className="text-meta-1">*</span>
                           </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={jobSearchTerm}
+                              onChange={(e) => {
+                                setJobSearchTerm(e.target.value);
+                                setShowJobMatches(true);
+                              }}
+                              onFocus={() => setShowJobMatches(true)}
+                              onBlur={() => setTimeout(() => setShowJobMatches(false), 150)}
+                              placeholder="Search job by title/type"
+                              className="w-full mb-2 rounded border-[1.5px] border-stroke bg-transparent py-2 pl-3 pr-10 font-medium outline-none transition focus:border-primary active:border-primary"
+                            />
+                            {jobSearchTerm && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setJobSearchTerm('');
+                                  setShowJobMatches(false);
+                                  setFormData(prev => ({ ...prev, jobId: '' }));
+                                  setSelectedJob(null);
+                                }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-danger"
+                                aria-label="Clear job search"
+                                title="Clear"
+                              >
+                                <FaTimes />
+                              </button>
+                            )}
+                            {showJobMatches && jobSearchTerm.trim() && (
+                              <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded border border-stroke bg-white shadow-md dark:border-form-strokedark dark:bg-form-input">
+                                {filteredJobs.length > 0 ? (
+                                  filteredJobs.slice(0, 10).map(job => (
+                                    <button
+                                      key={job.id}
+                                      type="button"
+                                      onClick={() => handleJobSearchSelect(job)}
+                                      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-meta-4"
+                                    >
+                                      {job.title} - {job.type}
+                                    </button>
+                                  ))
+                                ) : (
+                                  <div className="px-3 py-2 text-sm text-gray-500">
+                                    No matching jobs found
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <select
                             name="jobId"
                             value={formData.jobId}
@@ -1169,7 +1338,7 @@ const CandidateForm = () => {
                             className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                           >
                             <option value="">Select Job Position</option>
-                            {jobs.map(job => (
+                            {filteredJobs.map(job => (
                               <option key={job.id} value={job.id}>
                                 {job.title} - {job.type}
                               </option>
