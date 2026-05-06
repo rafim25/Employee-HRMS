@@ -44,15 +44,16 @@ const Footer = () => {
                   contact@sevenwingstech.com
                 </a>
               </div>
-              <div className="flex items-center">
-                <MdPhone className="mr-2 text-xl" />
-                <a href="tel:+919900220446" className="text-sm hover:text-gray-300 transition-colors">
-                  +91 9964009363
-                </a>
-                <br />
-                <a href="tel:+919900220446" className="text-sm hover:text-gray-300 transition-colors">
-                  +91 90364 13385
-                </a>
+              <div className="flex items-start">
+                <MdPhone className="mr-2 text-xl mt-1" />
+                <div className="flex flex-col">
+                  <a href="tel:+919964009363" className="text-sm hover:text-gray-300 transition-colors">
+                    +91 9964009363
+                  </a>
+                  <a href="tel:+919036413385" className="text-sm hover:text-gray-300 transition-colors">
+                    +91 90364 13385
+                  </a>
+                </div>
               </div>
             </div>
           </div>
