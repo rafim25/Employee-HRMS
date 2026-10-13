@@ -26,8 +26,8 @@ import skillRoute from "./routes/skillRoute.js";
 import { syncModels } from "./models/index.js";
 import candidateRoutes from './routes/CandidateRoute.js';
 import UploadRoute from './routes/UploadRoute.js';
-import EmployeeJobRoutes from "./routes/EmployeeJobRoutes.js";
-import EmployeeCandidateRoutes from "./routes/EmployeeCandidateRoutes.js";
+import EmployeeJobRoutes from "./routes/employeeJobRoutes.js";
+import EmployeeCandidateRoutes from "./routes/employeeCandidateRoutes.js";
 import locationRoutes from './routes/LocationRoute.js';
 import hrRoutes from './routes/hr/index.js';
 
