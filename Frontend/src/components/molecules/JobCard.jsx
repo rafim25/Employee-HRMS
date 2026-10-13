@@ -1,34 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaMapMarkerAlt,
-  FaBriefcase,
-  FaRegClock,
-  FaEllipsisV,
-  FaEdit,
-  FaTrashAlt,
-  FaMoneyBillWave,
-  FaCode,
-  FaUsers,
-  FaUser
-} from 'react-icons/fa';
+  HiOutlineBriefcase,
+  HiOutlineLocationMarker,
+  HiOutlineCash,
+  HiOutlineUserGroup,
+  HiOutlineClock,
+  HiOutlinePencil,
+  HiOutlineTrash,
+  HiOutlineDotsVertical,
+  HiOutlineCode,
+} from 'react-icons/hi';
 import { format, isValid, parseISO } from 'date-fns';
-import { MdKeyboardArrowDown } from 'react-icons/md';
 
-const skillColors = [
-  'text-blue-500 bg-blue-50 dark:bg-blue-900/10',
-  'text-purple-500 bg-purple-50 dark:bg-purple-900/10',
-  'text-green-500 bg-green-50 dark:bg-green-900/10',
-  'text-orange-500 bg-orange-50 dark:bg-orange-900/10',
-  'text-pink-500 bg-pink-50 dark:bg-pink-900/10',
-];
+const statusStyles = {
+  active: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+  draft: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+  closed: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  archived: 'bg-slate-100 text-slate-600 ring-1 ring-slate-200',
+  expired: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+};
+
+const MetaRow = ({ icon: Icon, iconClass, children }) => (
+  <div className="flex items-start gap-3 text-sm text-[#5b6b7c]">
+    <span
+      className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
+    >
+      <Icon className="h-4 w-4" />
+    </span>
+    <span className="min-w-0 flex-1 pt-1.5 leading-snug">{children}</span>
+  </div>
+);
 
 const JobCard = ({ job, onEdit, onDelete, onStatusChange, onJobClick }) => {
   const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
   const actionMenuRef = useRef(null);
 
-  // Handle clicks outside the action menu
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
@@ -41,7 +49,13 @@ const JobCard = ({ job, onEdit, onDelete, onStatusChange, onJobClick }) => {
   }, []);
 
   const formatSalary = (min, max) => {
-    return `CTC: ₹${min} - ₹${max} LPA`;
+    if (min == null && max == null) return 'CTC not specified';
+    const fmt = (n) => {
+      const num = Number(n);
+      if (!Number.isFinite(num)) return n;
+      return num.toLocaleString('en-IN');
+    };
+    return `CTC: ₹${fmt(min)} – ₹${fmt(max)}`;
   };
 
   const handleCardClick = () => {
@@ -65,163 +79,195 @@ const JobCard = ({ job, onEdit, onDelete, onStatusChange, onJobClick }) => {
   };
 
   const statusOptions = [
-    { value: 'active', label: 'Active', color: 'success' },
-    { value: 'draft', label: 'Draft', color: 'warning' },
-    { value: 'closed', label: 'Closed', color: 'danger' },
-    { value: 'archived', label: 'Archived', color: 'gray' },
-    { value: 'expired', label: 'Expired', color: 'danger' }
+    { value: 'active', label: 'Active' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'closed', label: 'Closed' },
+    { value: 'archived', label: 'Archived' },
+    { value: 'expired', label: 'Expired' },
   ];
 
-  const capitalizeStatus = (status) => {
-    if (!status) return 'Unknown';
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  };
+  const statusKey = String(job.status || '').toLowerCase();
+  const statusClass =
+    statusStyles[statusKey] || 'bg-slate-100 text-slate-600 ring-1 ring-slate-200';
+  const statusLabel = job.status
+    ? job.status.charAt(0).toUpperCase() + job.status.slice(1)
+    : 'Unknown';
+
+  const candidateCount = job.candidateCount || 0;
+  const skills = Array.isArray(job.skills) ? job.skills : [];
 
   return (
-    <div className="bg-white dark:bg-boxdark rounded-xl border border-stroke dark:border-strokedark p-5 
-                    shadow-default hover:shadow-lg dark:hover:shadow-gray-700/40
-                    transform hover:-translate-y-1
-                    transition-all duration-300 relative
-                    hover:border-primary/20 dark:hover:border-primary/20">
+    <div
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[rgba(11,29,54,0.1)] bg-white
+                 shadow-[0_4px_14px_rgba(11,29,54,0.08),0_1px_3px_rgba(11,29,54,0.06)]
+                 transition-all duration-300 ease-out
+                 hover:-translate-y-1.5 hover:border-[rgba(212,175,55,0.45)]
+                 hover:shadow-[0_18px_44px_rgba(11,29,54,0.14),0_4px_12px_rgba(11,29,54,0.08)]
+                 dark:border-strokedark dark:bg-boxdark"
+    >
+      {/* Gold accent bar on hover */}
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#0b1d36] via-[#d4af37] to-[#0b1d36] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
       {/* Action Menu */}
-      <div className="absolute top-4 right-4 z-20" ref={actionMenuRef}>
+      <div className="absolute right-3 top-3 z-20" ref={actionMenuRef}>
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             setShowActions(!showActions);
           }}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-meta-4 rounded-full transition-colors duration-200"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent text-[#5b6b7c]
+                     transition hover:border-[rgba(11,29,54,0.1)] hover:bg-[#f7f8fb] hover:text-[#0b1d36]
+                     dark:hover:bg-meta-4"
+          aria-label="Job actions"
         >
-          <FaEllipsisV className="text-gray-500 dark:text-gray-400" />
+          <HiOutlineDotsVertical className="h-5 w-5" />
         </button>
 
         {showActions && (
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-boxdark rounded-xl 
-                         shadow-[0_8px_24px_rgb(0,0,0,0.12)] 
-                         border border-stroke dark:border-strokedark overflow-hidden">
-            <div className="p-2">
-              <div className="mb-2">
-                <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">
-                  Update Status
-                </label>
-                <select
-                  value={job.status}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    onStatusChange(job.id, e.target.value);
-                  }}
-                  className="w-full rounded-lg border border-stroke bg-transparent p-2 text-sm outline-none focus:border-primary"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div
+            className="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-[rgba(11,29,54,0.1)]
+                       bg-white shadow-[0_12px_32px_rgba(11,29,54,0.16)] dark:border-strokedark dark:bg-boxdark"
+          >
+            <div className="p-3">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5b6b7c]">
+                Update status
+              </label>
+              <select
+                value={job.status}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onStatusChange(job.id, e.target.value);
+                }}
+                className="w-full rounded-lg border border-[rgba(11,29,54,0.12)] bg-transparent px-2.5 py-2 text-sm outline-none focus:border-[#d4af37]"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(job.id);
                 setShowActions(false);
               }}
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 
-                         flex items-center gap-2 text-sm font-medium border-t border-stroke dark:border-strokedark"
+              className="flex w-full items-center gap-2.5 border-t border-[rgba(11,29,54,0.08)] px-4 py-3 text-left text-sm font-medium text-[#0b1d36] transition hover:bg-[#f7f8fb] dark:border-strokedark dark:text-white dark:hover:bg-meta-4"
             >
-              <FaEdit className="text-primary" />
-              <span>Edit Job</span>
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#0b1d36]/8 text-[#d4af37]">
+                <HiOutlinePencil className="h-3.5 w-3.5" />
+              </span>
+              Edit Job
             </button>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(job.id);
                 setShowActions(false);
               }}
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 
-                         flex items-center gap-2 text-sm font-medium text-danger border-t border-stroke dark:border-strokedark"
+              className="flex w-full items-center gap-2.5 border-t border-[rgba(11,29,54,0.08)] px-4 py-3 text-left text-sm font-medium text-danger transition hover:bg-rose-50 dark:border-strokedark dark:hover:bg-meta-4"
             >
-              <FaTrashAlt className="text-danger" />
-              <span>Delete Job</span>
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-danger">
+                <HiOutlineTrash className="h-3.5 w-3.5" />
+              </span>
+              Delete Job
             </button>
           </div>
         )}
       </div>
 
       {/* Card Content */}
-      <div onClick={handleCardClick} className="cursor-pointer">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h3 className="text-lg font-semibold text-black dark:text-white line-clamp-1">
-              {job.title}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Job ID: {job.id || job._id}
-            </p>
-          </div>
+      <div onClick={handleCardClick} className="flex flex-1 cursor-pointer flex-col p-5 pt-4">
+        <div className="mb-4 pr-10">
+          <h3 className="line-clamp-2 text-[1.05rem] font-semibold tracking-tight text-[#0b1d36] transition group-hover:text-[#0b1d36] dark:text-white">
+            {job.title}
+          </h3>
+          <p className="mt-1.5 text-xs font-medium text-[#8a97a8]">
+            Job ID · {job.id || job._id}
+          </p>
         </div>
 
-        <div className="space-y-3 mb-4">
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-            <FaBriefcase className="mr-2 text-primary" />
-            <span>{job.type}</span>
-          </div>
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-            <FaMapMarkerAlt className="mr-2 text-primary" />
-            <span>{job.city}, {job.state}</span>
-          </div>
-          <div className="flex items-center text-sm text-success font-medium">
-            <FaMoneyBillWave className="mr-2 text-success" />
-            <span>{formatSalary(job.minSalary, job.maxSalary)}</span>
-          </div>
-          <div className="flex items-center text-sm text-blue-500 dark:text-blue-400 font-medium">
-            <FaUsers className="mr-2 text-blue-500" />
-            <span>{job.candidateCount || 0} Candidates Applied</span>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <FaCode className="text-lg" />
-          </div>
-          {job.skills?.slice(0, 3).map((skill, index) => (
-            <span
-              key={index}
-              className="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary font-medium"
-            >
-              {skill}
+        <div className="mb-4 space-y-2.5">
+          <MetaRow icon={HiOutlineBriefcase} iconClass="bg-[#0b1d36]/8 text-[#0b1d36]">
+            <span className="font-medium text-[#0b1d36] dark:text-white">{job.type || '—'}</span>
+          </MetaRow>
+          <MetaRow icon={HiOutlineLocationMarker} iconClass="bg-sky-50 text-sky-700">
+            {[job.city, job.state].filter(Boolean).join(', ') || 'Location not set'}
+          </MetaRow>
+          <MetaRow icon={HiOutlineCash} iconClass="bg-emerald-50 text-emerald-700">
+            <span className="font-semibold text-emerald-700">
+              {formatSalary(job.minSalary, job.maxSalary)}
             </span>
-          ))}
-          {job.skills?.length > 3 && (
-            <span className="px-3 py-1 text-xs rounded-full bg-gray-100 dark:bg-meta-4 font-medium">
-              +{job.skills.length - 3}
+          </MetaRow>
+          <MetaRow icon={HiOutlineUserGroup} iconClass="bg-indigo-50 text-indigo-700">
+            <span className="font-medium text-indigo-700">
+              {candidateCount} {candidateCount === 1 ? 'Candidate' : 'Candidates'} Applied
             </span>
-          )}
+          </MetaRow>
         </div>
 
-        <div className="flex justify-between items-center text-sm">
-          <span className={`px-3 py-1 rounded-full font-medium ${!job.status ? 'bg-gray-100 dark:bg-meta-4 text-gray-500' :
-            job.status === 'active' ? 'bg-success/10 text-success' :
-              job.status === 'draft' ? 'bg-warning/10 text-warning' :
-                'bg-danger/10 text-danger'
-            }`}>
-            {job.status ? (job.status.charAt(0).toUpperCase() + job.status.slice(1)) : 'Unknown'}
+        <div className="mb-4">
+          <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a97a8]">
+            <HiOutlineCode className="h-3.5 w-3.5" />
+            Skills
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {skills.length === 0 ? (
+              <span className="rounded-lg bg-[#f7f8fb] px-2.5 py-1 text-xs text-[#8a97a8]">
+                No skills listed
+              </span>
+            ) : (
+              <>
+                {skills.slice(0, 3).map((skill, index) => (
+                  <span
+                    key={`${skill}-${index}`}
+                    className="rounded-lg bg-[#0b1d36]/[0.06] px-2.5 py-1 text-xs font-medium text-[#0b1d36] ring-1 ring-[rgba(11,29,54,0.06)]"
+                  >
+                    {skill}
+                  </span>
+                ))}
+                {skills.length > 3 && (
+                  <span className="rounded-lg bg-[#d4af37]/15 px-2.5 py-1 text-xs font-semibold text-[#0b1d36]">
+                    +{skills.length - 3}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-auto flex items-center justify-between gap-3">
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${statusClass}`}
+          >
+            {statusLabel}
           </span>
-          <div className="flex items-center text-gray-500 dark:text-gray-400">
-            <FaRegClock className="mr-2 text-primary" />
-            <span>{formatDate(job?.deadline)}</span>
+          <div className="inline-flex items-center gap-1.5 text-xs font-medium text-[#5b6b7c]">
+            <HiOutlineClock className="h-4 w-4 text-[#d4af37]" />
+            {formatDate(job?.deadline)}
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-stroke dark:border-strokedark">
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-            <FaUser className="mr-2 text-primary" />
-            <span>Created by: {job.created_by || 'N/A'}</span>
+        <div className="mt-4 border-t border-[rgba(11,29,54,0.08)] pt-3 dark:border-strokedark">
+          <div className="flex items-center gap-2 text-xs text-[#5b6b7c]">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0b1d36] text-[10px] font-semibold text-[#d4af37]">
+              {(job.created_by || 'N').toString().charAt(0).toUpperCase()}
+            </span>
+            <span>
+              Created by{' '}
+              <span className="font-semibold text-[#0b1d36] dark:text-white">
+                {job.created_by || 'N/A'}
+              </span>
+            </span>
           </div>
           {job.updated_by && (
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-              <FaEdit className="mr-2 text-primary" />
-              <span>Last updated by: {job.updated_by} on {formatDate(job.updatedAt)}</span>
+            <div className="mt-1.5 flex items-center gap-1.5 pl-8 text-[11px] text-[#8a97a8]">
+              <HiOutlinePencil className="h-3 w-3" />
+              Updated by {job.updated_by} · {formatDate(job.updatedAt)}
             </div>
           )}
         </div>

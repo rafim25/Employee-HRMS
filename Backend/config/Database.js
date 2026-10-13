@@ -30,9 +30,9 @@ const database = new Sequelize(
     },
     dialectOptions: {
       connectTimeout: 60000,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      ...(process.env.DB_SSL === 'true'
+        ? { ssl: { rejectUnauthorized: false } }
+        : {})
     }
   }
 );

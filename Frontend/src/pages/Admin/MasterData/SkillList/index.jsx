@@ -11,7 +11,7 @@ import { fetchSkills, deleteSkill } from '../../../../context/actions/skillActio
 import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 const SkillList = () => {
     const { state, dispatch } = useAuth();
@@ -25,8 +25,7 @@ const SkillList = () => {
         try {
             await fetchSkills(dispatch);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to fetch skills';
-            toast.error(errorMessage);
+            // Error toast handled in fetchSkills
         }
     }, [dispatch]);
 
@@ -51,11 +50,9 @@ const SkillList = () => {
     const confirmDelete = async () => {
         try {
             await deleteSkill(dispatch, skillToDelete);
-            toast.success('Skill deleted successfully');
             loadSkills();
         } catch (error) {
-            const errorMessage = error.response?.data?.msg || 'Failed to delete skill';
-            toast.error(errorMessage);
+            // Error toast handled in deleteSkill
         } finally {
             setShowDeleteModal(false);
             setSkillToDelete(null);

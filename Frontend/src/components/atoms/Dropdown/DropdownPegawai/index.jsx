@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { BiLogOut } from 'react-icons/bi'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
@@ -67,9 +68,11 @@ const DropdownPegawai = () => {
     const handleLogout = async () => {
         try {
             await logoutUser(dispatch)
-            navigate('/')
+            toast.success('You have been logged out')
+            navigate('/', { replace: true })
         } catch (error) {
             console.error('Error during logout:', error)
+            navigate('/', { replace: true })
         }
     }
 
@@ -110,7 +113,7 @@ const DropdownPegawai = () => {
                 <ul className='flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark'>
                     {/* <li>
                         <Link
-                            to='/pegawai/pengaturan/ubah-password'
+                            to='/employee/settings/change-password'
                             className='flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base'
                         >
                             <FiSettings className="text-xl" />

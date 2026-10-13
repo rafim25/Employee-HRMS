@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     // If user's role is not in the allowed roles, redirect to their dashboard
     if (!allowedRoles.includes(userRole?.toLowerCase())) {
-        return <Navigate to={userRole?.toLowerCase() === 'user' ? '/pegawai/dashboard' : '/'} replace />;
+        return <Navigate to={userRole?.toLowerCase() === 'user' ? '/employee/dashboard' : '/'} replace />;
     }
 
     // If user is authorized, render the protected component

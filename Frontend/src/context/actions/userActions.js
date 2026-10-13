@@ -24,14 +24,14 @@ export const fetchUsers = async (dispatch) => {
       type: SET_USER_LIST,
       payload: response.data,
     });
-    toast.success("Users fetched successfully");
+    // Silent list load
   } catch (error) {
     console.error("Error fetching users:", error);
     dispatch({
       type: SET_USER_ERROR,
       payload: error.response?.data?.msg || "Failed to fetch users",
     });
-    toast.error("Failed to fetch users");
+    toast.error("Failed to fetch users", { id: "users-fetch-error" });
   } finally {
     isLoading = false;
     dispatch({ type: SET_USER_LOADING, payload: false });

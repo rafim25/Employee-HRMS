@@ -1,260 +1,185 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import PublicLayout from '../../../components/layouts/PublicLayout';
 import FeatureHighlights from '../../../components/molecules/FeatureHighlights';
 import Testimonials from '../../../components/molecules/Testimonial';
-import RecruitmentWorkflow from '../../../components/molecules/FeatureHighlights';
-import { FaUserShield, FaLock, FaChartLine, FaUsers, FaFileInvoiceDollar, FaShieldAlt } from 'react-icons/fa';
-import { MdDashboard } from 'react-icons/md';
-import { api } from '../../../services/api';
-import toast from 'react-hot-toast';
-import { loginUser } from '../../../context/actions/authActions';
-import { useAuth } from '../../../context/AuthContext';
+import {
+  FaUsers,
+  FaUserTie,
+  FaBriefcase,
+  FaChalkboardTeacher,
+  FaChartLine,
+  FaCogs,
+  FaArrowRight,
+} from 'react-icons/fa';
+
+const stats = [
+  { value: '20+', label: 'Years of excellence' },
+  { value: '5,000+', label: 'Candidates placed' },
+  { value: '200+', label: 'Hiring partners' },
+  { value: '12+', label: 'Industries served' },
+];
+
+const workforce = [
+  {
+    icon: FaUsers,
+    title: 'Contract staffing',
+    description: 'Skilled professionals for short-term and project-based needs, deployed when you need them.',
+  },
+  {
+    icon: FaUserTie,
+    title: 'Permanent recruitment',
+    description: 'Executive search, volume hiring and talent strategy aligned to your growth plans.',
+  },
+  {
+    icon: FaBriefcase,
+    title: 'Industry hiring',
+    description: 'Specialist hiring across banking, IT, manufacturing, sales and operations roles.',
+  },
+  {
+    icon: FaChalkboardTeacher,
+    title: 'Hire-train-deploy',
+    description: 'High-potential talent trained in role-specific skills and placed as job-ready employees.',
+  },
+];
+
+const platforms = [
+  {
+    icon: FaCogs,
+    title: 'Talent operations platform',
+    description: 'From demand to onboarding, payroll and analytics — one workspace for HR teams.',
+  },
+  {
+    icon: FaChartLine,
+    title: 'Hiring intelligence',
+    description: 'Live pipeline metrics, interview progress and placement outcomes in one dashboard.',
+  },
+];
 
 const LoginAdmin = () => {
-    const { dispatch } = useAuth();
+  return (
+    <PublicLayout>
+      <div className="bg-white">
+        <section className="relative min-h-screen flex items-center overflow-hidden">
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster=""
+          >
+            <source src="/videos/hero-bg.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0b1d36]/90 via-[#0b1d36]/70 to-[#0b1d36]/35" />
 
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        username: '',
-        password: ''
-    });
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        const loadingToast = toast.loading('Signing in...');
-
-        try {
-            const userData = await loginUser(dispatch, {
-                username: formData.username,
-                password: formData.password
-            });
-
-            if (!userData) {
-                throw new Error('No user data received');
-            }
-            const role = userData.role?.toLowerCase();
-            localStorage.setItem('role', role);
-
-            toast.success('Login successful!', { id: loadingToast });
-
-            // Redirect based on role
-            if (role === 'admin') {
-                navigate('/admin/dashboard');
-            } else {
-                navigate('/pegawai/dashboard');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            toast.error(error.response?.data?.message || 'Login failed', { id: loadingToast });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Updated features for recruitment focus
-    const features = [
-        {
-            icon: <FaUsers className="text-2xl" />,
-            title: 'Talent Management',
-            description: 'Efficiently manage candidates, track applications, and streamline your recruitment process.'
-        },
-        {
-            icon: <FaChartLine className="text-2xl" />,
-            title: 'Recruitment Analytics',
-            description: 'Access detailed hiring metrics, pipeline analytics, and recruitment performance insights.'
-        },
-        {
-            icon: <FaFileInvoiceDollar className="text-2xl" />,
-            title: 'Interview Scheduling',
-            description: 'Seamlessly coordinate interviews, manage feedback, and track candidate progress.'
-        },
-        {
-            icon: <FaShieldAlt className="text-2xl" />,
-            title: 'Secure Platform',
-            description: 'Enterprise-grade security ensuring candidate data remains protected and confidential.'
-        }
-    ];
-
-    // Updated testimonials data
-
-
-    return (
-        <PublicLayout>
-            <div className="min-h-screen bg-white dark:bg-boxdark">
-                {/* Hero Section with Login */}
-                <div className="container mx-auto px-4 py-8 lg:py-12">
-                    <div className="max-w-7xl mx-auto">
-                        {/* Updated Welcome Header */}
-                        <div className="text-center mb-12">
-                            <h1 className="text-4xl lg:text-5xl font-bold text-black dark:text-white mb-4">
-                                Welcome to Seven Wings Technologies
-                            </h1>
-                            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                                Your trusted partner in recruitment and talent acquisition
-                            </p>
-                        </div>
-
-                        {/* Main Content Grid */}
-                        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-                            {/* Left Column - Features */}
-                            <div className="order-2 lg:order-1">
-                                <div className="grid sm:grid-cols-2 gap-6">
-                                    {features.map((feature, index) => (
-                                        <div
-                                            key={index}
-                                            className="bg-white dark:bg-boxdark rounded-xl 
-                                                shadow-lg hover:shadow-xl p-6 
-                                                transform hover:scale-105 transition-transform duration-300
-                                                border-2 border-stroke dark:border-strokedark
-                                                relative overflow-hidden"
-                                        >
-                                            <div className="relative z-10">
-                                                <div className="w-14 h-14 rounded-lg bg-primary flex items-center justify-center mb-4">
-                                                    <div className="text-white">
-                                                        {feature.icon}
-                                                    </div>
-                                                </div>
-                                                <h4 className="text-lg font-semibold text-black dark:text-white mb-3">
-                                                    {feature.title}
-                                                </h4>
-                                                <p className="text-gray-600 dark:text-gray-400">
-                                                    {feature.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Right Column - Login Form */}
-                            <div className="order-1 lg:order-2">
-                                <div className="max-w-md mx-auto">
-                                    <div className="bg-white dark:bg-boxdark rounded-xl 
-                                        shadow-2xl hover:shadow-3xl p-8 lg:p-10
-                                        border-2 border-stroke dark:border-strokedark 
-                                        transition-transform transition-shadow duration-300">
-                                        <form onSubmit={handleSubmit} className="space-y-6">
-                                            <div className="text-center mb-8">
-                                                <h3 className="text-3xl font-bold text-black dark:text-white mb-3">
-                                                    Sign In
-                                                </h3>
-                                                <p className="text-gray-600 dark:text-gray-400">
-                                                    Enter your credentials to access your account
-                                                </p>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                        Username
-                                                    </label>
-                                                    <div className="relative group">
-                                                        <input
-                                                            type="text"
-                                                            name="username"
-                                                            value={formData.username}
-                                                            onChange={handleChange}
-                                                            placeholder="Enter your username"
-                                                            className="w-full rounded-lg border-2 border-stroke bg-white py-4 pl-12 pr-6 
-                                                            outline-none focus:border-primary hover:border-primary
-                                                            dark:border-strokedark dark:bg-boxdark dark:hover:border-primary
-                                                            text-black dark:text-white transition-all duration-300"
-                                                            required
-                                                        />
-                                                        <span className="absolute left-4 top-4 text-gray-500 dark:text-gray-400
-                                                            group-hover:text-primary transition-all duration-300">
-                                                            <FaUserShield className="text-xl" />
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                        Password
-                                                    </label>
-                                                    <div className="relative group">
-                                                        <input
-                                                            type="password"
-                                                            name="password"
-                                                            value={formData.password}
-                                                            onChange={handleChange}
-                                                            placeholder="Enter your password"
-                                                            className="w-full rounded-lg border-2 border-stroke bg-white py-4 pl-12 pr-6 
-                                                            outline-none focus:border-primary hover:border-primary
-                                                            dark:border-strokedark dark:bg-boxdark dark:hover:border-primary
-                                                            text-black dark:text-white transition-all duration-300"
-                                                            required
-                                                        />
-                                                        <span className="absolute left-4 top-4 text-gray-500 dark:text-gray-400
-                                                            group-hover:text-primary transition-all duration-300">
-                                                            <FaLock className="text-xl" />
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <button
-                                                    type="submit"
-                                                    disabled={loading}
-                                                    className="w-full rounded-lg bg-primary p-4 
-                                                    text-white font-medium transition-all duration-300 
-                                                    hover:bg-opacity-90 hover:shadow-lg hover:scale-[1.02]
-                                                    disabled:opacity-70 disabled:cursor-not-allowed"
-                                                >
-                                                    {loading ? 'Signing in...' : 'Sign In'}
-                                                </button>
-                                            </div>
-
-                                            {/* <div className="text-center">
-                                                <a
-                                                    href="#"
-                                                    className="text-primary font-medium hover:text-opacity-80 transition-all duration-300"
-                                                >
-                                                    Forgot Password?
-                                                </a>
-                                            </div> */}
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Additional Sections with Improved Spacing */}
-                <div className="bg-white dark:bg-boxdark">
-                    <div className="container mx-auto px-4 py-16">
-                        <div className="max-w-7xl mx-auto space-y-16">
-                            <div className="bg-white dark:bg-boxdark rounded-xl shadow-xl p-8
-                                border-2 border-stroke dark:border-strokedark transition-transform transition-shadow duration-300">
-                                <RecruitmentWorkflow />
-                            </div>
-
-                            <div className="bg-white dark:bg-boxdark rounded-xl shadow-xl p-8
-                                border-2 border-stroke dark:border-strokedark transition-transform transition-shadow duration-300">
-                                <Testimonials />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer Section */}
-
+          <div className="relative z-10 container mx-auto px-4 lg:px-8 pt-28 pb-28">
+            <p className="text-[#d4af37] text-xs sm:text-sm font-semibold tracking-[0.28em] uppercase mb-5">
+              Workforce & talent solutions
+            </p>
+            <h1 className="max-w-4xl text-4xl sm:text-5xl lg:text-6xl font-semibold text-white leading-tight">
+              We elevate your talent strategy and unlock operational excellence
+            </h1>
+            <p className="mt-6 max-w-2xl text-base sm:text-lg text-white/80 leading-relaxed">
+              Seven Wings Technologies is a recruitment partner with proven experience in
+              tech-enabled hiring, managed talent programs, and industry-focused staffing
+              that helps businesses grow with the right people.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-4">
+              {/* <Link
+                to="/careers"
+                className="inline-flex items-center gap-2 rounded-full bg-[#d4af37] px-7 py-3 text-sm font-semibold text-[#0b1d36] hover:bg-[#e3c356] transition-colors"
+              >
+                View openings <FaArrowRight className="text-xs" />
+              </Link> */}
+              {/* <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 rounded-full border border-white/40 px-7 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
+              >
+                Talk to us
+              </Link> */}
             </div>
-        </PublicLayout>
-    );
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 bg-[#0b1d36]/80 backdrop-blur-sm border-t border-white/10">
+            <div className="container mx-auto px-4 lg:px-8 py-6 grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center lg:text-left">
+                  <div className="text-2xl sm:text-3xl font-semibold text-[#d4af37]">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-white/70 mt-1">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 lg:py-24 bg-[#16324f] text-white border-y-2 border-[#d4af37]">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="max-w-3xl mb-12">
+              <p className="text-[#d4af37] text-xs font-semibold tracking-[0.2em] uppercase mb-3">What we do</p>
+              <h2 className="text-3xl lg:text-4xl font-semibold text-white leading-tight">
+                Connecting exceptional talent with ambitious business goals
+              </h2>
+              <p className="mt-4 text-white/70 leading-relaxed">
+                End-to-end workforce solutions that help you hire faster, staff with confidence, and keep operations moving.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {workforce.map((item) => (
+                <article
+                  key={item.title}
+                  className="group rounded-2xl border-2 border-[#d4af37]/50 bg-[#1e4568] p-6 hover:border-[#d4af37] hover:bg-[#245077] transition-all duration-300"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#d4af37] text-[#0b1d36] flex items-center justify-center mb-4">
+                    <item.icon />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                  <p className="text-sm text-white/70 leading-relaxed">{item.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-section-navy py-16 lg:py-24 bg-[#0b1d36] text-white">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <p className="text-[#d4af37] text-xs font-semibold tracking-[0.2em] uppercase mb-3">
+                  Smarter tech. Stronger outcomes.
+                </p>
+                <h2 className="text-3xl lg:text-4xl font-semibold leading-tight">
+                  A digital engine for hiring, HR operations, and talent insight
+                </h2>
+                <p className="mt-5 text-white/70 leading-relaxed">
+                  Explore the HRMS that powers Seven Wings — from candidate pipelines and
+                  interview workflows to employee records, payroll support, and live
+                  dashboards that help teams make faster decisions.
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-5">
+                {platforms.map((item) => (
+                  <article key={item.title} className="rounded-2xl bg-white/5 border border-white/20 p-6">
+                    <item.icon className="text-[#d4af37] text-2xl mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                    <p className="text-sm text-white/70 leading-relaxed">{item.description}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 lg:py-24 bg-[#16324f] text-white border-y-2 border-[#d4af37]">
+          <div className="container mx-auto px-4 lg:px-8">
+            <FeatureHighlights />
+          </div>
+        </section>
+
+        <Testimonials />
+      </div>
+    </PublicLayout>
+  );
 };
 
 export default LoginAdmin;

@@ -4,7 +4,7 @@ import DataGajiPegawaiPeople from '../../../Utils/DataGajiPegawaiPeople';
 import { BreadcrumbPegawai } from '../../../components/index';
 import { TfiPrinter } from 'react-icons/tfi'
 
-const ITEMS_PER_PAGE = 4;
+const ITEMS_PER_PAGE = 10;
 
 const DataGajiPegawai = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -44,25 +44,25 @@ const DataGajiPegawai = () => {
                         <thead>
                             <tr className='bg-gray-2 text-left dark:bg-meta-4'>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Bulan/Tahun
+                                    Month/Year
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Basic Salary
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Tansportation Allowanceasi
+                                    Transportation Allowance
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Meal Money
+                                    Meal Allowance
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Salary
+                                    Deductions
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
                                     Total Salary
                                 </th>
                                 <th className='py-4 px-4 font-medium text-black dark:text-white'>
-                                    Cetak Slip
+                                    Print Slip
                                 </th>
                             </tr>
                         </thead>

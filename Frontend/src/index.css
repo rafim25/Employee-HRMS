@@ -9,6 +9,169 @@
 }
 
 @layer components {
+  .app-shell {
+    background: #dce6f0;
+    color: #0b1d36;
+    min-height: 100vh;
+  }
+
+  .dark .app-shell {
+    background: #1a222c;
+    color: #dee4ee;
+  }
+
+  .app-sidebar {
+    background: linear-gradient(180deg, #0b1d36 0%, #071525 100%);
+    border-right: 1px solid rgba(212, 175, 55, 0.35);
+    color: #ffffff;
+    box-shadow: 8px 0 32px rgba(7, 21, 37, 0.18);
+  }
+
+  .app-sidebar,
+  .app-sidebar a,
+  .app-sidebar button,
+  .app-sidebar span,
+  .app-sidebar p,
+  .app-sidebar li {
+    color: #ffffff;
+  }
+
+  .app-nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.9rem;
+    padding: 0.7rem 0.9rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #ffffff !important;
+    background: transparent;
+    overflow: hidden;
+    transform: translateX(0);
+    transition: background 0.28s ease, transform 0.28s ease, box-shadow 0.28s ease;
+  }
+
+  .app-nav-link svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex-shrink: 0;
+    color: #d4af37 !important;
+    fill: currentColor;
+    transition: transform 0.28s ease;
+  }
+
+  .app-nav-link:hover {
+    background: rgba(212, 175, 55, 0.14);
+    color: #ffffff !important;
+    transform: translateX(4px);
+    box-shadow: inset 3px 0 0 #d4af37;
+  }
+
+  .app-nav-link:hover svg {
+    transform: scale(1.12);
+  }
+
+  .app-nav-link-active {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.22), rgba(22, 50, 79, 0.9));
+    color: #ffffff !important;
+    box-shadow: inset 3px 0 0 #d4af37, 0 8px 18px rgba(0, 0, 0, 0.18);
+  }
+
+  .app-nav-sub {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    font-weight: 500;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.88) !important;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, padding-left 0.25s ease;
+  }
+
+  .app-nav-sub svg {
+    color: #d4af37 !important;
+  }
+
+  .app-nav-sub:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff !important;
+    transform: translateX(6px);
+    padding-left: 1.1rem;
+  }
+
+  .app-nav-sub.text-gold,
+  .app-nav-sub[aria-current='page'] {
+    background: rgba(212, 175, 55, 0.16);
+    color: #d4af37 !important;
+  }
+
+  .app-submenu {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.35s ease, opacity 0.28s ease;
+  }
+
+  .app-submenu.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .app-submenu > ul {
+    overflow: hidden;
+  }
+
+  .app-nav-chevron {
+    transition: transform 0.35s ease;
+    color: #d4af37 !important;
+  }
+
+  .app-nav-stagger > li,
+  .app-nav-stagger > a,
+  .app-nav-stagger > div {
+    animation: navRise 0.45s ease both;
+  }
+
+  .app-nav-stagger > *:nth-child(1) { animation-delay: 0.04s; }
+  .app-nav-stagger > *:nth-child(2) { animation-delay: 0.1s; }
+  .app-nav-stagger > *:nth-child(3) { animation-delay: 0.16s; }
+  .app-nav-stagger > *:nth-child(4) { animation-delay: 0.22s; }
+  .app-nav-stagger > *:nth-child(5) { animation-delay: 0.28s; }
+
+  @keyframes navRise {
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-2.5 text-[0.95rem] font-semibold text-primary hover:bg-[#e3c356] transition-colors;
+    min-height: 2.75rem;
+  }
+
+  .btn-navy {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-2.5 text-[0.95rem] font-semibold text-white hover:bg-navy-mid transition-colors;
+    min-height: 2.75rem;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-primary bg-white px-6 py-2.5 text-[0.95rem] font-semibold text-primary hover:bg-primary hover:text-gold transition-colors;
+    min-height: 2.75rem;
+  }
+
+  .app-card {
+    border: 1px solid rgba(11, 29, 54, 0.12);
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(11, 29, 54, 0.04);
+  }
 }
 
 @layer utilities {
@@ -148,4 +311,86 @@ span.flatpickr-weekday,
 
 [x-cloak] {
   display: none !important;
+}
+
+.landing-section {
+  background: #f7f8fb;
+  border-top: 1px solid rgba(11, 29, 54, 0.14);
+  border-bottom: 1px solid rgba(11, 29, 54, 0.14);
+  box-shadow: inset 0 1px 0 rgba(212, 175, 55, 0.55);
+}
+
+.landing-section-navy {
+  border-top: 1px solid rgba(212, 175, 55, 0.45);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+.landing-card {
+  border: 1px solid rgba(11, 29, 54, 0.12);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(11, 29, 54, 0.04);
+}
+
+.app-shell .rounded-sm.border.border-stroke.bg-white,
+.app-shell .rounded-sm.border.border-stroke {
+  border-radius: 1rem;
+  border-color: rgba(11, 29, 54, 0.12);
+  box-shadow: 0 8px 24px rgba(11, 29, 54, 0.04);
+}
+
+.app-shell thead tr,
+.app-shell thead tr.bg-gray-2,
+.fixed table thead tr {
+  background: #0b1d36 !important;
+}
+
+.app-shell thead th,
+.fixed table thead th {
+  color: #ffffff !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app-shell tbody td,
+.app-shell tbody td.border-b,
+.fixed table tbody td {
+  color: #0b1d36 !important;
+  font-size: 1.05rem !important;
+  font-weight: 500 !important;
+  line-height: 1.55;
+}
+
+.app-shell tbody tr:hover {
+  background: #f4efe0;
+}
+
+.app-shell input[type='text'],
+.app-shell input[type='email'],
+.app-shell input[type='password'],
+.app-shell input[type='number'],
+.app-shell input[type='date'],
+.app-shell input[type='file'],
+.app-shell input[type='tel'],
+.app-shell select,
+.app-shell textarea {
+  border-radius: 0.75rem;
+}
+
+.app-shell .inline-flex.items-center.justify-center.rounded-md.bg-primary,
+.app-shell button.bg-primary,
+.app-shell a.bg-primary {
+  border-radius: 9999px;
+  min-height: 2.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.app-shell .inline-flex.items-center.justify-center.rounded-md.bg-danger,
+.app-shell button.bg-danger {
+  border-radius: 9999px;
+  min-height: 2.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }

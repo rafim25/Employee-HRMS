@@ -1,19 +1,52 @@
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+
+// Imports are hoisted before index.js dotenv — load env here so SMTP auth is available
+const __emailDir = path.dirname(fileURLToPath(import.meta.url));
+const emailEnvFile =
+  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+dotenv.config({ path: path.join(__emailDir, "..", emailEnvFile) });
+
+// Support both SMTP_* and legacy EMAIL_* env names
+const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASSWORD;
+
+const inferSmtpHost = () => {
+  if (process.env.SMTP_HOST) return process.env.SMTP_HOST;
+  const user = String(smtpUser || "").toLowerCase();
+  if (user.endsWith("@gmail.com") || user.endsWith("@googlemail.com")) {
+    return "smtp.gmail.com";
+  }
+  if (user.endsWith("@yahoo.com") || user.endsWith("@ymail.com")) {
+    return "smtp.mail.yahoo.com";
+  }
+  if (user.endsWith("@outlook.com") || user.endsWith("@hotmail.com") || user.endsWith("@live.com")) {
+    return "smtp.office365.com";
+  }
+  return "smtp.mail.yahoo.com";
+};
+
+const smtpHost = inferSmtpHost();
+const smtpPort = Number(process.env.SMTP_PORT || 587);
+
+const mailFrom = () =>
+  `"Seven Wings Technologies" <${smtpUser}>`;
 
 // Create a transporter using SMTP with optimized timeout settings
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.mail.yahoo.com",
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
+  host: smtpHost,
+  port: smtpPort,
+  secure: smtpPort === 465,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: smtpUser,
+    pass: smtpPass,
   },
   debug: false, // Disable debug logs in production
   logger: false, // Disable logger in production
   tls: {
     rejectUnauthorized: false,
-    ciphers: "SSLv3", // Add legacy cipher support
   },
   // Reduce timeout settings
   connectionTimeout: 10000, // 10 seconds
@@ -34,6 +67,31 @@ const sendEmailWithTimeout = async (mailOptions) => {
       setTimeout(() => reject(new Error("Email sending timeout")), 30000)
     ),
   ]);
+};
+
+export const sendUserCredentialsEmail = async ({ name, username, email, password, role }) => {
+  const loginUrl = process.env.FRONTEND_URL || 'http://localhost:5173/admin/login';
+  const displayName = name || username;
+  const mailOptions = {
+    from: mailFrom(),
+    to: email,
+    subject: "Your HRMS login credentials",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">
+        <h2 style="color: #0B1D36; margin-bottom: 20px;">Your account is ready</h2>
+        <p style="margin: 0 0 16px 0;">Hello ${displayName},</p>
+        <p style="margin: 0 0 16px 0;">An account has been created for you. Use the credentials below to sign in.</p>
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <p style="margin: 8px 0;"><strong>Username:</strong> ${username}</p>
+          <p style="margin: 8px 0;"><strong>Password:</strong> ${password}</p>
+          <p style="margin: 8px 0;"><strong>Role:</strong> ${role || 'User'}</p>
+        </div>
+        <p style="margin: 0 0 16px 0;">Sign in at <a href="${loginUrl}">${loginUrl}</a></p>
+        <p style="color: #666; font-size: 12px; text-align: center;">This is an automated message from Seven Wings Technologies.</p>
+      </div>
+    `,
+  };
+  return sendEmailWithTimeout(mailOptions);
 };
 
 // Test email function
@@ -291,8 +349,27 @@ export const sendCandidatesToClient = async (req, res) => {
     try {
         const { jobId, clientEmail, clientName, jobTitle, candidates } = req.body;
 
+        if (!smtpUser || !smtpPass) {
+            return res.status(500).json({
+                success: false,
+                message: "Email is not configured on the server",
+                details: {
+                    error: "Missing SMTP_USER/SMTP_PASS or EMAIL_USER/EMAIL_PASSWORD",
+                    suggestion: "Set EMAIL_USER and EMAIL_PASSWORD (or SMTP_*) in Backend .env and restart the API.",
+                    timestamp: new Date().toISOString(),
+                },
+            });
+        }
+
+        if (!clientEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Client email is required to share candidates",
+            });
+        }
+
         // Filter only shortlisted candidates
-        const shortlistedCandidates = candidates.filter(c => c.application_status === 'shortlisted');
+        const shortlistedCandidates = (candidates || []).filter(c => c.application_status === 'shortlisted');
 
         if (!shortlistedCandidates?.length) {
             return res.status(400).json({
@@ -318,9 +395,8 @@ export const sendCandidatesToClient = async (req, res) => {
         `).join('');
 
         const mailOptions = {
-            from: `"Seven Wings Technologies" <${process.env.SMTP_USER}>`,
+            from: mailFrom(),
             to: clientEmail,
-            bcc: "mrafee1910@gmail.com",
             subject: `Shortlisted Candidates for ${jobTitle}`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #fff;">

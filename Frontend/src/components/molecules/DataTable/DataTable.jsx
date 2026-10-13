@@ -179,73 +179,88 @@ const DataTable = ({
   };
 
   return (
-    <div className="relative">
+    <div className="relative overflow-hidden rounded-2xl border border-[rgba(11,29,54,0.1)] bg-white shadow-[0_1px_2px_rgba(11,29,54,0.04)]">
       <div className="overflow-x-auto">
-        <table className="w-full table-auto">
+        <table className="w-full min-w-[720px] table-auto border-collapse text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
+            <tr className="bg-[#0b1d36] text-left">
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`py-4 px-4 font-medium text-black dark:text-white ${column.className || ''}`}
+                  className={`px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 ${column.className || ''}`}
                 >
                   {column.header}
                 </th>
               ))}
-              {actions && <th className="w-[70px] py-4 px-4 font-medium text-black dark:text-white">Actions</th>}
+              {actions && (
+                <th className="w-[90px] px-4 py-3.5 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="relative">
-            {data.map((item, index) => (
-              <tr key={item.uuid || index} className="border-b border-stroke dark:border-strokedark">
-                {columns.map((column, colIndex) => (
-                  <td key={colIndex} className={`py-5 px-4 ${column.className || ''}`}>
-                    {renderCell(item, column)}
-                  </td>
-                ))}
-                {actions && (
-                  <td className="py-5 px-4 text-right">
-                    <div className="flex items-center space-x-3.5">
-                      {/* {onDownload && item.resume_url && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDownload(item);
-                          }}
-                          className="hover:text-black"
-                          title="Download Resume"
-                        >
-                          <FaDownload className="text-primary text-xl hover:text-black dark:hover:text-white" />
-                        </button>
-                      )} */}
-                      {actions.map((action, actionIndex) => (
-                        <button
-                          key={actionIndex}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (action.show(item)) {
-                              action.onClick(item);
-                            }
-                          }}
-                          className={`hover:text-black ${!action.show(item) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          title={action.label}
-                          disabled={!action.show(item)}
-                        >
-                          {React.cloneElement(action.icon, {
-                            className: `text-xl hover:text-black dark:hover:text-white ${!action.show(item) ? 'opacity-50' :
-                              action.label === 'View' ? 'text-success' :
-                                action.label === 'Edit' ? 'text-primary' :
-                                  action.label === 'Delete' ? 'text-danger' : ''
-                              }`
-                          })}
-                        </button>
-                      ))}
-                      {statusOptions && <ActionMenu item={item} />}
-                    </div>
-                  </td>
-                )}
+            {!data?.length ? (
+              <tr>
+                <td
+                  colSpan={columns.length + (actions ? 1 : 0)}
+                  className="px-4 py-12 text-center text-sm text-[#5b6b7c]"
+                >
+                  No records found
+                </td>
               </tr>
-            ))}
+            ) : (
+              data.map((item, index) => (
+                <tr
+                  key={item.uuid || index}
+                  className="border-t border-[rgba(11,29,54,0.06)] transition-colors hover:bg-[#f8f4e8]/70"
+                >
+                  {columns.map((column, colIndex) => (
+                    <td
+                      key={colIndex}
+                      className={`px-4 py-3.5 align-middle text-[#0b1d36] ${column.className || ''}`}
+                    >
+                      {renderCell(item, column)}
+                    </td>
+                  ))}
+                  {actions && (
+                    <td className="px-4 py-3.5 text-right align-middle">
+                      <div className="inline-flex items-center justify-end gap-2.5">
+                        {actions.map((action, actionIndex) => (
+                          <button
+                            key={actionIndex}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (action.show(item)) {
+                                action.onClick(item);
+                              }
+                            }}
+                            className={`rounded-lg p-1.5 transition hover:bg-[#0b1d36]/5 ${!action.show(item) ? 'cursor-not-allowed opacity-40' : ''}`}
+                            title={action.label}
+                            disabled={!action.show(item)}
+                          >
+                            {React.cloneElement(action.icon, {
+                              className: `text-lg ${
+                                !action.show(item)
+                                  ? 'opacity-50'
+                                  : action.label === 'View'
+                                    ? 'text-success'
+                                    : action.label === 'Edit'
+                                      ? 'text-primary'
+                                      : action.label === 'Delete'
+                                        ? 'text-danger'
+                                        : 'text-[#0b1d36]'
+                              }`,
+                            })}
+                          </button>
+                        ))}
+                        {statusOptions && <ActionMenu item={item} />}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

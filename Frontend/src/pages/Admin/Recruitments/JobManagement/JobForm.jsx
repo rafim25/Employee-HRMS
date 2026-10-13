@@ -13,6 +13,9 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { FaBriefcase, FaMapMarkerAlt, FaDollarSign, FaInfoCircle, FaUser, FaQuestionCircle, FaPlus, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import axios from 'axios';
+import { Tab } from '@headlessui/react';
+import BulkExcelUploadPanel from '../../../../components/molecules/BulkExcelUploadPanel';
+import { JOB_ENDPOINTS } from '../../../../constants/apiEndpoints';
 import { numberToWords, formatIndianCurrency } from '../../../../utils/numberToWords';
 
 const JobForm = () => {
@@ -269,7 +272,17 @@ const JobForm = () => {
                                 Job Form
                             </h3>
                         </div>
-
+                        <Tab.Group>
+                            <Tab.List className="flex border-b border-stroke dark:border-strokedark">
+                                <Tab className={({ selected }) => `w-full py-4 text-sm font-medium outline-none ${selected ? 'border-b-2 border-primary text-primary' : 'text-gray-600 hover:text-primary'}`}>
+                                    Single Job
+                                </Tab>
+                                <Tab className={({ selected }) => `w-full py-4 text-sm font-medium outline-none ${selected ? 'border-b-2 border-primary text-primary' : 'text-gray-600 hover:text-primary'}`}>
+                                    Bulk Upload
+                                </Tab>
+                            </Tab.List>
+                            <Tab.Panels>
+                                <Tab.Panel>
                         {error && (
                             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative m-4">
                                 {error}
@@ -707,6 +720,22 @@ const JobForm = () => {
                                 </div>
                             </div>
                         </form>
+                                </Tab.Panel>
+                                <Tab.Panel>
+                                    <BulkExcelUploadPanel
+                                        title="Bulk Upload Jobs"
+                                        description="Download the job template, fill the gold required columns, then upload. created_by_id is set to your user ID."
+                                        templateType="jobs"
+                                        endpoint={JOB_ENDPOINTS.BULK_UPLOAD}
+                                        payloadKey="jobs"
+                                        extraPayload={{
+                                            created_by: state?.user?.username,
+                                            created_by_id: state?.user?.user_id,
+                                        }}
+                                    />
+                                </Tab.Panel>
+                            </Tab.Panels>
+                        </Tab.Group>
                     </div>
                 </div>
             </div>

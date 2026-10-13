@@ -21,21 +21,21 @@ export const fetchSkills = async (dispatch) => {
       type: SET_SKILL_LIST,
       payload: response.data,
     });
-    toast.success("Skills fetched successfully");
+    // Silent list load — avoid noisy / duplicate toasts on page mount
   } catch (error) {
     console.error("Error fetching skills:", error);
     dispatch({
       type: SET_SKILL_ERROR,
       payload: error.response?.data?.msg || "Failed to fetch skills",
     });
-    toast.error("Failed to fetch skills");
+    toast.error("Failed to fetch skills", { id: "skills-fetch-error" });
   } finally {
     dispatch({ type: SET_SKILL_LOADING, payload: false });
   }
 };
 
 export const deleteSkill = async (dispatch, skillId) => {
-  const loadingToast = toast.loading("Deleting skill...");
+  const loadingToast = toast.loading("Deleting skill...", { id: "skill-delete" });
   try {
     dispatch({ type: SET_SKILL_LOADING, payload: true });
 
@@ -55,6 +55,7 @@ export const deleteSkill = async (dispatch, skillId) => {
     toast.error(error.response?.data?.msg || "Failed to delete skill", {
       id: loadingToast,
     });
+    throw error;
   } finally {
     dispatch({ type: SET_SKILL_LOADING, payload: false });
   }
@@ -110,7 +111,6 @@ export const createSkill = async (dispatch, skillData) => {
 };
 
 export const fetchSkillById = async (dispatch, skillId) => {
-  const loadingToast = toast.loading("Fetching skill...");
   try {
     dispatch({ type: SET_SKILL_LOADING, payload: true });
     const response = await api.get(SKILL_ENDPOINTS.GET(skillId));
@@ -118,17 +118,14 @@ export const fetchSkillById = async (dispatch, skillId) => {
       type: SET_SKILL_LIST,
       payload: response.data,
     });
-    toast.success("Skill fetched successfully", {
-      id: loadingToast,
-    });
+    return response.data;
   } catch (error) {
     dispatch({
       type: SET_SKILL_ERROR,
       payload: error.response?.data?.msg || "Failed to fetch skill",
     });
-    toast.error("Failed to fetch skill", {
-      id: loadingToast,
-    });
+    toast.error("Failed to fetch skill", { id: "skill-fetch-one-error" });
+    throw error;
   } finally {
     dispatch({ type: SET_SKILL_LOADING, payload: false });
   }

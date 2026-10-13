@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import SidebarLinkGroup from '../SidebarLinkGroup'
 import Logo from '../../../../Assets/images/logo/logo-dark.png'
 import { AiOutlineArrowLeft } from 'react-icons/ai'
 import { RxDashboard } from 'react-icons/rx'
 import { FiSettings } from 'react-icons/fi'
 import { MdKeyboardArrowDown } from 'react-icons/md'
-import { FaUserTie, FaBriefcase, FaToolbox, FaKey, FaSignOutAlt } from 'react-icons/fa'
+import { FaUserTie, FaBriefcase, FaToolbox, FaKey, FaSignOutAlt, FaClock, FaPlaneDeparture, FaCalendarAlt, FaFilePdf, FaFileAlt, FaBell, FaUser, FaSignInAlt } from 'react-icons/fa'
+import { useAuth } from '../../../../context/AuthContext'
+import { logoutUser } from '../../../../context/actions/authActions'
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { dispatch } = useAuth()
   const { pathname } = location
 
   const trigger = useRef(null)
@@ -19,8 +24,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const [sidebarExpanded, setSidebarExpanded] = useState(
     storedSidebarExpanded === null ? false : storedSidebarExpanded === 'true'
   )
+  const [loggingOut, setLoggingOut] = useState(false)
 
-  // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }) => {
       if (!sidebar.current || !trigger.current) return
@@ -36,7 +41,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     return () => document.removeEventListener('click', clickHandler)
   })
 
-  // close if the esc key is pressed
   useEffect(() => {
     const keyHandler = ({ keyCode }) => {
       if (!sidebarOpen || keyCode !== 27) return
@@ -55,17 +59,34 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     }
   }, [sidebarExpanded])
 
+  const handleLogout = async () => {
+    if (loggingOut) return
+    setLoggingOut(true)
+    try {
+      await logoutUser(dispatch)
+      toast.success('You have been logged out')
+      navigate('/', { replace: true })
+    } catch (error) {
+      toast.error('Logout failed. Please try again.')
+      navigate('/', { replace: true })
+    } finally {
+      setLoggingOut(false)
+    }
+  }
+
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`app-sidebar absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >
-      {/* <!-- SIDEBAR HEADER --> */}
-      <div className='flex items-center justify-center px-6 py-5.5 lg:py-6.5 object-cover'>
-        <NavLink to='/pegawai/dashboard'>
-          <img src={Logo} alt='Logo' />
+      <div className='flex flex-col items-center justify-center px-6 py-6 border-b border-white/10'>
+        <NavLink to='/employee/dashboard' className="rounded-md bg-white px-3 py-2">
+          <img src={Logo} alt='Seven Wings Technologies' width={180} />
         </NavLink>
+        <span className="mt-3 rounded-full border border-[#d4af37]/60 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d4af37]">
+          Employee
+        </span>
 
         <button
           ref={trigger}
@@ -74,162 +95,165 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           aria-expanded={sidebarOpen}
           className='block lg:hidden'
         >
-          <AiOutlineArrowLeft className="text-xl" />
+          <AiOutlineArrowLeft className="text-xl text-white" />
         </button>
       </div>
-      {/* <!-- SIDEBAR HEADER --> */}
 
       <div className='no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear'>
         <nav className='mt-4 px-4 lg:mt-9 lg:px-6'>
           <div>
-            <ul className='mb-6 flex flex-col gap-1.5'>
-              {/* <!--Dashboard --> */}
+            <ul className='app-nav-stagger mb-6 flex flex-col gap-2'>
               <NavLink
-                to='/pegawai/dashboard'
-                className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('dashboard') &&
-                  'bg-graydark dark:bg-meta-4'
-                  }`}
+                to='/employee/dashboard'
+                className={`app-nav-link ${pathname.includes('dashboard') ? 'app-nav-link-active' : ''}`}
               >
                 <RxDashboard />
                 Dashboard
               </NavLink>
 
-              {/* <!-- Recruitment Section --> */}
-              <SidebarLinkGroup
-                activeCondition={
-                  pathname.includes('recruitment')
-                }
-              >
-                {(handleClick, open) => {
-                  return (
-                    <React.Fragment>
-                      <NavLink
-                        to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('recruitment') && 'bg-graydark dark:bg-meta-4'
-                          }`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleClick();
-                        }}
-                      >
-                        <FaBriefcase />
-                        Recruitment
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
-                          }`} />
-                      </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
-                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
-                          <li>
-                            <NavLink
-                              to='/employee/recruitments/job-management'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              <div className="flex items-center gap-2">
-                                <FaBriefcase className="w-4 h-4" />
-                                Job Listings
-                              </div>
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to='/employee/recruitments/candidates'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              <div className="flex items-center gap-2">
-                                <FaUserTie className="w-4 h-4" />
-                                My Candidates
-                              </div>
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to='/employee/recruitments/skill-management'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              <div className="flex items-center gap-2">
-                                <FaToolbox className="w-4 h-4" />
-                                Skills Database
-                              </div>
-                            </NavLink>
-                          </li>
-                        </ul>
-                      </div>
-                      {/* <!-- Dropdown Menu End --> */}
-                    </React.Fragment>
-                  );
-                }}
+              <SidebarLinkGroup activeCondition={pathname.includes('recruitment')}>
+                {(handleClick, open) => (
+                  <React.Fragment>
+                    <NavLink
+                      to='#'
+                      className={`app-nav-link ${pathname.includes('recruitment') ? 'app-nav-link-active' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleClick();
+                      }}
+                    >
+                      <FaBriefcase />
+                      Recruitment
+                      <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''}`} />
+                    </NavLink>
+                    <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                      <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
+                        <li>
+                          <NavLink
+                            to='/employee/recruitments/job-management'
+                            className={({ isActive }) => 'app-nav-sub ' + (isActive && 'text-gold')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <FaBriefcase className="w-4 h-4" />
+                              Job Listings
+                            </div>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to='/employee/recruitments/candidates'
+                            className={({ isActive }) => 'app-nav-sub ' + (isActive && 'text-gold')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <FaUserTie className="w-4 h-4" />
+                              My Candidates
+                            </div>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to='/employee/recruitments/skill-management'
+                            className={({ isActive }) => 'app-nav-sub ' + (isActive && 'text-gold')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <FaToolbox className="w-4 h-4" />
+                              Skills Database
+                            </div>
+                          </NavLink>
+                        </li>
+                      </ul>
+                    </div>
+                  </React.Fragment>
+                )}
               </SidebarLinkGroup>
 
-              {/* <!-- Settings --> */}
-              <SidebarLinkGroup
-                activeCondition={
-                  pathname.includes('settings')
-                }
-              >
-                {(handleClick, open) => {
-                  return (
-                    <React.Fragment>
-                      <NavLink
-                        to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('settings') && 'bg-graydark dark:bg-meta-4'
-                          }`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleClick();
-                        }}
-                      >
-                        <FiSettings />
-                        Settings
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
-                          }`} />
-                      </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
-                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
-                          <li>
+              <SidebarLinkGroup activeCondition={pathname.includes('/employee/hr')}>
+                {(handleClick, open) => (
+                  <React.Fragment>
+                    <NavLink
+                      to='#'
+                      className={`app-nav-link ${pathname.includes('/employee/hr') ? 'app-nav-link-active' : ''}`}
+                      onClick={(e) => { e.preventDefault(); handleClick(); }}
+                    >
+                      <FaClock />
+                      My HR
+                      <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''}`} />
+                    </NavLink>
+                    <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                      <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
+                        {[
+                          { to: '/employee/hr/check-in', icon: FaSignInAlt, label: 'Check In / Out' },
+                          { to: '/employee/hr/attendance', icon: FaClock, label: 'Attendance' },
+                          { to: '/employee/hr/leave', icon: FaPlaneDeparture, label: 'Leave' },
+                          { to: '/employee/hr/holidays', icon: FaCalendarAlt, label: 'Holidays' },
+                          { to: '/employee/hr/salary-slips', icon: FaFilePdf, label: 'Salary Slips' },
+                          { to: '/employee/hr/documents', icon: FaFileAlt, label: 'Documents' },
+                          { to: '/employee/hr/profile', icon: FaUser, label: 'Profile' },
+                          { to: '/employee/hr/notifications', icon: FaBell, label: 'Notifications' },
+                        ].map((item) => (
+                          <li key={item.to}>
                             <NavLink
-                              to='/pegawai/settings/change-password'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
+                              to={item.to}
+                              className={({ isActive }) => 'app-nav-sub ' + (isActive && 'text-gold')}
                             >
                               <div className="flex items-center gap-2">
-                                <FaKey className="w-4 h-4" />
-                                Change Password
+                                <item.icon className="w-4 h-4" />
+                                {item.label}
                               </div>
                             </NavLink>
                           </li>
-                          <li>
-                            <NavLink
-                              to='/logout'
-                              className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
-                              }
-                            >
-                              <div className="flex items-center gap-2">
-                                <FaSignOutAlt className="w-4 h-4" />
-                                Logout
-                              </div>
-                            </NavLink>
-                          </li>
-                        </ul>
-                      </div>
-                      {/* <!-- Dropdown Menu End --> */}
-                    </React.Fragment>
-                  );
-                }}
+                        ))}
+                      </ul>
+                    </div>
+                  </React.Fragment>
+                )}
+              </SidebarLinkGroup>
+
+              <SidebarLinkGroup activeCondition={pathname.includes('/employee/settings') || pathname.includes('settings')}>
+                {(handleClick, open) => (
+                  <React.Fragment>
+                    <NavLink
+                      to='#'
+                      className={`app-nav-link ${pathname.includes('settings') ? 'app-nav-link-active' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleClick();
+                      }}
+                    >
+                      <FiSettings />
+                      Settings
+                      <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''}`} />
+                    </NavLink>
+                    <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                      <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
+                        <li>
+                          <NavLink
+                            to='/employee/settings/change-password'
+                            className={({ isActive }) => 'app-nav-sub ' + (isActive && 'text-gold')}
+                          >
+                            <div className="flex items-center gap-2">
+                              <FaKey className="w-4 h-4" />
+                              Change Password
+                            </div>
+                          </NavLink>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            onClick={handleLogout}
+                            disabled={loggingOut}
+                            className="app-nav-sub w-full text-left disabled:opacity-60"
+                          >
+                            <div className="flex items-center gap-2">
+                              <FaSignOutAlt className="w-4 h-4" />
+                              {loggingOut ? 'Logging out...' : 'Logout'}
+                            </div>
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </React.Fragment>
+                )}
               </SidebarLinkGroup>
             </ul>
           </div>

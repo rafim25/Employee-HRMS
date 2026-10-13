@@ -13,7 +13,7 @@ export const checkPermission = async (req, res, next) => {
         }
 
         // Check if user is creator or admin
-        if (item.created_by_id !== userId && req.user.role !== 'admin') {
+        if (item.created_by_id !== userId && String(req.user?.role || req.role || '').toLowerCase() !== 'admin') {
             return res.status(403).json({ 
                 msg: "You don't have permission to modify this item" 
             });

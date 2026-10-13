@@ -169,7 +169,6 @@ const EditJob = () => {
   // Load job data
   useEffect(() => {
     const loadJob = async () => {
-      const loadingToast = toast.loading('Loading job details...');
       try {
         const jobDetails = await fetchJobById(dispatch, id);
         if (jobDetails) {
@@ -193,12 +192,10 @@ const EditJob = () => {
               fetchDistricts(jobDetails.state);
             }, 100);
           }
-
-          toast.success('Job details loaded', { id: loadingToast });
         }
       } catch (error) {
         console.error('Error fetching job:', error);
-        toast.error('Failed to load job details', { id: loadingToast });
+        toast.error('Failed to load job details', { id: 'job-edit-load-error' });
         navigate('/admin/recruitments/job-management');
       } finally {
         setLoading(false);

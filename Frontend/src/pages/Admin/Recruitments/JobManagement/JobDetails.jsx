@@ -65,7 +65,7 @@ const JobDetails = () => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     const loadJob = async () => {
@@ -359,75 +359,117 @@ const JobDetails = () => {
 
   // Add share functionality
   const handleShareWithClient = async () => {
+    const shortlistedCandidates = candidates.filter(
+      (c) => c.application_status === 'shortlisted'
+    );
+
+    if (shortlistedCandidates.length === 0) {
+      toast.error('No shortlisted candidates to share');
+      return;
+    }
+
+    if (!job?.clientEmail) {
+      toast.error('Client email is missing on this job');
+      return;
+    }
+
+    const loadingToast = toast.loading('Sharing shortlisted candidates...', {
+      id: 'share-shortlisted',
+    });
+
     try {
-      const loadingToast = toast.loading('Sharing shortlisted candidates...');
-
-      // Filter only shortlisted candidates
-      const shortlistedCandidates = candidates.filter(c => c.application_status === 'shortlisted');
-
-      if (shortlistedCandidates.length === 0) {
-        toast.error('No shortlisted candidates to share');
-        return;
-      }
-
       const response = await fetch('/api/candidates/share', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           jobId: id,
           clientEmail: job.clientEmail,
           clientName: job.clientName,
           jobTitle: job.title,
-          candidates: shortlistedCandidates // Send only shortlisted candidates
-        })
+          candidates: shortlistedCandidates,
+        }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to share candidates');
+        const detail = data?.details?.error || data?.details?.suggestion;
+        throw new Error(
+          detail
+            ? `${data.message || 'Failed to share candidates'}: ${detail}`
+            : data.message || 'Failed to share candidates'
+        );
       }
 
-      toast.success(`Successfully shared ${shortlistedCandidates.length} shortlisted candidates`, {
-        id: loadingToast,
-        duration: 4000,
-        icon: '✉️'
-      });
+      toast.success(
+        `Successfully shared ${shortlistedCandidates.length} shortlisted candidates`,
+        { id: loadingToast, duration: 4000 }
+      );
 
-      // Update local state for shared candidates
-      setCandidates(prev => prev.map(candidate =>
-        candidate.application_status === 'shortlisted'
-          ? { ...candidate, shared_with_client: true, shared_at: new Date() }
-          : candidate
-      ));
+      setCandidates((prev) =>
+        prev.map((candidate) =>
+          candidate.application_status === 'shortlisted'
+            ? { ...candidate, shared_with_client: true, shared_at: new Date() }
+            : candidate
+        )
+      );
 
       setShowShareConfirmation(false);
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || 'Failed to share candidates', {
+        id: loadingToast,
+      });
     }
   };
 
   // Add filter handling functions
-  const handleApplyFilters = () => {
-    const filteredCandidates = candidates.filter(candidate => {
-      const matchesStatus = !filters.status || candidate.application_status === filters.status;
-      const matchesSource = !filters.source || candidate.source === filters.source;
-      const matchesExperience = (!filters.experience.min || candidate.experience >= Number(filters.experience.min)) &&
-        (!filters.experience.max || candidate.experience <= Number(filters.experience.max));
-      const matchesLocation = !filters.location ||
-        candidate.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
-        candidate.state?.toLowerCase().includes(filters.location.toLowerCase());
-      const matchesDateRange = (!filters.dateRange.start || new Date(candidate.createdAt) >= new Date(filters.dateRange.start)) &&
-        (!filters.dateRange.end || new Date(candidate.createdAt) <= new Date(filters.dateRange.end));
+  const handleApplyFilters = (appliedFilters = filters) => {
+    const active = {
+      status: appliedFilters?.status || '',
+      source: appliedFilters?.source || '',
+      experience: {
+        min: appliedFilters?.experience?.min ?? '',
+        max: appliedFilters?.experience?.max ?? '',
+      },
+      location: appliedFilters?.location || '',
+      dateRange: {
+        start: appliedFilters?.dateRange?.start || '',
+        end: appliedFilters?.dateRange?.end || '',
+      },
+    };
 
-      return matchesStatus &&
+    const filteredCandidates = candidates.filter((candidate) => {
+      const matchesStatus =
+        !active.status || candidate.application_status === active.status;
+      const matchesSource = !active.source || candidate.source === active.source;
+      const matchesExperience =
+        (!active.experience.min ||
+          candidate.experience >= Number(active.experience.min)) &&
+        (!active.experience.max ||
+          candidate.experience <= Number(active.experience.max));
+      const matchesLocation =
+        !active.location ||
+        candidate.city?.toLowerCase().includes(active.location.toLowerCase()) ||
+        candidate.state?.toLowerCase().includes(active.location.toLowerCase()) ||
+        candidate.current_location
+          ?.toLowerCase()
+          .includes(active.location.toLowerCase());
+      const matchesDateRange =
+        (!active.dateRange.start ||
+          new Date(candidate.createdAt) >= new Date(active.dateRange.start)) &&
+        (!active.dateRange.end ||
+          new Date(candidate.createdAt) <= new Date(active.dateRange.end));
+
+      return (
+        matchesStatus &&
         matchesSource &&
         matchesExperience &&
         matchesLocation &&
-        matchesDateRange;
+        matchesDateRange
+      );
     });
 
     setCandidates(filteredCandidates);

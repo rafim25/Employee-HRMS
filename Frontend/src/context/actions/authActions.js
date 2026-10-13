@@ -54,10 +54,13 @@ export const loginUser = async (dispatch, credentials) => {
 export const logoutUser = async (dispatch) => {
   try {
     await api.post(AUTH_ENDPOINTS_V2.LOGOUT);
-    localStorage.removeItem("user");
-    dispatch({ type: CLEAR_USER });
   } catch (error) {
     console.error("Logout error:", error);
+  } finally {
+    // Always clear client session even if the API call fails
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    dispatch({ type: CLEAR_USER });
   }
 };
 

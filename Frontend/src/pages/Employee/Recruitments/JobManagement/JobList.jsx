@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import DefaultLayoutEmployee from '../../../../layout/DefaultLayoutPegawai';
 import { Link } from "react-router-dom";
 import { BreadcrumbPegawai, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArchive, FaExclamationTriangle, FaFilter, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArchive, FaExclamationTriangle, FaFilter, FaEdit, FaTrash, FaEye, FaUpload } from 'react-icons/fa';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchJobs, deleteJob, updateJobStatus } from '../../../../context/actions/jobActions';
@@ -16,7 +16,8 @@ import DeleteConfirmationModal from '../../../../components/DeleteConfirmationMo
 import api from '../../../../services/api';
 import { checkUserPermission } from '../../../../utils/permissions';
 
-const ITEMS_PER_PAGE = 6;
+import { PAGE_SIZE } from '../../../../constants/pagination';
+const ITEMS_PER_PAGE = PAGE_SIZE;
 
 const JobList = () => {
   const location = useLocation();
@@ -132,19 +133,17 @@ const JobList = () => {
   }, [activeTab, searchTerm, filters]);
 
   const loadJobs = useCallback(async () => {
-    const loadingToast = toast.loading('Loading jobs...');
     try {
       await fetchJobs(dispatch);
-      toast.success('Jobs loaded successfully', { id: loadingToast });
     } catch (error) {
       console.error('Error loading jobs:', error);
-      toast.error('Failed to load jobs', { id: loadingToast });
+      // Error toast handled in fetchJobs (deduped id)
     }
   }, [dispatch]);
 
   useEffect(() => {
     loadJobs();
-  }, []);
+  }, [loadJobs]);
 
   // Filter jobs based on all criteria
   const filteredJobs = jobsArray.filter((job) => {
@@ -162,7 +161,7 @@ const JobList = () => {
     const matchesLocation = !filters.location ||
       job.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
       job.state?.toLowerCase().includes(filters.location.toLowerCase());
-    const matchesSkills = !filters.skills.length ||
+    const matchesSkills = !filters.skills?.length ||
       filters.skills.every(skill => job.skills?.includes(skill));
     const matchesStatus = !filters.status || job.status?.toLowerCase() === filters.status?.toLowerCase();
 
@@ -204,12 +203,19 @@ const JobList = () => {
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="p-4 md:p-6 xl:p-7.5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div className="w-full sm:w-auto">
+            <div className="w-full sm:w-auto flex flex-wrap items-center gap-3">
               <Link to="/employee/recruitments/job-management/add">
                 <ButtonOne className="w-full sm:w-auto">
                   <span className="mr-2">Add New Job</span>
                   <FaPlus />
                 </ButtonOne>
+              </Link>
+              <Link
+                to="/employee/recruitments/job-management/bulk-upload"
+                className="btn-navy"
+              >
+                <FaUpload />
+                Bulk Upload
               </Link>
             </div>
 

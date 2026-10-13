@@ -6,7 +6,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '../../../utils/formatCurrency';
 
-const ITEMS_PER_PAGE = 7;
+const ITEMS_PER_PAGE = 10;
 
 const TransactionReport = () => {
   const [loading, setLoading] = useState(false);

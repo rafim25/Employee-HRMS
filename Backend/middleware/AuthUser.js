@@ -3,7 +3,7 @@ import User from "../models/User.js";
 
 export const verifyUser = async (req, res, next) => {
   if (!req.session.userId) {
-    return res.status(401).json({ msg: "Mohon login ke akun Anda!" });
+    return res.status(401).json({ msg: "Please log in to your account!" });
   }
   try {
     const pegawai = await DataPegawai.findOne({
@@ -11,13 +11,13 @@ export const verifyUser = async (req, res, next) => {
         id_pegawai: req.session.userId,
       },
     });
-    if (!pegawai) return res.status(404).json({ msg: "User tidak ditemukan" });
+    if (!pegawai) return res.status(404).json({ msg: "User not found" });
     req.userId = pegawai.id;
     req.hak_akses = pegawai.hak_akses;
     next();
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+    return res.status(500).json({ msg: "Internal server error" });
   }
 };
 
@@ -29,13 +29,13 @@ export const adminOnly = async (req, res, next) => {
       },
     });
     if (!pegawai)
-      return res.status(404).json({ msg: "Data Pegawai tidak ditemukan" });
+      return res.status(404).json({ msg: "Employee not found" });
     if (pegawai.hak_akses !== "admin")
-      return res.status(403).json({ msg: "Akses terlarang" });
+      return res.status(403).json({ msg: "Access forbidden" });
     next();
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+    return res.status(500).json({ msg: "Internal server error" });
   }
 };
 
@@ -52,11 +52,14 @@ export const verify_User = async (req, res, next) => {
     },
   });
   if (!user) return res.status(404).json({ msg: "User not found" });
+  req.user = user;
   req.userId = user.user_id;
   req.role = user.role;
   req.name = user.name;
   next();
 };
+
+const isAdminRole = (role) => String(role || "").toLowerCase() === "admin";
 
 export const admin_Only = async (req, res, next) => {
   const user = await User.findOne({
@@ -65,7 +68,7 @@ export const admin_Only = async (req, res, next) => {
     },
   });
   if (!user) return res.status(404).json({ msg: "User not found" });
-  if (user.role !== "Admin")
+  if (!isAdminRole(user.role))
     return res.status(403).json({ msg: "Access forbidden" });
   next();
 };

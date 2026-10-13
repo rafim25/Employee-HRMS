@@ -5,19 +5,16 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, title, message })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+      <div
+        className="fixed inset-0 bg-[#0b1d36]/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       ></div>
 
-      {/* Modal */}
-      <div className="relative bg-white dark:bg-boxdark rounded-lg w-full max-w-md mx-4 p-6 shadow-xl">
+      <div className="relative bg-white rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl border border-[rgba(212,175,55,0.35)]">
         <div className="text-center">
-          {/* Warning Icon */}
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-danger/10 mb-4">
             <svg
-              className="h-6 w-6 text-red-600"
+              className="h-6 w-6 text-danger"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -31,29 +28,26 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, title, message })
             </svg>
           </div>
 
-          {/* Title */}
-          <h3 className="text-lg font-medium text-black dark:text-white mb-2">
+          <h3 className="text-xl font-semibold text-[#0b1d36] mb-2">
             {title || 'Delete Confirmation'}
           </h3>
 
-          {/* Message */}
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          <p className="text-base text-[#5b6b7c] mb-6">
             {message || 'Are you sure you want to delete this item? This action cannot be undone.'}
           </p>
 
-          {/* Buttons */}
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none"
+              className="btn-outline"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={onConfirm}
-              className="inline-flex justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white bg-danger hover:bg-opacity-90 focus:outline-none"
+              className="inline-flex items-center justify-center rounded-full bg-danger px-6 py-2.5 text-[0.95rem] font-semibold text-white hover:bg-opacity-90 min-h-[2.75rem]"
             >
               Delete
             </button>
@@ -64,4 +58,4 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, title, message })
   );
 };
 
-export default DeleteConfirmationModal; 
+export default DeleteConfirmationModal;

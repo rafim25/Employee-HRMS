@@ -2,6 +2,8 @@
 export { default as BreadcrumbAdmin } from './atoms/Breadcrumb/BreadcrumbAdmin';
 export { default as BreadcrumbPegawai } from './atoms/Breadcrumb/BreadcrumbPegawai';
 export { default as DataTable } from './molecules/DataTable/DataTable';
+export { default as AppTable } from './molecules/AppTable/AppTable';
+export { default as Pagination } from './molecules/Pagination/Pagination';
 export { default as FilterModal } from './molecules/FilterModal/FilterModal';
 export { default as ConfirmationModal } from './molecules/Modal/ConfirmationModal';
 export { default as RejectionModal } from './molecules/RejectionModal/RejectionModal';

@@ -30,7 +30,7 @@ export const LoginModalProvider = ({ children }) => {
             if (userRole === 'admin') {
                 window.location.href = '/admin/dashboard';
             } else if (userRole === 'user') {
-                window.location.href = '/pegawai/dashboard';
+                window.location.href = '/employee/dashboard';
             } else {
                 setError('Invalid user role');
             }

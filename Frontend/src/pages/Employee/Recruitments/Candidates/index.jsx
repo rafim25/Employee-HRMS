@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEdit, FaFilter, FaPlus, FaUser, FaDownload, FaEllipsisV, FaFileExcel } from 'react-icons/fa';
+import { FaEye, FaEdit, FaFilter, FaPlus, FaUser, FaDownload, FaEllipsisV, FaFileExcel, FaUpload } from 'react-icons/fa';
 import { BiSearch } from 'react-icons/bi';
 import toast from 'react-hot-toast';
 import DefaultLayoutEmployee from '../../../../layout/DefaultLayoutPegawai';
-import { BreadcrumbPegawai, ButtonOne } from '../../../../components';
+import { BreadcrumbPegawai, ButtonOne, Pagination } from '../../../../components';
+import { PAGE_SIZE } from '../../../../constants/pagination';
 import { useAuth } from '../../../../context/AuthContext';
 import DataTable from '../../../../components/molecules/DataTable/DataTable';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
@@ -15,7 +16,7 @@ import { checkUserPermission } from '../../../../utils/permissions';
 import { fetchCandidates, updateCandidateStatus } from '../../../../context/actions/candidateActions';
 import * as XLSX from 'xlsx';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = PAGE_SIZE;
 
 const CandidateList = () => {
   const { state: authState } = useAuth();
@@ -326,46 +327,10 @@ const CandidateList = () => {
       matchesJob;
   });
 
-  const totalPages = Math.ceil(filteredCandidates.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredCandidates.length / ITEMS_PER_PAGE) || 0;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedCandidates = filteredCandidates.slice(startIndex, endIndex);
-
-  const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-    return (
-      <div className='flex gap-2'>
-        <button
-          disabled={currentPage === 1}
-          onClick={() => onPageChange(currentPage - 1)}
-          className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary'
-        >
-          Previous
-        </button>
-
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-          <button
-            key={pageNum}
-            onClick={() => onPageChange(pageNum)}
-            className={`py-2 px-4 rounded-lg border transition-colors
-              ${pageNum === currentPage
-                ? 'bg-primary text-white border-primary'
-                : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary'
-              }`}
-          >
-            {pageNum}
-          </button>
-        ))}
-
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
-          className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary'
-        >
-          Next
-        </button>
-      </div>
-    );
-  };
 
   const columns = [
     {
@@ -490,12 +455,19 @@ const CandidateList = () => {
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="p-4 md:p-6 xl:p-7.5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div className="w-full sm:w-auto">
+            <div className="w-full sm:w-auto flex flex-wrap items-center gap-3">
               <Link to="/employee/recruitments/candidates/add">
                 <ButtonOne className="w-full sm:w-auto">
                   <span className="mr-2">Add Candidate</span>
                   <FaPlus />
                 </ButtonOne>
+              </Link>
+              <Link
+                to="/employee/recruitments/candidates/bulk-upload"
+                className="btn-navy"
+              >
+                <FaUpload />
+                Bulk Upload
               </Link>
             </div>
 
@@ -543,19 +515,14 @@ const CandidateList = () => {
               />
             </div>
 
-            <div className="p-4 md:p-6 border-t border-stroke dark:border-strokedark">
-              <div className='flex justify-between items-center flex-col md:flex-row gap-4'>
-                <div className='text-sm text-gray-500 dark:text-gray-400'>
-                  Showing {filteredCandidates.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredCandidates.length)} of {filteredCandidates.length} Candidates
-                </div>
-                {filteredCandidates.length > 0 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={(page) => setCurrentPage(page)}
-                  />
-                )}
-              </div>
+            <div className="px-4 pb-4 md:px-6 md:pb-6">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredCandidates.length}
+                totalPages={totalPages}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             </div>
           </div>
         </div>
@@ -563,8 +530,8 @@ const CandidateList = () => {
 
       <FilterModal
         isOpen={showFilterModal}
-        onClose={() => handleApplyFilters(true)}
-        onApply={() => handleApplyFilters(false)}
+        onClose={() => setShowFilterModal(false)}
+        onApply={() => setShowFilterModal(false)}
         onReset={handleResetFilters}
         filters={filters}
         setFilters={setFilters}

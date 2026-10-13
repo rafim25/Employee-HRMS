@@ -53,32 +53,60 @@ const CandidateDetails = () => {
     const file = event.target.files[0];
     if (!file) return;
 
+    if (type === 'resume') {
+      const validTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please upload a PDF or Word document');
+        event.target.value = '';
+        return;
+      }
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      event.target.value = '';
+      return;
+    }
+
     const formData = new FormData();
     formData.append(type, file);
     formData.append('candidateId', candidate.uuid);
 
     setUploading(true);
     try {
-      const response = await fetch(`/api/candidates/${candidate.uuid}/upload/${type}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      });
+      const response = await fetch(
+        `/api/candidates/${candidate.uuid}/upload/${type}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          credentials: 'include',
+          body: formData,
+        }
+      );
 
-      if (!response.ok) throw new Error(`Failed to upload ${type}`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.msg || data.message || `Failed to upload ${type}`);
+      }
 
-      const data = await response.json();
-      setCandidate(prev => ({
+      setCandidate((prev) => ({
         ...prev,
-        [type === 'resume' ? 'resume_url' : 'image_url']: data.url
+        [type === 'resume' ? 'resume_url' : 'image_url']: data.url,
       }));
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
+      toast.success(
+        `${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`
+      );
     } catch (error) {
       toast.error(error.message);
     } finally {
       setUploading(false);
+      event.target.value = '';
     }
   };
 

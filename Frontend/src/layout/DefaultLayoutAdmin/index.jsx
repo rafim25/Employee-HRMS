@@ -5,7 +5,7 @@ const DefaultLayoutAdmin = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className='dark:bg-boxdark-2 dark:text-bodydark'>
+    <div className='app-shell dark:bg-boxdark-2 dark:text-bodydark'>
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className='flex h-screen overflow-hidden'>
         {/* <!-- ===== Sidebar Start ===== --> */}
@@ -13,7 +13,7 @@ const DefaultLayoutAdmin = ({ children }) => {
         {/* <!-- ===== Sidebar End ===== --> */}
 
         {/* <!-- ===== Content Area Start ===== --> */}
-        <div className='relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden'>
+        <div className='relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden bg-[#dce6f0]'>
           {/* <!-- ===== Header Start ===== --> */}
           <HeaderAdmin sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           {/* <!-- ===== Header End ===== --> */}

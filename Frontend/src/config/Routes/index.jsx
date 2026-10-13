@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import NotFound from '../../components/molecules/NotFound'
 import FormDataPegawai from '../../components/molecules/Form/FormDataPegawai'
 import FormDataJabatan from '../../components/molecules/Form/FormDataJabatan'
@@ -21,12 +21,14 @@ import TransactionReport from '../../pages/Admin/Reports/TransactionReport'
 import ResetPassword from '../../pages/Admin/Settings/ResetPassword'
 import JobList from '../../pages/Admin/Recruitments/JobManagement/JobList'
 import JobForm from '../../pages/Admin/Recruitments/JobManagement/JobForm'
+import JobBulkUpload from '../../pages/Admin/Recruitments/JobManagement/JobBulkUpload'
 import SkillList from '../../pages/Admin/Recruitments/SkillManagement/SkillList'
 import SkillForm from '../../pages/Admin/Recruitments/SkillManagement/SkillForm'
 import EditJob from '../../pages/Admin/Recruitments/JobManagement/EditJob'
 import EditSkill from '../../pages/Admin/Recruitments/SkillManagement/EditSkill'
 import JobDetails from '../../pages/Admin/Recruitments/JobManagement/JobDetails'
 import CandidateForm from '../../pages/Admin/Recruitments/Candidates/CandidateForm'
+import CandidateBulkUpload from '../../pages/Admin/Recruitments/Candidates/CandidateBulkUpload'
 import CandidateList from '../../pages/Admin/Recruitments/Candidates/CandidateList'
 import CandidateDetails from '../../pages/Admin/Recruitments/Candidates/CandidateDetails'
 import PublicJobList from '../../pages/Public/Jobs/PublicJobList'
@@ -34,8 +36,11 @@ import PublicJobDetails from '../../pages/Public/Jobs/PublicJobDetails'
 import PublicCandidateForm from '../../pages/Public/Jobs/PublicCandidateForm'
 import CandidateEdit from '../../pages/Admin/Recruitments/Candidates/CandidateEdit'
 import UserDetails from '../../pages/Admin/MasterData/DataPegawai/UserDetails'
+import Locations from '../../pages/Admin/MasterData/Locations'
 import EmployeeCandidateList from '../../pages/Employee/Recruitments/Candidates'
 import EmployeeCandidateForm from '../../pages/Employee/Recruitments/Candidates/CandidateForm'
+import EmployeeCandidateEdit from '../../pages/Employee/Recruitments/Candidates/CandidateEdit'
+import EmployeeCandidateBulkUpload from '../../pages/Employee/Recruitments/Candidates/CandidateBulkUpload'
 import EmployeeCandidateDetails from '../../pages/Employee/Recruitments/Candidates/CandidateDetails'
 import EmployeeJobList from '../../pages/Employee/Recruitments/JobManagement/JobList'
 import EmployeeJobDetails from '../../pages/Employee/Recruitments/JobManagement/JobDetails'
@@ -43,6 +48,25 @@ import EmployeeJobForm from '../../pages/Employee/Recruitments/JobManagement/Job
 import EmployeeSkillList from '../../pages/Employee/Recruitments/SkillManagement/SkillList'
 import EmployeeSkillForm from '../../pages/Employee/Recruitments/SkillManagement/SkillForm'
 import EmployeeEditSkill from '../../pages/Employee/Recruitments/SkillManagement/EditSkill'
+import OrgSettings from '../../pages/Admin/HR/OrgSettings'
+import Holidays from '../../pages/Admin/HR/Holidays'
+import Attendance from '../../pages/Admin/HR/Attendance'
+import Leave from '../../pages/Admin/HR/Leave'
+import Payroll from '../../pages/Admin/HR/Payroll'
+import SalaryStructures from '../../pages/Admin/HR/SalaryStructures'
+import Documents from '../../pages/Admin/HR/Documents'
+import Notifications from '../../pages/Admin/HR/Notifications'
+import Profiles from '../../pages/Admin/HR/Profiles'
+import CheckInOut from '../../pages/Employee/HR/CheckInOut'
+import SalarySlips from '../../pages/Employee/HR/SalarySlips'
+import {
+  EmployeeHolidays,
+  EmployeeAttendance,
+  EmployeeLeave,
+  EmployeeDocuments,
+  EmployeeNotifications,
+  EmployeeProfile,
+} from '../../pages/Employee/HR/wrappers'
 
 const AppRoutes = () => {
   return (
@@ -54,7 +78,8 @@ const AppRoutes = () => {
       <Route exact path='/project-documents' element={<ProjectDocuments />} />
       <Route exact path='/admin/login' element={<LoginAdmin />} />
       <Route exact path='/' element={<LoginAdmin />} />
-      <Route exact path='/pegawai/login' element={<LoginPegawai />} />
+      <Route exact path='/employee/login' element={<LoginPegawai />} />
+      <Route exact path='/pegawai/login' element={<Navigate to="/employee/login" replace />} />
 
       {/* Protected Admin Routes */}
       <Route exact path='/admin/dashboard' element={
@@ -80,6 +105,11 @@ const AppRoutes = () => {
       <Route path='/admin/master-data/data-jabatan/form-data-jabatan' element={
         <ProtectedRoute allowedRoles={['admin']}>
           <FormDataJabatan />
+        </ProtectedRoute>
+      } />
+      <Route path='/admin/master-data/locations' element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <Locations />
         </ProtectedRoute>
       } />
       <Route path='/admin/transaksi/data-absensi' element={
@@ -143,23 +173,28 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
-      {/* Protected Employee Routes */}
-      <Route exact path='/pegawai/dashboard' element={
+      {/* Protected Employee Routes (English paths) */}
+      <Route exact path='/employee/dashboard' element={
         <ProtectedRoute allowedRoles={['user']}>
-          {/* <DashboardPegawai /> */}
           <EmployeeDashboard />
         </ProtectedRoute>
       } />
-      <Route exact path='/pegawai/data-gaji' element={
+      <Route exact path='/employee/salary' element={
         <ProtectedRoute allowedRoles={['user']}>
           <DataGajiPegawai />
         </ProtectedRoute>
       } />
-      <Route exact path='/pegawai/pengaturan/ubah-password' element={
+      <Route exact path='/employee/settings/change-password' element={
         <ProtectedRoute allowedRoles={['user']}>
           <UbahPasswordPegawai />
         </ProtectedRoute>
       } />
+
+      {/* Legacy Indonesian employee paths → English redirects */}
+      <Route exact path='/pegawai/dashboard' element={<Navigate to="/employee/dashboard" replace />} />
+      <Route exact path='/pegawai/data-gaji' element={<Navigate to="/employee/salary" replace />} />
+      <Route exact path='/pegawai/pengaturan/ubah-password' element={<Navigate to="/employee/settings/change-password" replace />} />
+      <Route exact path='/pegawai/settings/change-password' element={<Navigate to="/employee/settings/change-password" replace />} />
 
       {/* Expense Management Routes */}
       <Route path='/admin/expense/add' element={
@@ -194,6 +229,11 @@ const AppRoutes = () => {
       <Route path="/admin/recruitments/job-management/form-job" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <JobForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/job-management/bulk-upload" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <JobBulkUpload />
         </ProtectedRoute>
       } />
       <Route path="/admin/recruitments/job-management/edit/:id" element={
@@ -239,6 +279,21 @@ const AppRoutes = () => {
           <CandidateList />
         </ProtectedRoute>
       } />
+      <Route path="/admin/recruitments/candidates/add" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateForm />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/candidates/bulk-upload" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateBulkUpload />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/recruitments/candidates/edit/:id" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <CandidateEdit />
+        </ProtectedRoute>
+      } />
       <Route path="/admin/recruitments/candidates/:id" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <CandidateDetails />
@@ -252,16 +307,6 @@ const AppRoutes = () => {
       <Route path="/admin/recruitments/job-management/:jobId/candidates/:candidateId" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <CandidateDetails />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/recruitments/candidates/add" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <CandidateForm />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/recruitments/candidates/edit/:id" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <CandidateEdit />
         </ProtectedRoute>
       } />
 
@@ -283,14 +328,19 @@ const AppRoutes = () => {
           <EmployeeCandidateForm />
         </ProtectedRoute>
       } />
-      <Route path="/employee/recruitments/candidates/:id" element={
+      <Route path="/employee/recruitments/candidates/bulk-upload" element={
         <ProtectedRoute allowedRoles={['user']}>
-          <EmployeeCandidateDetails />
+          <EmployeeCandidateBulkUpload />
         </ProtectedRoute>
       } />
       <Route path="/employee/recruitments/candidates/edit/:id" element={
         <ProtectedRoute allowedRoles={['user']}>
-          <EmployeeCandidateForm />
+          <EmployeeCandidateEdit />
+        </ProtectedRoute>
+      } />
+      <Route path="/employee/recruitments/candidates/:id" element={
+        <ProtectedRoute allowedRoles={['user']}>
+          <EmployeeCandidateDetails />
         </ProtectedRoute>
       } />
 
@@ -332,6 +382,27 @@ const AppRoutes = () => {
           <EmployeeEditSkill />
         </ProtectedRoute>
       } />
+
+      {/* Admin HR */}
+      <Route path="/admin/hr/org-settings" element={<ProtectedRoute allowedRoles={['admin']}><OrgSettings /></ProtectedRoute>} />
+      <Route path="/admin/hr/holidays" element={<ProtectedRoute allowedRoles={['admin']}><Holidays /></ProtectedRoute>} />
+      <Route path="/admin/hr/attendance" element={<ProtectedRoute allowedRoles={['admin']}><Attendance /></ProtectedRoute>} />
+      <Route path="/admin/hr/leave" element={<ProtectedRoute allowedRoles={['admin']}><Leave /></ProtectedRoute>} />
+      <Route path="/admin/hr/payroll" element={<ProtectedRoute allowedRoles={['admin']}><Payroll /></ProtectedRoute>} />
+      <Route path="/admin/hr/salary-structures" element={<ProtectedRoute allowedRoles={['admin']}><SalaryStructures /></ProtectedRoute>} />
+      <Route path="/admin/hr/documents" element={<ProtectedRoute allowedRoles={['admin']}><Documents /></ProtectedRoute>} />
+      <Route path="/admin/hr/notifications" element={<ProtectedRoute allowedRoles={['admin']}><Notifications /></ProtectedRoute>} />
+      <Route path="/admin/hr/profiles" element={<ProtectedRoute allowedRoles={['admin']}><Profiles /></ProtectedRoute>} />
+
+      {/* Employee HR */}
+      <Route path="/employee/hr/check-in" element={<ProtectedRoute allowedRoles={['user']}><CheckInOut /></ProtectedRoute>} />
+      <Route path="/employee/hr/attendance" element={<ProtectedRoute allowedRoles={['user']}><EmployeeAttendance /></ProtectedRoute>} />
+      <Route path="/employee/hr/leave" element={<ProtectedRoute allowedRoles={['user']}><EmployeeLeave /></ProtectedRoute>} />
+      <Route path="/employee/hr/holidays" element={<ProtectedRoute allowedRoles={['user']}><EmployeeHolidays /></ProtectedRoute>} />
+      <Route path="/employee/hr/salary-slips" element={<ProtectedRoute allowedRoles={['user']}><SalarySlips /></ProtectedRoute>} />
+      <Route path="/employee/hr/documents" element={<ProtectedRoute allowedRoles={['user']}><EmployeeDocuments /></ProtectedRoute>} />
+      <Route path="/employee/hr/notifications" element={<ProtectedRoute allowedRoles={['user']}><EmployeeNotifications /></ProtectedRoute>} />
+      <Route path="/employee/hr/profile" element={<ProtectedRoute allowedRoles={['user']}><EmployeeProfile /></ProtectedRoute>} />
 
       {/* Route Not Found/404 */}
       <Route path="*" element={<NotFound />} />

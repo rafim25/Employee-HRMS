@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaBriefcase, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import PublicLayout from '../../../components/layouts/PublicLayout';
 
 const PublicJobList = () => {
   const [jobs, setJobs] = useState([]);
@@ -31,6 +32,7 @@ const PublicJobList = () => {
   );
 
   return (
+    <PublicLayout>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -93,6 +95,7 @@ const PublicJobList = () => {
         </div>
       )}
     </div>
+    </PublicLayout>
   );
 };
 

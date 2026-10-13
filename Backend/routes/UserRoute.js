@@ -15,6 +15,7 @@ import {
   deleteUser,
   getUsersByRole,
   updatePassword,
+  bulkUploadUsers,
 } from "../controllers/UserController.js";
 
 import {
@@ -40,6 +41,7 @@ router.delete(
 router.get("/api/users/filter", verifyUser, getUsersByRole);
 
 router.get("/api/users", verify_User, getUsers);
+router.post("/api/users/bulk-upload", verify_User, admin_Only, bulkUploadUsers);
 router.get("/api/users/:id", verify_User, getUserById);
 router.post("/api/users", verify_User, admin_Only, createUser);
 router.patch("/api/users/:id", verify_User, admin_Only, updateUser);

@@ -9,14 +9,14 @@ export const getEmployeeJobs = async (req, res) => {
             },
             attributes: [
                 'id', 'uuid', 'title', 'type', 'description',
-                'city', 'state', 'status', 'openings',
+                'city', 'state', 'status', 'openings', 'questions',
                 'created_by', 'created_by_id', 'createdAt', 'updatedAt'
             ],
             include: [
                 {
                     model: User,
                     as: 'creator',
-                    attributes: ['id', 'user_id', 'name', 'email']
+                    attributes: ['user_id', 'name', 'username', 'email']
                 },
                 {
                     model: Candidate,

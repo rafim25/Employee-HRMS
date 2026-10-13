@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArchive, FaExclamationTriangle, FaFilter, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaFileExcel, FaRegClock, FaUsers, FaBriefcase, FaArchive, FaExclamationTriangle, FaFilter, FaEdit, FaTrash, FaEye, FaUpload } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
@@ -17,7 +17,8 @@ import DeleteConfirmationModal from '../../../../components/DeleteConfirmationMo
 import api from '../../../../services/api';
 import { useSelector } from 'react-redux';
 import { checkUserPermission } from '../../../../utils/permissions';
-const ITEMS_PER_PAGE = 6;
+import { PAGE_SIZE } from '../../../../constants/pagination';
+const ITEMS_PER_PAGE = PAGE_SIZE;
 
 const JobList = () => {
     const location = useLocation();
@@ -119,7 +120,7 @@ const JobList = () => {
         const matchesLocation = !filters.location ||
             job.city?.toLowerCase().includes(filters.location.toLowerCase()) ||
             job.state?.toLowerCase().includes(filters.location.toLowerCase());
-        const matchesSkills = !filters.skills.length ||
+        const matchesSkills = !filters.skills?.length ||
             filters.skills.every(skill => job.skills?.includes(skill));
         const matchesStatus = !filters.status || job.status?.toLowerCase() === filters.status?.toLowerCase();
 
@@ -172,26 +173,24 @@ const JobList = () => {
     }, [activeTab, searchTerm, filters]);
 
     const loadJobs = useCallback(async () => {
-        const loadingToast = toast.loading('Loading jobs...');
         try {
             await fetchJobs(dispatch);
-            toast.success('Jobs loaded successfully', { id: loadingToast });
         } catch (error) {
             console.error('Error loading jobs:', error);
-            toast.error('Failed to load jobs', { id: loadingToast });
+            // Error toast handled in fetchJobs (deduped id)
         }
     }, [dispatch]);
 
     useEffect(() => {
         loadJobs();
-    }, []);
+    }, [loadJobs]);
 
     useEffect(() => {
         if (location.state?.refresh) {
             loadJobs();
             window.history.replaceState({}, document.title);
         }
-    }, [location]);
+    }, [location, loadJobs]);
 
     const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -212,11 +211,10 @@ const JobList = () => {
     const confirmDelete = async () => {
         try {
             await deleteJob(dispatch, jobToDelete);
-            toast.success('Job deleted successfully');
+            // Success toast already shown in deleteJob action
             loadJobs();
         } catch (error) {
-            const errorMessage = error.response?.data?.msg || 'Failed to delete job';
-            toast.error(errorMessage);
+            // Error toast already shown in deleteJob action
         } finally {
             setShowDeleteModal(false);
             setJobToDelete(null);
@@ -314,7 +312,7 @@ const JobList = () => {
     };
 
     // Add permission check for adding new jobs
-    const canAddJob = user?.role === 'admin' || user?.permissions?.includes('create_job');
+    const canAddJob = user?.role?.toLowerCase() === 'admin' || user?.permissions?.includes('create_job');
 
     if (loading) {
         return (
@@ -336,12 +334,19 @@ const JobList = () => {
                 <div className="p-4 md:p-6 xl:p-7.5">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                         {/* Add Job Button */}
-                        <div className="w-full sm:w-auto">
+                        <div className="w-full sm:w-auto flex flex-wrap items-center gap-3">
                             <Link to="/admin/recruitments/job-management/form-job">
                                 <ButtonOne className="w-full sm:w-auto">
                                     <span className="mr-2">Add New Job</span>
                                     <FaPlus />
                                 </ButtonOne>
+                            </Link>
+                            <Link
+                                to="/admin/recruitments/job-management/bulk-upload"
+                                className="btn-navy"
+                            >
+                                <FaUpload />
+                                Bulk Upload
                             </Link>
                         </div>
 

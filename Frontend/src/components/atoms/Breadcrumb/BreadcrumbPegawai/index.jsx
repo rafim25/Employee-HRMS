@@ -11,7 +11,7 @@ const BreadcrumbPegawai = ({
   const navigate = useNavigate();
 
   return (
-    <div className='mb-6 flex items-center justify-between bg-white dark:bg-boxdark px-6 py-4 rounded-sm border border-stroke dark:border-strokedark'>
+    <div className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-boxdark px-5 py-4 md:px-6 rounded-2xl border border-[rgba(11,29,54,0.12)] shadow-[0_8px_24px_rgba(11,29,54,0.04)]'>
       <div className='flex items-center gap-6'>
         {/* Back Button */}
         {backButton && (
@@ -26,7 +26,7 @@ const BreadcrumbPegawai = ({
         {/* Page Title with Icon */}
         <div className="flex items-center gap-3">
           {Icon && <Icon className="text-xl text-primary" />}
-          <h2 className='text-title-md2 font-semibold text-black dark:text-white'>
+          <h2 className='text-xl md:text-title-md2 font-semibold text-primary dark:text-white'>
             {pageName}
           </h2>
         </div>
@@ -36,12 +36,12 @@ const BreadcrumbPegawai = ({
       <nav>
         <ol className='flex items-center gap-2 text-sm'>
           <li>
-            <Link to='/pegawai/dashboard' className='text-black dark:text-white hover:text-primary'>
+            <Link to='/employee/dashboard' className='text-primary/70 hover:text-primary'>
               Dashboard
             </Link>
           </li>
           <li className='text-black/50 dark:text-white/50'>/</li>
-          <li className='text-primary'>{pageName}</li>
+          <li className='text-gold font-medium'>{pageName}</li>
         </ol>
       </nav>
     </div>

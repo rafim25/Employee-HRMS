@@ -53,14 +53,14 @@ export const fetchJobs = async (dispatch) => {
       payload: response.data,
     });
     writeCache(JOBS_CACHE_KEY, { timestamp: Date.now(), data: response.data });
-    toast.success("Jobs fetched successfully");
+    // Silent list load — avoid noisy / duplicate toasts on page mount
   } catch (error) {
     console.error("Error fetching jobs:", error);
     dispatch({
       type: SET_JOB_ERROR,
       payload: error.response?.data?.msg || "Failed to fetch jobs",
     });
-    toast.error("Failed to fetch jobs");
+    toast.error("Failed to load jobs", { id: "jobs-fetch-error" });
   } finally {
     isLoading = false;
     dispatch({ type: SET_JOB_LOADING, payload: false });
@@ -68,7 +68,7 @@ export const fetchJobs = async (dispatch) => {
 };
 
 export const deleteJob = async (dispatch, jobId) => {
-  const loadingToast = toast.loading("Deleting job...");
+  const loadingToast = toast.loading("Deleting job...", { id: "job-delete" });
   try {
     await api.delete(JOB_ENDPOINTS.DELETE(jobId));
     dispatch({
@@ -86,6 +86,7 @@ export const deleteJob = async (dispatch, jobId) => {
     toast.error(error.response?.data?.msg || "Failed to delete job", {
       id: loadingToast,
     });
+    throw error;
   }
 };
 
@@ -139,7 +140,6 @@ export const createJob = async (dispatch, jobData) => {
 };
 
 export const fetchJobById = async (dispatch, jobId) => {
-  const loadingToast = toast.loading("Fetching job...");
   try {
     dispatch({ type: SET_JOB_LOADING, payload: true });
     const response = await api.get(JOB_ENDPOINTS.GET(jobId));
@@ -147,18 +147,14 @@ export const fetchJobById = async (dispatch, jobId) => {
       type: SET_JOB_LIST,
       payload: response.data,
     });
-    toast.success("Job fetched successfully", {
-      id: loadingToast,
-    });
     return response.data;
   } catch (error) {
     dispatch({
       type: SET_JOB_ERROR,
       payload: error.response?.data?.msg || "Failed to fetch job",
     });
-    toast.error("Failed to fetch job", {
-      id: loadingToast,
-    });
+    toast.error("Failed to fetch job", { id: "job-fetch-one-error" });
+    throw error;
   } finally {
     dispatch({ type: SET_JOB_LOADING, payload: false });
   }

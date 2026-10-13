@@ -7,7 +7,7 @@ import { FaRegEdit, FaPlus } from 'react-icons/fa'
 import { BsTrash3 } from 'react-icons/bs'
 import { BiSearch } from 'react-icons/bi'
 
-const ITEMS_PER_PAGE = 4;
+const ITEMS_PER_PAGE = 10;
 
 const SettingPotonganGaji = () => {
     const [currentPage, setCurrentPage] = useState(1);

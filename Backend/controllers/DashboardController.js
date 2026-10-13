@@ -286,13 +286,20 @@ export const getDashboardDataRecruitment = async (req, res) => {
         });
 
         // Get candidate status distribution
+        const groupedCount = (rows = []) =>
+            rows.map((item) => ({
+                status: item.application_status,
+                source: item.source || 'Unknown',
+                count: Number(item.count) || 0,
+            }));
+
         const statusDistribution = await Candidate.count({
             group: ['application_status']
         });
 
         // Get source distribution
         const sourceDistribution = await Candidate.count({
-            group: ['application_status']
+            group: ['source']
         });
 
         // Get recent activities with correct association alias
@@ -337,13 +344,13 @@ export const getDashboardDataRecruitment = async (req, res) => {
             totalCandidates,
             selectedCandidates,
             rejectedCandidates,
-            candidateStatusData: statusDistribution.map(item => ({
-                status: item.application_status,
-                count: item.count
+            candidateStatusData: groupedCount(statusDistribution).map((item) => ({
+                status: item.status || 'unknown',
+                count: item.count,
             })),
-            sourceDistribution: sourceDistribution.map(item => ({
-                source: item.application_status,
-                count: item.count
+            sourceDistribution: groupedCount(sourceDistribution).map((item) => ({
+                source: item.source || 'Unknown',
+                count: item.count,
             })),
             recentActivities: formattedActivities
         });

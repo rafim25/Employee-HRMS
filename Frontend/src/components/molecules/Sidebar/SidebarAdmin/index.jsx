@@ -14,7 +14,7 @@ import { FaMoneyBillWave } from 'react-icons/fa'
 import { TbReport } from 'react-icons/tb'
 import { BiMoney } from 'react-icons/bi'
 import { BsBuilding } from 'react-icons/bs'
-import { FaUserTie, FaUsers, FaShoppingCart, FaFileInvoiceDollar, FaListAlt, FaMoneyCheckAlt, FaChartBar, FaCogs, FaKey, FaSignOutAlt, FaToolbox, FaBriefcase } from 'react-icons/fa'
+import { FaUserTie, FaUsers, FaShoppingCart, FaFileInvoiceDollar, FaListAlt, FaMoneyCheckAlt, FaChartBar, FaCogs, FaKey, FaSignOutAlt, FaToolbox, FaBriefcase, FaMapMarkerAlt, FaClock, FaPlaneDeparture, FaCalendarAlt, FaFileAlt, FaBell, FaUser } from 'react-icons/fa'
 
 const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation()
@@ -66,14 +66,17 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`app-sidebar absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
-      <div className='flex items-center justify-center px-6 py-5.5 lg:py-6.5 lg:pb-0.5 object-cover'>
-        <NavLink to='/admin/dashboard'>
-          <img src={Logo} alt='Logo' width={220} />
+      <div className='flex flex-col items-center justify-center px-6 py-6 border-b border-white/10'>
+        <NavLink to='/admin/dashboard' className="rounded-md bg-white px-3 py-2">
+          <img src={Logo} alt='Seven Wings Technologies' width={180} />
         </NavLink>
+        <span className="mt-3 rounded-full border border-[#d4af37]/60 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d4af37]">
+          Admin
+        </span>
 
         <button
           ref={trigger}
@@ -82,7 +85,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
           aria-expanded={sidebarOpen}
           className='block lg:hidden'
         >
-          <AiOutlineArrowLeft className="text-xl" />
+          <AiOutlineArrowLeft className="text-xl text-white" />
         </button>
       </div>
       {/* <!-- SIDEBAR HEADER --> */}
@@ -91,14 +94,12 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
         <nav className='mt-4 px-4 lg:mt-9 lg:px-6'>
           <div>
 
-            <ul className='mb-6 flex flex-col gap-1.5'>
+            <ul className='app-nav-stagger mb-6 flex flex-col gap-2'>
               {/* <!--Dashboard Admin--> */}
 
               <NavLink
                 to='/admin/dashboard'
-                className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('dashboard') &&
-                  'bg-graydark dark:bg-meta-4'
-                  }`}
+                className={`app-nav-link ${pathname.includes('dashboard') ? 'app-nav-link-active' : ''}`}
               >
                 <RxDashboard />
                 Dashboard
@@ -116,8 +117,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('master-data') && 'bg-graydark dark:bg-meta-4'
-                          }`}
+                        className={`app-nav-link ${pathname.includes('master-data') ? 'app-nav-link-active' : ''}`}
                         onClick={(e) => {
                           e.preventDefault();
                           handleClick();
@@ -125,20 +125,17 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <FiDatabase />
                         Employee Data
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                        <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''
                           }`} />
                       </NavLink>
-                      {/* <!-- Dropdown Menu Start --> */}
-                      <div
-                        className={`translate transform overflow-hidden ${!open && 'hidden'}`}
-                      >
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                      <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                        <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
                           <li>
                             <NavLink
                               to='/admin/master-data/data-pegawai'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -147,12 +144,26 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                               </div>
                             </NavLink>
                           </li>
+                          <li>
+                            <NavLink
+                              to='/admin/master-data/locations'
+                              className={({ isActive }) =>
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <FaMapMarkerAlt className="w-4 h-4" />
+                                Locations
+                              </div>
+                            </NavLink>
+                          </li>
                           {/* <li>
                             <NavLink
                               to='/admin/master-data/data-jabatan'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -190,17 +201,17 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <BiMoney />
                         Expense Management
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                        <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''
                           }`} />
                       </NavLink>
-                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                      <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                        <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
                           <li>
                             <NavLink
                               to='/admin/expense/add'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -213,8 +224,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                             <NavLink
                               to='/admin/expense/list'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -248,17 +259,17 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <TbReport />
                         Reports
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                        <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''
                           }`} />
                       </NavLink>
-                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                      <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                        <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
                           <li>
                             <NavLink
                               to='/admin/reports/transactions'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -286,8 +297,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('recruitments') && 'bg-graydark dark:bg-meta-4'
-                          }`}
+                        className={`app-nav-link ${pathname.includes('recruitments') ? 'app-nav-link-active' : ''}`}
                         onClick={(e) => {
                           e.preventDefault();
                           handleClick();
@@ -295,18 +305,18 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <FiSettings />
                         Recruitments
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                        <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''
                           }`} />
                       </NavLink>
                       {/* <!-- Dropdown Menu Start --> */}
-                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                      <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                        <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
                           <li>
                             <NavLink
                               to='/admin/recruitments/skill-management'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -319,8 +329,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                             <NavLink
                               to='/admin/recruitments/job-management'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -333,8 +343,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                             <NavLink
                               to='/admin/recruitments/candidates'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -352,6 +362,50 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
               </SidebarLinkGroup>
               {/* <!-- Recruitments End --> */}
 
+              {/* <!-- HR --> */}
+              <SidebarLinkGroup activeCondition={pathname.includes('/admin/hr')}>
+                {(handleClick, open) => (
+                  <React.Fragment>
+                    <NavLink
+                      to='#'
+                      className={`app-nav-link ${pathname.includes('/admin/hr') ? 'app-nav-link-active' : ''}`}
+                      onClick={(e) => { e.preventDefault(); handleClick(); }}
+                    >
+                      <FaUsers />
+                      HR
+                      <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''}`} />
+                    </NavLink>
+                    <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                      <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
+                        {[
+                          { to: '/admin/hr/profiles', icon: FaUser, label: 'Profiles' },
+                          { to: '/admin/hr/attendance', icon: FaClock, label: 'Attendance' },
+                          { to: '/admin/hr/leave', icon: FaPlaneDeparture, label: 'Leave' },
+                          { to: '/admin/hr/holidays', icon: FaCalendarAlt, label: 'Holidays' },
+                          { to: '/admin/hr/salary-structures', icon: FaFileInvoiceDollar, label: 'Salary Structures' },
+                          { to: '/admin/hr/payroll', icon: FaMoneyCheckAlt, label: 'Payroll' },
+                          { to: '/admin/hr/documents', icon: FaFileAlt, label: 'Documents' },
+                          { to: '/admin/hr/org-settings', icon: FaCogs, label: 'Org Settings' },
+                          { to: '/admin/hr/notifications', icon: FaBell, label: 'Notifications' },
+                        ].map((item) => (
+                          <li key={item.to}>
+                            <NavLink
+                              to={item.to}
+                              className={({ isActive }) => 'app-nav-sub ' + (isActive && 'text-gold')}
+                            >
+                              <div className="flex items-center gap-2">
+                                <item.icon className="w-4 h-4" />
+                                {item.label}
+                              </div>
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </React.Fragment>
+                )}
+              </SidebarLinkGroup>
+
               {/* <!-- Settings Admin --> */}
               <SidebarLinkGroup
                 activeCondition={
@@ -363,8 +417,7 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                     <React.Fragment>
                       <NavLink
                         to='#'
-                        className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('pengaturan') && 'bg-graydark dark:bg-meta-4'
-                          }`}
+                        className={`app-nav-link ${pathname.includes('pengaturan') ? 'app-nav-link-active' : ''}`}
                         onClick={(e) => {
                           e.preventDefault();
                           handleClick();
@@ -372,18 +425,18 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                       >
                         <FiSettings />
                         Settings
-                        <MdKeyboardArrowDown className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current text-2xl ${open && 'rotate-180'
+                        <MdKeyboardArrowDown className={`app-nav-chevron absolute right-4 top-1/2 -translate-y-1/2 text-2xl ${open ? 'rotate-180' : ''
                           }`} />
                       </NavLink>
                       {/* <!-- Dropdown Menu Start --> */}
-                      <div className={`translate transform overflow-hidden ${!open && 'hidden'}`}>
-                        <ul className='mt-4 mb-5.5 flex flex-col gap-2.5 pl-6'>
+                      <div className={`app-submenu ${open ? 'is-open' : ''}`}>
+                        <ul className='mt-2 mb-2 flex flex-col gap-1 pl-3'>
                           <li>
                             <NavLink
                               to='/admin/pengaturan/ubah-password'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">
@@ -396,8 +449,8 @@ const SidebarAdmin = ({ sidebarOpen, setSidebarOpen }) => {
                             <NavLink
                               to='/'
                               className={({ isActive }) =>
-                                'group relative flex items-center gap-2.5 rounded-md px-4 font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ' +
-                                (isActive && '!text-white')
+                                'app-nav-sub ' +
+                                (isActive && 'text-gold')
                               }
                             >
                               <div className="flex items-center gap-2">

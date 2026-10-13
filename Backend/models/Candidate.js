@@ -185,6 +185,13 @@ const Candidate = db.define('candidates', {
 }, {
     freezeTableName: true,
     timestamps: true,
+    indexes: [
+        { fields: ['createdAt'], name: 'candidates_created_at_idx' },
+        { fields: ['application_status'], name: 'candidates_status_idx' },
+        { fields: ['created_by_id'], name: 'candidates_created_by_idx' },
+        { fields: ['job_id'], name: 'candidates_job_id_idx' },
+        { fields: ['source'], name: 'candidates_source_idx' },
+    ],
 });
 
 // Define the association with User model

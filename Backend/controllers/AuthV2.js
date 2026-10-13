@@ -83,11 +83,13 @@ export const MeV2 = async (req, res) => {
 };
 
 export const LogOutV2 = (req, res) => {
+  const cookieName = process.env.SESS_NAME || "connect.sid";
   req.session.destroy((err) => {
     if (err) {
       console.error("Logout error:", err);
       return res.status(400).json({ msg: "Unable to logout" });
     }
+    res.clearCookie(cookieName);
     res.status(200).json({ msg: "You have been logged out" });
   });
 };

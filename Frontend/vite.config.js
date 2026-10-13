@@ -15,6 +15,11 @@ export default defineConfig(({ command, mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        "/uploads": {
+          target: env.VITE_API_URL,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
     build: {
@@ -38,6 +43,8 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        // Route all toast imports through Sonner-backed adapter
+        "react-hot-toast": path.resolve(__dirname, "./src/Utils/toast.js"),
       },
     },
     publicDir: "public",

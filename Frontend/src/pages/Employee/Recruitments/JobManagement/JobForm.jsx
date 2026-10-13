@@ -11,6 +11,9 @@ import 'rc-slider/assets/index.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
+import { Tab } from '@headlessui/react';
+import BulkExcelUploadPanel from '../../../../components/molecules/BulkExcelUploadPanel';
+import { JOB_ENDPOINTS } from '../../../../constants/apiEndpoints';
 
 const JobForm = () => {
   const { id } = useParams();
@@ -260,6 +263,19 @@ const JobForm = () => {
       <BreadcrumbPegawai pageName={id ? "Edit Job" : "Add New Job"} icon={FaBriefcase} />
 
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <Tab.Group>
+          {!id && (
+            <Tab.List className="flex border-b border-stroke dark:border-strokedark">
+              <Tab className={({ selected }) => `w-full py-4 text-sm font-medium outline-none ${selected ? 'border-b-2 border-primary text-primary' : 'text-gray-600 hover:text-primary'}`}>
+                Single Job
+              </Tab>
+              <Tab className={({ selected }) => `w-full py-4 text-sm font-medium outline-none ${selected ? 'border-b-2 border-primary text-primary' : 'text-gray-600 hover:text-primary'}`}>
+                Bulk Upload
+              </Tab>
+            </Tab.List>
+          )}
+          <Tab.Panels>
+            <Tab.Panel>
         <form onSubmit={handleSubmit} className="p-6.5">
           {/* Job Basic Details */}
           <div className="mb-6 rounded-sm border border-stroke py-4 px-6.5 dark:border-strokedark">
@@ -635,6 +651,24 @@ const JobForm = () => {
             </button>
           </div>
         </form>
+            </Tab.Panel>
+            {!id && (
+              <Tab.Panel>
+                <BulkExcelUploadPanel
+                  title="Bulk Upload Jobs"
+                  description="Download the job template, fill the gold required columns, then upload. created_by_id is set to your user ID. Invalid rows fail individually."
+                  templateType="jobs"
+                  endpoint={JOB_ENDPOINTS.BULK_UPLOAD}
+                  payloadKey="jobs"
+                  extraPayload={{
+                    created_by: authState?.user?.username,
+                    created_by_id: authState?.user?.user_id,
+                  }}
+                />
+              </Tab.Panel>
+            )}
+          </Tab.Panels>
+        </Tab.Group>
       </div>
     </DefaultLayoutEmployee>
   );

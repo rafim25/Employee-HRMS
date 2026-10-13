@@ -2,14 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../../components';
-import { FaArrowLeft, FaRupeeSign, FaFileUpload, FaDownload, FaBuilding, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaUser, FaBriefcase, FaClock, FaComments, FaUserFriends, FaUpload, FaTimes } from 'react-icons/fa';
+import { FaRupeeSign, FaFileUpload, FaBuilding, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaUser, FaBriefcase, FaClock, FaComments, FaUserFriends, FaTimes } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../../context/AuthContext';
-import { Tab } from '@headlessui/react';
-import { downloadCandidateTemplate } from '../../../../utils/excelTemplates';
 import { api } from '../../../../services/api';
-import * as XLSX from 'xlsx';
-import BulkUploadResultsModal from '../../../../components/molecules/Modal/BulkUploadResultsModal';
 import axiosInstance from '../../../../services/api';
 import { fetchJobs } from '../../../../context/actions/jobActions';
 
@@ -158,7 +154,7 @@ const CandidateForm = () => {
     const fetchStates = async () => {
       try {
         setStatesLoading(true);
-        const cachedStates = readLocationCache('location_states_in_v1');
+        const cachedStates = readLocationCache('location_states_local_v1');
         if (cachedStates) {
           setStates(cachedStates);
           setStatesFetchFailed(false);
@@ -173,7 +169,7 @@ const CandidateForm = () => {
         if (!response.ok) throw new Error('Failed to fetch states');
         const data = await response.json();
         setStates(data);
-        writeLocationCache('location_states_in_v1', data);
+        writeLocationCache('location_states_local_v1', data);
         setStatesFetchFailed(false);
       } catch (error) {
         console.error('Error fetching states:', error);
@@ -195,7 +191,7 @@ const CandidateForm = () => {
     }
 
     try {
-      const cacheKey = `location_districts_in_${stateCode}_v1`;
+      const cacheKey = `location_districts_local_${stateCode}_v1`;
       const cachedDistricts = readLocationCache(cacheKey);
       if (cachedDistricts) {
         if (type === 'current') {
@@ -453,47 +449,12 @@ const CandidateForm = () => {
 
   const handleDownloadTemplate = async () => {
     try {
-      const data = [
-        {
-          name: 'MOHAMMAD',
-          email: 'yuyunybb8y7n5yy87777hyybun@grmail.com',
-          phone: '75776753378709',
-          experience: '45',
-          current_location: 'Bangalore',
-          preferred_location: 'Bangalore',
-          current_ctc: '200000',
-          expected_ctc: '300000',
-          current_company: 'TCS',
-          notice_period: '20',
-          source: 'Indeed',
-          referred_by: '',
-          notes: 'dsdaf',
-          resume_url: '',
-          job_id: 2,
-          created_by: 'admin',
-          created_by_id: 'a123',
-          rejection_reason: '',
-          rejection_details: {
-            reason: '',
-            stage: '',
-            rejected_by: 'admin',
-            rejected_at: null,
-            comments: ''
-          },
-          job_answers: {
-            'How Many experiebce injave': '10 yesr'
-          }
-        }
-      ];
-
-      const success = await downloadCandidateTemplate({ data1: data, fileName: "candidate-upload-template" });
-
-      if (success) {
-        console.log("✅ Success message should print now!");
-        toast.success('Template downloaded successfully');
-      } else {
-        toast.error('Failed to download template');
+      if (!state?.user?.user_id) {
+        toast.error('Please sign in again so creator ID can be added to the template');
+        return;
       }
+      await downloadBulkTemplate('candidates', state.user);
+      toast.success(`Template downloaded with creator ID ${state.user.user_id}`);
     } catch (error) {
       console.error('Download error:', error);
       toast.error('Error downloading template');
@@ -508,10 +469,18 @@ const CandidateForm = () => {
         try {
           const data = e.target.result;
           const workbook = XLSX.read(data, { type: 'binary' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-          resolve(jsonData);
+          const sheetName =
+            workbook.SheetNames.find((name) => name.toLowerCase() !== 'instructions') ||
+            workbook.SheetNames[0];
+          const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+          resolve(
+            jsonData.filter((row) =>
+              Object.entries(row).some(([key, value]) => {
+                if (['created_by_id', 'created_by'].includes(String(key).toLowerCase())) return false;
+                return value !== '' && value != null;
+              })
+            )
+          );
         } catch (error) {
           reject(error);
         }
@@ -588,10 +557,12 @@ const CandidateForm = () => {
         notice_period: parseInt(row.Notice_Period || row.notice_period) || 0,
         current_location: row.Current_Location || row.current_location,
         preferred_location: row.Preferred_Location || row.preferred_location,
-        status: (row.Status || row.status || 'applied').toLowerCase(),
         source: row.Source || row.source || 'Direct',
         referred_by: row.Referred_By || row.referred_by,
-        job_id: row.Job_ID || row.job_id
+        notes: row.Notes || row.notes,
+        job_id: row.Job_ID || row.job_id || row.jobId,
+        created_by: row.created_by || state?.user?.username,
+        created_by_id: row.created_by_id || state?.user?.user_id
       }));
 
       // Validate required fields
@@ -982,32 +953,6 @@ const CandidateForm = () => {
             </div>
           ) : (
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-              <Tab.Group>
-                <Tab.List className="flex border-b border-stroke dark:border-strokedark">
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full py-4 text-sm font-medium outline-none ${selected
-                        ? 'border-b-2 border-primary text-primary'
-                        : 'text-gray-600 hover:text-primary'
-                      }`
-                    }
-                  >
-                    Single Upload
-                  </Tab>
-                  <Tab
-                    className={({ selected }) =>
-                      `w-full py-4 text-sm font-medium outline-none ${selected
-                        ? 'border-b-2 border-primary text-primary'
-                        : 'text-gray-600 hover:text-primary'
-                      }`
-                    }
-                  >
-                    Bulk Upload
-                  </Tab>
-                </Tab.List>
-
-                <Tab.Panels>
-                  <Tab.Panel>
                     <form onSubmit={handleSubmit} encType="multipart/form-data" className="p-6.5">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -1549,197 +1494,10 @@ const CandidateForm = () => {
                         </button>
                       </div>
                     </form>
-                  </Tab.Panel>
-
-                  <Tab.Panel>
-                    <div className="p-6.5">
-                      <div className="mb-6">
-                        <h4 className="text-xl font-semibold mb-4">Bulk Upload Candidates</h4>
-                        <div className="flex items-center gap-4 mb-6">
-                          <button
-                            onClick={handleDownloadTemplate}
-                            className="flex items-center gap-2 text-primary hover:text-primary/80"
-                          >
-                            <FaDownload /> Download Template
-                          </button>
-                          <p className="text-sm text-gray-500">
-                            Download the template file, fill in the candidate details, and upload it back
-                          </p>
-                        </div>
-
-                        <div className="space-y-6">
-                          <div className="flex items-center gap-4">
-                            <div className="flex-1">
-                              <label className="mb-2.5 block font-medium text-black dark:text-white">
-                                Bulk Upload Candidates
-                              </label>
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="file"
-                                  ref={fileInputRef}
-                                  onChange={handleFileChange}
-                                  accept=".xlsx,.xls"
-                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                                />
-                              </div>
-                              <p className="mt-1 text-sm text-gray-500">
-                                Upload Excel file (.xlsx, .xls) with candidate details
-                              </p>
-                            </div>
-
-                            <div className="flex-1">
-                              <label className="mb-2.5 block font-medium text-black dark:text-white">
-                                Upload Resumes (ZIP)
-                              </label>
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="file"
-                                  ref={resumeZipInputRef}
-                                  onChange={handleResumeZipChange}
-                                  accept=".zip"
-                                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-                                />
-                              </div>
-                              <p className="mt-1 text-sm text-gray-500">
-                                Upload ZIP file containing resumes. Resumes should be named with candidate's first name.
-                              </p>
-                            </div>
-
-                            <div className="flex items-end">
-                              <button
-                                type="button"
-                                onClick={handleBulkUpload}
-                                disabled={!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0}
-                                className={`inline-flex items-center justify-center rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90 ${(!selectedFile || !resumeZipFile || uploadStatus.isUploading || uploadStatus.candidates.total > 0)
-                                  ? 'opacity-50 cursor-not-allowed'
-                                  : ''
-                                  }`}
-                              >
-                                <FaUpload className="mr-2" />
-                                {uploadStatus.isUploading ? 'Uploading...' : 'Upload'}
-                              </button>
-                              {uploadStatus.candidates.total > 0 && (
-                                <button
-                                  type="button"
-                                  onClick={handleClearForm}
-                                  className="ml-4 inline-flex items-center justify-center rounded-md bg-gray-500 py-3 px-6 text-center font-medium text-white hover:bg-opacity-90"
-                                >
-                                  <FaTimes className="mr-2" />
-                                  Clear Results
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          {(uploadStatus.candidates.total > 0 || uploadStatus.isUploading) && (
-                            <div className="mt-6">
-                              <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-                                <div className="py-6 px-4 md:px-6 xl:px-7.5">
-                                  <h4 className="text-xl font-semibold text-black dark:text-white">
-                                    Resume Upload Status
-                                  </h4>
-                                </div>
-
-                                <div className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
-                                  <div className="col-span-2 flex items-center">
-                                    <p className="font-medium">Candidate Name</p>
-                                  </div>
-                                  <div className="col-span-2 flex items-center">
-                                    <p className="font-medium">Status</p>
-                                  </div>
-                                  <div className="col-span-2 flex items-center">
-                                    <p className="font-medium">File</p>
-                                  </div>
-                                  <div className="col-span-2 flex items-center">
-                                    <p className="font-medium">Message</p>
-                                  </div>
-                                </div>
-
-                                {uploadStatus.candidateStatus.map((status, index) => (
-                                  <div key={index} className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
-                                    <div className="col-span-2 flex items-center">
-                                      <p className="text-sm text-black dark:text-white">{status.name}</p>
-                                    </div>
-                                    <div className="col-span-2 flex items-center">
-                                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${status.status === 'success' ? 'bg-success/10 text-success' :
-                                        status.status === 'failed' ? 'bg-danger/10 text-danger' :
-                                          status.status === 'not-found' ? 'bg-warning/10 text-warning' :
-                                            status.status === 'processing' || status.status === 'uploading' ? 'bg-primary/10 text-primary' :
-                                              'bg-gray-100 text-gray-600'
-                                        }`}>
-                                        {status.status.charAt(0).toUpperCase() + status.status.slice(1)}
-                                      </span>
-                                    </div>
-                                    <div className="col-span-2 flex items-center">
-                                      <p className="text-sm text-gray-500">{status.file || '-'}</p>
-                                    </div>
-                                    <div className="col-span-2 flex items-center">
-                                      <p className="text-sm text-gray-500">{status.message}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Tab.Panel>
-                </Tab.Panels>
-              </Tab.Group>
             </div>
           )}
         </div>
       </DefaultLayoutAdmin>
-
-      <BulkUploadResultsModal
-        isOpen={showResultsModal}
-        onClose={() => setShowResultsModal(false)}
-        results={uploadResults || { success: [], duplicates: [], errors: [] }}
-      />
-
-      {uploadStatus.missingResumes.length > 0 && (
-        <div className="mt-6">
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="py-6 px-4 md:px-6 xl:px-7.5">
-              <h4 className="text-xl font-semibold text-black dark:text-white">
-                Missing Resumes
-              </h4>
-              <p className="text-sm text-gray-500 mt-2">
-                The following candidates' resumes were not found in the ZIP file:
-              </p>
-            </div>
-
-            <div className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
-              <div className="col-span-2 flex items-center">
-                <p className="font-medium">Candidate Name</p>
-              </div>
-              <div className="col-span-2 flex items-center">
-                <p className="font-medium">Expected Filename</p>
-              </div>
-              <div className="col-span-2 flex items-center">
-                <p className="font-medium">Available Files</p>
-              </div>
-            </div>
-
-            {uploadStatus.missingResumes.map((item, index) => (
-              <div key={index} className="grid grid-cols-6 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-8 md:px-6 2xl:px-7.5">
-                <div className="col-span-2 flex items-center">
-                  <p className="text-sm text-black dark:text-white">{item.candidateName}</p>
-                </div>
-                <div className="col-span-2 flex items-center">
-                  <p className="text-sm text-meta-1">{item.expectedPattern}</p>
-                </div>
-                <div className="col-span-2 flex items-center">
-                  <p className="text-sm text-gray-500">
-                    {item.availableFiles.join(', ')}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </>
   );
 };

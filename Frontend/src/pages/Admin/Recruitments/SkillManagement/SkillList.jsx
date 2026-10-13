@@ -2,16 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
 import { Link } from "react-router-dom";
 import { BreadcrumbAdmin, ButtonOne } from '../../../../components';
-import { FaRegEdit, FaPlus, FaCode, FaTools } from 'react-icons/fa';
+import { FaRegEdit, FaPlus, FaCode, FaUpload, FaTimes } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchSkills, deleteSkill } from '../../../../context/actions/skillActions';
-import { toast } from 'react-hot-toast';
 import Pagination from '../../../../components/molecules/Pagination/Pagination';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
+import BulkExcelUploadPanel from '../../../../components/molecules/BulkExcelUploadPanel';
+import { SKILL_ENDPOINTS } from '../../../../constants/apiEndpoints';
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 10;
 
 const SkillList = () => {
     const { state, dispatch } = useAuth();
@@ -20,13 +21,13 @@ const SkillList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [skillToDelete, setSkillToDelete] = useState(null);
+    const [showBulkUpload, setShowBulkUpload] = useState(false);
 
     const loadSkills = useCallback(async () => {
         try {
             await fetchSkills(dispatch);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to fetch skills';
-            toast.error(errorMessage);
+            // Error toast handled in fetchSkills (deduped id)
         }
     }, [dispatch]);
 
@@ -51,11 +52,10 @@ const SkillList = () => {
     const confirmDelete = async () => {
         try {
             await deleteSkill(dispatch, skillToDelete);
-            toast.success('Skill deleted successfully');
+            // Success toast already shown in deleteSkill action
             loadSkills();
         } catch (error) {
-            const errorMessage = error.response?.data?.msg || 'Failed to delete skill';
-            toast.error(errorMessage);
+            // Error toast already shown in deleteSkill action
         } finally {
             setShowDeleteModal(false);
             setSkillToDelete(null);
@@ -82,13 +82,21 @@ const SkillList = () => {
                 <div className="p-4 md:p-6 xl:p-7.5">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                         {/* Add Skill Button */}
-                        <div className="w-full sm:w-auto">
+                        <div className="flex w-full sm:w-auto flex-wrap items-center gap-3">
                             <Link to="/admin/recruitments/skill-management/form-skill">
                                 <ButtonOne className="w-full sm:w-auto">
                                     <span className="mr-2">Add New Skill</span>
                                     <FaPlus />
                                 </ButtonOne>
                             </Link>
+                            <button
+                                type="button"
+                                onClick={() => setShowBulkUpload(true)}
+                                className="btn-navy"
+                            >
+                                <FaUpload />
+                                Bulk Upload
+                            </button>
                         </div>
 
                         {/* Search Box with improved styling */}
@@ -200,6 +208,40 @@ const SkillList = () => {
                     title="Delete Skill"
                     message="Are you sure you want to delete this skill? This action cannot be undone."
                 />
+            )}
+
+            {showBulkUpload && (
+                <div className="fixed inset-0 z-9999 flex items-center justify-center bg-[#0b1d36]/60 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[rgba(212,175,55,0.35)] bg-white shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-[rgba(11,29,54,0.08)] py-4 px-6">
+                            <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#d4af37]">Admin</p>
+                                <h3 className="font-semibold text-[#0b1d36]">Bulk Upload Skills</h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowBulkUpload(false)}
+                                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0b1d36]/5 text-[#0b1d36] hover:bg-[#0b1d36] hover:text-white"
+                                aria-label="Close bulk upload"
+                            >
+                                <FaTimes />
+                            </button>
+                        </div>
+                        <BulkExcelUploadPanel
+                            title="Bulk Upload Skills"
+                            description="Download the skill template, fill the gold required columns, then upload. created_by_id is set to your user ID and validated against users. Duplicate skill names are skipped."
+                            templateType="skills"
+                            endpoint={SKILL_ENDPOINTS.BULK_UPLOAD}
+                            payloadKey="skills"
+                            extraPayload={{
+                                created_by_id: state?.user?.user_id,
+                            }}
+                            onComplete={() => {
+                                loadSkills();
+                            }}
+                        />
+                    </div>
+                </div>
             )}
         </DefaultLayoutAdmin>
     );

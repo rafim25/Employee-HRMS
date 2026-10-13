@@ -21,7 +21,9 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("user");
 
       // Show session expiry message
-      toast.error("Session expired. Please login again.");
+      toast.error("Session expired. Please login again.", {
+        id: "session-expired",
+      });
 
       // Redirect to login page after a short delay to allow toast to be visible
       setTimeout(() => {

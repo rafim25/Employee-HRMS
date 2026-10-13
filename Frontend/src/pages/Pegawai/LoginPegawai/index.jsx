@@ -35,8 +35,8 @@ const LoginPegawai = () => {
 
                 if (userRole === 'Admin' || userRole === 'admin') {
                     navigate('/admin/dashboard');
-                } else if (userRole === 'User') {
-                    navigate('/pegawai/dashboard');
+                } else if (userRole === 'User' || userRole === 'user') {
+                    navigate('/employee/dashboard');
                 } else {
                     setError('Invalid user role');
                 }

@@ -10,7 +10,7 @@ import { fetchLoans, deleteLoan } from '../../../../context/actions/loanActions'
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 const LendingDetails = () => {
     const { state, dispatch } = useAuth();

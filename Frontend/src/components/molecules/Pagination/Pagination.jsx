@@ -1,79 +1,120 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { PAGE_SIZE } from '../../../constants/pagination';
 
 const Pagination = ({
-  currentPage,
+  currentPage = 1,
   totalItems,
-  itemsPerPage = 8,
+  totalPages: totalPagesProp,
+  itemsPerPage = PAGE_SIZE,
   onPageChange,
-  showingText = "Showing"
+  showingText = 'Showing',
+  className = '',
 }) => {
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const totalPages = useMemo(() => {
+    if (totalPagesProp != null && Number.isFinite(Number(totalPagesProp))) {
+      return Math.max(0, Number(totalPagesProp));
+    }
+    const items = Number(totalItems) || 0;
+    return items > 0 ? Math.ceil(items / itemsPerPage) : 0;
+  }, [totalPagesProp, totalItems, itemsPerPage]);
 
-  const getPageNumbers = () => {
-    if (totalPages <= 3) {
-      // If 3 or fewer pages, show all
+  const safeTotalItems =
+    totalItems != null
+      ? Number(totalItems) || 0
+      : totalPages * itemsPerPage;
+
+  const page = Math.min(Math.max(1, currentPage || 1), Math.max(1, totalPages || 1));
+  const startIndex = safeTotalItems === 0 ? 0 : (page - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(page * itemsPerPage, safeTotalItems);
+
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 0) return [];
+    if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-
-    if (currentPage === 1) {
-      // If on first page, show 1, 2
-      return [1, 2];
+    if (page <= 3) return [1, 2, 3, 4, '…', totalPages];
+    if (page >= totalPages - 2) {
+      return [1, '…', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     }
+    return [1, '…', page - 1, page, page + 1, '…', totalPages];
+  }, [page, totalPages]);
 
-    if (currentPage === totalPages) {
-      // If on last page, show lastPage-1, lastPage
-      return [totalPages - 1, totalPages];
-    }
-
-    // In middle, show currentPage-1, currentPage, currentPage+1
-    return [currentPage - 1, currentPage, currentPage + 1];
-  };
+  if (totalPages <= 1 && safeTotalItems <= itemsPerPage) {
+    return (
+      <div
+        className={`flex flex-col gap-2 border-t border-[rgba(11,29,54,0.08)] px-1 pt-4 sm:flex-row sm:items-center sm:justify-between ${className}`}
+      >
+        <p className="text-sm text-[#5b6b7c]">
+          {showingText}{' '}
+          <span className="font-semibold text-[#0b1d36]">{safeTotalItems}</span> item
+          {safeTotalItems === 1 ? '' : 's'}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-4">
-      {/* Showing X-Y of Z items text */}
-      <div className="text-sm text-gray-500 dark:text-gray-400">
-        {showingText} {totalItems > 0 ? startIndex + 1 : 0}-{endIndex} of {totalItems} items
-      </div>
+    <div
+      className={`flex flex-col gap-3 border-t border-[rgba(11,29,54,0.08)] px-1 pt-4 sm:flex-row sm:items-center sm:justify-between ${className}`}
+    >
+      <p className="text-sm text-[#5b6b7c]">
+        {showingText}{' '}
+        <span className="font-semibold text-[#0b1d36]">
+          {safeTotalItems > 0 ? `${startIndex}–${endIndex}` : '0'}
+        </span>{' '}
+        of <span className="font-semibold text-[#0b1d36]">{safeTotalItems}</span>
+      </p>
 
-      {/* Pagination buttons */}
-      <div className="flex items-center gap-2">
-        {/* Previous button */}
+      <div className="flex flex-wrap items-center gap-1.5">
         <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="flex items-center justify-center rounded-lg border border-primary py-2 px-4 text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary"
+          type="button"
+          aria-label="Previous page"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page <= 1}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[rgba(11,29,54,0.14)] bg-white px-3 text-sm font-medium text-[#0b1d36] transition hover:border-[#d4af37] hover:bg-[#0b1d36] hover:text-[#d4af37] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[rgba(11,29,54,0.14)] disabled:hover:bg-white disabled:hover:text-[#0b1d36]"
         >
-          Previous
+          <FaChevronLeft className="text-[10px]" />
+          <span className="hidden sm:inline">Prev</span>
         </button>
 
-        {/* Page numbers */}
         <div className="flex items-center gap-1">
-          {getPageNumbers().map((pageNum) => (
-            <button
-              key={pageNum}
-              onClick={() => onPageChange(pageNum)}
-              className={`py-2 px-4 rounded-lg border transition-colors
-                ${pageNum === currentPage
-                  ? 'bg-primary text-white border-primary'
-                  : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary'
+          {pageNumbers.map((num, idx) =>
+            num === '…' ? (
+              <span
+                key={`ellipsis-${idx}`}
+                className="px-1.5 text-sm text-[#5b6b7c]"
+              >
+                …
+              </span>
+            ) : (
+              <button
+                key={num}
+                type="button"
+                onClick={() => onPageChange(num)}
+                aria-current={num === page ? 'page' : undefined}
+                className={`inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl border px-2.5 text-sm font-semibold transition ${
+                  num === page
+                    ? 'border-[#d4af37] bg-[#d4af37] text-[#0b1d36] shadow-sm'
+                    : 'border-[rgba(11,29,54,0.12)] bg-white text-[#0b1d36] hover:border-[#d4af37]'
                 }`}
-            >
-              {pageNum}
-            </button>
-          ))}
+              >
+                {num}
+              </button>
+            )
+          )}
         </div>
 
-        {/* Next button */}
         <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="flex items-center justify-center rounded-lg border border-primary py-2 px-4 text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary"
+          type="button"
+          aria-label="Next page"
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages || totalPages === 0}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[rgba(11,29,54,0.14)] bg-white px-3 text-sm font-medium text-[#0b1d36] transition hover:border-[#d4af37] hover:bg-[#0b1d36] hover:text-[#d4af37] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[rgba(11,29,54,0.14)] disabled:hover:bg-white disabled:hover:text-[#0b1d36]"
         >
-          Next
+          <span className="hidden sm:inline">Next</span>
+          <FaChevronRight className="text-[10px]" />
         </button>
       </div>
     </div>
@@ -81,11 +122,13 @@ const Pagination = ({
 };
 
 Pagination.propTypes = {
-  currentPage: PropTypes.number.isRequired,
-  totalItems: PropTypes.number.isRequired,
+  currentPage: PropTypes.number,
+  totalItems: PropTypes.number,
+  totalPages: PropTypes.number,
   itemsPerPage: PropTypes.number,
   onPageChange: PropTypes.func.isRequired,
-  showingText: PropTypes.string
+  showingText: PropTypes.string,
+  className: PropTypes.string,
 };
 
-export default Pagination; 
+export default Pagination;

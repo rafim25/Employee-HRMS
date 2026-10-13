@@ -3,7 +3,8 @@ import DefaultLayoutAdmin from '../../../layout/DefaultLayoutAdmin';
 import { BreadcrumbAdmin } from '../../../components';
 import { useAuth } from '../../../context/AuthContext';
 import { fetchRecruitmentDashboardData } from '../../../context/actions/dashboardActions';
-import { FaUsers, FaBriefcase, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { FaUsers, FaBriefcase, FaCheckCircle, FaTimesCircle, FaClock, FaPlaneDeparture, FaMoneyCheckAlt } from 'react-icons/fa';
 
 // Chart imports
 import {
@@ -52,25 +53,29 @@ const DashboardAdmin = () => {
 
   // Updated to use recruitmentDashboard instead of dashboard
   const statusChartData = {
-    labels: state.recruitmentDashboard?.candidateStatusData?.map(item =>
-      item.status.charAt(0).toUpperCase() + item.status.slice(1)
-    ) || [],
+    labels: (state.recruitmentDashboard?.candidateStatusData || [])
+      .filter((item) => item?.status)
+      .map((item) => String(item.status).charAt(0).toUpperCase() + String(item.status).slice(1)),
     datasets: [{
-      data: state.recruitmentDashboard?.candidateStatusData?.map(item => item.count) || [],
+      data: (state.recruitmentDashboard?.candidateStatusData || [])
+        .filter((item) => item?.status)
+        .map((item) => Number(item.count) || 0),
       backgroundColor: [
-        '#3B82F6', '#EF4444', '#F59E0B',
-        '#10B981', '#6366F1', '#22C55E',
+        '#0b1d36', '#d4af37', '#16324f',
+        '#1e4568', '#e3c356', '#5b6b7c',
       ],
     }]
   };
 
   const sourceChartData = {
-    labels: state.recruitmentDashboard?.sourceDistribution?.map(item => item.source) || [],
+    labels: (state.recruitmentDashboard?.sourceDistribution || [])
+      .map((item) => item.source || 'Unknown'),
     datasets: [{
-      data: state.recruitmentDashboard?.sourceDistribution?.map(item => item.count) || [],
+      data: (state.recruitmentDashboard?.sourceDistribution || [])
+        .map((item) => Number(item.count) || 0),
       backgroundColor: [
-        '#3B82F6', '#10B981', '#F59E0B',
-        '#6366F1', '#EF4444', '#8B5CF6', '#EC4899',
+        '#0b1d36', '#d4af37', '#16324f',
+        '#1e4568', '#e3c356', '#5b6b7c', '#245077',
       ],
     }]
   };
@@ -90,6 +95,15 @@ const DashboardAdmin = () => {
     <DefaultLayoutAdmin>
       <BreadcrumbAdmin pageName='Recruitment Dashboard' backButton={false} />
 
+      <div className="app-card mb-6 p-4">
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#d4af37]">HR shortcuts</p>
+        <div className="flex flex-wrap gap-3">
+          <Link to="/admin/hr/attendance" className="btn-outline !px-3 !py-2 text-sm flex items-center gap-2"><FaClock /> Attendance</Link>
+          <Link to="/admin/hr/leave" className="btn-outline !px-3 !py-2 text-sm flex items-center gap-2"><FaPlaneDeparture /> Leave</Link>
+          <Link to="/admin/hr/payroll" className="btn-outline !px-3 !py-2 text-sm flex items-center gap-2"><FaMoneyCheckAlt /> Payroll</Link>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -98,9 +112,9 @@ const DashboardAdmin = () => {
         <>
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5'>
             {/* Active Jobs Card */}
-            <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
-                <FaBriefcase className="fill-primary dark:fill-white" />
+            <div className="app-card py-6 px-7.5">
+              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#d4af37]">
+                <FaBriefcase className="fill-[#0b1d36]" />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -113,9 +127,9 @@ const DashboardAdmin = () => {
             </div>
 
             {/* Total Candidates Card */}
-            <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
-                <FaUsers className="fill-primary dark:fill-white" />
+            <div className="app-card py-6 px-7.5">
+              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#d4af37]">
+                <FaUsers className="fill-[#0b1d36]" />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -128,9 +142,9 @@ const DashboardAdmin = () => {
             </div>
 
             {/* Selected Candidates Card */}
-            <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
-                <FaCheckCircle className="fill-success" />
+            <div className="app-card py-6 px-7.5">
+              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#d4af37]">
+                <FaCheckCircle className="fill-[#0b1d36]" />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -143,9 +157,9 @@ const DashboardAdmin = () => {
             </div>
 
             {/* Rejected Candidates Card */}
-            <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
-                <FaTimesCircle className="fill-danger" />
+            <div className="app-card py-6 px-7.5">
+              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#d4af37]">
+                <FaTimesCircle className="fill-[#0b1d36]" />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -161,7 +175,7 @@ const DashboardAdmin = () => {
           <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
             {/* Candidate Status Chart */}
             <div className="col-span-12 xl:col-span-8">
-              <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="app-card px-5 pt-6 pb-5">
                 <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
                   Candidate Status Distribution
                 </h4>
@@ -193,7 +207,7 @@ const DashboardAdmin = () => {
 
             {/* Source Distribution Chart */}
             <div className="col-span-12 xl:col-span-4">
-              <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="app-card px-5 pt-6 pb-5">
                 <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
                   Candidate Sources
                 </h4>
@@ -225,7 +239,7 @@ const DashboardAdmin = () => {
           {/* Recent Activities */}
           <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
             <div className="col-span-12">
-              <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-7">
+              <div className="app-card px-5 pt-6 pb-5 sm:px-7.5 xl:pb-7">
                 <h4 className="mb-6 text-xl font-semibold text-black dark:text-white">
                   Recent Activities
                 </h4>

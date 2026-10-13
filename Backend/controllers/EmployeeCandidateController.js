@@ -4,26 +4,25 @@ import { processResumeForCandidate } from '../utils/resumeHelper.js';
 
 export const getEmployeeCandidates = async (req, res) => {
     try {
-        const candidates = await Candidate.findAll({
-            where: {
-                created_by_id: req.userId
+        const { parsePagination, paginationMeta, wantsPagination } = await import('../utils/pagination.js');
+        const usePaging = wantsPagination(req.query);
+        const { page, limit, offset } = parsePagination(req.query);
+
+        const where = { created_by_id: req.userId };
+        const include = [
+            {
+                model: Job,
+                as: 'job',
+                attributes: ['id', 'title', 'type', 'status']
             },
-            include: [
-                {
-                    model: Job,
-                    as: 'job',
-                    attributes: ['id', 'title', 'type', 'status']
-                },
-                {
-                    model: User,
-                    as: 'creator',
-                    attributes: ['id', 'name', 'email']
-                }
-            ],
-            order: [['createdAt', 'DESC']]
-        });
-        
-        const transformedCandidates = candidates.map(candidate => {
+            {
+                model: User,
+                as: 'creator',
+                attributes: ['user_id', 'name', 'username', 'email']
+            }
+        ];
+
+        const transform = (candidate) => {
             const plainCandidate = candidate.get({ plain: true });
             return {
                 ...plainCandidate,
@@ -31,9 +30,30 @@ export const getEmployeeCandidates = async (req, res) => {
                 created_by: plainCandidate.creator?.name || 'N/A',
                 creator: plainCandidate.creator
             };
+        };
+
+        if (usePaging) {
+            const { rows, count } = await Candidate.findAndCountAll({
+                where,
+                include,
+                order: [['createdAt', 'DESC']],
+                limit,
+                offset,
+                distinct: true,
+            });
+            return res.status(200).json({
+                data: rows.map(transform),
+                pagination: paginationMeta(page, limit, count),
+            });
+        }
+
+        const candidates = await Candidate.findAll({
+            where,
+            include,
+            order: [['createdAt', 'DESC']]
         });
         
-        res.status(200).json(transformedCandidates);
+        res.status(200).json(candidates.map(transform));
     } catch (error) {
         console.error('Error fetching employee candidates:', error);
         res.status(500).json({ msg: error.message });
@@ -60,9 +80,9 @@ export const getEmployeeCandidateById = async (req, res) => {
                     attributes: ['id', 'title', 'type', 'city', 'state', 'questions']
                 },
                 {
-                    model: Users,
+                    model: User,
                     as: 'creator',
-                    attributes: ['user_id', 'username', 'email']
+                    attributes: ['user_id', 'username', 'name', 'email']
                 }
             ]
         });
@@ -88,7 +108,7 @@ export const getEmployeeCandidateById = async (req, res) => {
                     ? JSON.parse(plainCandidate.rejection_details)
                     : plainCandidate.rejection_details;
 
-                if (plainCandidate.status === 'rejected') {
+                if (plainCandidate.application_status === 'rejected') {
                     plainCandidate.rejection_information = {
                         reason: plainCandidate.rejection_reason,
                         ...rejectionDetails
@@ -174,9 +194,9 @@ export const getEmployeeCandidatesByJob = async (req, res) => {
                     attributes: ['id', 'title', 'type', 'city', 'state']
                 },
                 {
-                    model: Users,
+                    model: User,
                     as: 'creator',
-                    attributes: ['user_id', 'username', 'email']
+                    attributes: ['user_id', 'username', 'name', 'email']
                 }
             ],
             order: [['createdAt', 'DESC']]

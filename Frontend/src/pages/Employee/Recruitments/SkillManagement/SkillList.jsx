@@ -11,7 +11,7 @@ import Pagination from '../../../../components/molecules/Pagination/Pagination';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 import axios from 'axios';
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 10;
 
 const SkillList = () => {
   const navigate = useNavigate();

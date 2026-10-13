@@ -15,8 +15,8 @@ const RejectionModal = ({ isOpen, onClose, onConfirm, currentStage }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl max-w-md w-full">
+    <div className="fixed inset-0 bg-[#0b1d36]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-[rgba(212,175,55,0.35)]">
         <div className="p-6">
           <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
             Rejection Details
@@ -81,13 +81,13 @@ const RejectionModal = ({ isOpen, onClose, onConfirm, currentStage }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center justify-center rounded-md border border-stroke py-2 px-6 font-medium text-black hover:shadow-1 dark:border-strokedark dark:text-white"
+                className="btn-outline"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-md bg-primary py-2 px-6 font-medium text-white hover:bg-opacity-90"
+                className="btn-gold"
               >
                 Confirm Rejection
               </button>

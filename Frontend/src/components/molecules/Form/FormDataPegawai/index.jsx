@@ -6,12 +6,14 @@ import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../..';
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import { useAuth } from '../../../../context/AuthContext';
 import { api } from '../../../../services/api';
+import { Tab } from '@headlessui/react';
+import BulkExcelUploadPanel from '../../BulkExcelUploadPanel';
 import { USER_ENDPOINTS } from '../../../../constants/apiEndpoints';
 import 'rc-slider/assets/index.css';
 
 const UserDataForm = () => {
   const navigate = useNavigate();
-  const { dispatch } = useAuth();
+  const { dispatch, state } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -131,7 +133,17 @@ const UserDataForm = () => {
                 User Data Form
               </h3>
             </div>
-
+            <Tab.Group>
+              <Tab.List className="flex border-b border-stroke dark:border-strokedark">
+                <Tab className={({ selected }) => `w-full py-4 text-sm font-medium outline-none ${selected ? 'border-b-2 border-primary text-primary' : 'text-gray-600 hover:text-primary'}`}>
+                  Single User
+                </Tab>
+                <Tab className={({ selected }) => `w-full py-4 text-sm font-medium outline-none ${selected ? 'border-b-2 border-primary text-primary' : 'text-gray-600 hover:text-primary'}`}>
+                  Bulk Upload
+                </Tab>
+              </Tab.List>
+              <Tab.Panels>
+                <Tab.Panel>
             {error && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative m-4">
                 {error}
@@ -558,6 +570,22 @@ const UserDataForm = () => {
                 </div>
               </div>
             </form>
+                </Tab.Panel>
+                <Tab.Panel>
+                  <BulkExcelUploadPanel
+                    title="Bulk Upload Users"
+                    description="Download the user template, fill the gold required columns, then upload. created_by_id is set to your user ID."
+                    templateType="users"
+                    endpoint={USER_ENDPOINTS.BULK_UPLOAD}
+                    payloadKey="users"
+                    extraPayload={{
+                      created_by: state?.user?.username,
+                      created_by_id: state?.user?.user_id,
+                    }}
+                  />
+                </Tab.Panel>
+              </Tab.Panels>
+            </Tab.Group>
           </div>
         </div>
       </div>

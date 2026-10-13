@@ -23,7 +23,7 @@ const LoanDetails = () => {
     comments: ""
   });
 
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [startIndex, setStartIndex] = useState(0);
   const [endIndex, setEndIndex] = useState(ITEMS_PER_PAGE);

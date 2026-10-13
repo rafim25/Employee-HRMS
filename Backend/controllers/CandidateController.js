@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import multer from 'multer';
 import { uploadToS3, getSignedUrl } from '../utils/s3Config.js';
 import { processResumesForCandidates } from '../utils/resumeHelper.js';
+import { parsePagination, paginationMeta } from '../utils/pagination.js';
 import xlsx from 'xlsx';
 import fs from 'fs';
 import path from 'path';
@@ -45,17 +46,59 @@ export const bulkUploadCandidates = async (req, res) => {
       });
     }
 
-    // Results array to track success and failures
+    const pickCandidateField = (row, keys) => {
+      for (const key of keys) {
+        const value = row[key];
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+          return typeof value === 'string' ? value.trim() : value;
+        }
+      }
+      return undefined;
+    };
+
+    const resolveExistingJob = async (rawCandidate) => {
+      const jobIdRaw = pickCandidateField(rawCandidate, ['job_id', 'Job_ID', 'jobId', 'Job ID']);
+      if (jobIdRaw === undefined) {
+        return null; // job_id is optional for bulk upload
+      }
+      const asNumber = Number(jobIdRaw);
+      let job = null;
+      if (Number.isInteger(asNumber) && asNumber > 0) {
+        job = await Job.findByPk(asNumber);
+      }
+      if (!job) {
+        job = await Job.findOne({ where: { uuid: String(jobIdRaw) } });
+      }
+      if (!job) {
+        throw new Error(`Job ID "${jobIdRaw}" does not exist. Use an existing jobs.id from Job Management, or leave job_id blank.`);
+      }
+      return job;
+    };
+
     const results = {
       success: [],
       duplicates: [],
       errors: []
     };
 
-    // Process candidates sequentially to check for duplicates
-    for (const candidate of candidates) {
+    for (const [index, candidate] of candidates.entries()) {
+      const rowNumber = index + 2;
       try {
-        // Check for existing candidate
+        if (!candidate.name || !candidate.email || !candidate.phone) {
+          throw new Error('name, email, and phone are required.');
+        }
+
+        const linkedJob = await resolveExistingJob(candidate);
+
+        const creatorId = candidate.created_by_id || created_by_id || req.userId;
+        if (!creatorId) {
+          throw new Error('created_by_id is required. Download the template while signed in, or provide a valid user ID.');
+        }
+        const creator = await User.findOne({ where: { user_id: String(creatorId) } });
+        if (!creator) {
+          throw new Error(`Creator ID "${creatorId}" does not exist in the users table.`);
+        }
+
         const existingCandidate = await Candidate.findOne({
           where: {
             [Op.or]: [
@@ -73,7 +116,8 @@ export const bulkUploadCandidates = async (req, res) => {
             {
               model: Job,
               as: 'job',
-              attributes: ['title']
+              attributes: ['title'],
+              required: false,
             }
           ]
         });
@@ -94,35 +138,38 @@ export const bulkUploadCandidates = async (req, res) => {
             name: candidate.name,
             email: candidate.email,
             phone: candidate.phone,
-            error: errorMessage
+            error: `Row ${rowNumber}: ${errorMessage}`
           });
           continue;
         }
 
-        // Prepare candidate data
         const candidateData = {
           ...candidate,
-          status: 'applied',
+          job_id: linkedJob ? linkedJob.id : null,
+          application_status: candidate.application_status || 'applied',
           source: candidate.source || 'Direct',
-          created_by,
-          created_by_id,
+          created_by: candidate.created_by || creator.username || created_by,
+          created_by_id: String(creator.user_id),
           email: candidate.email.toLowerCase().trim(),
           phone: candidate.phone.toString().trim().replace(/\s+/g, '')
         };
+        delete candidateData.status;
 
-        // Create the candidate
         const newCandidate = await Candidate.create(candidateData);
         results.success.push({
           name: candidate.name,
           email: candidate.email,
-          id: newCandidate.uuid
+          id: newCandidate.uuid,
+          message: linkedJob
+            ? `Row ${rowNumber}: Candidate linked to job ${linkedJob.id} (${linkedJob.title}).`
+            : `Row ${rowNumber}: Candidate created without a job link.`,
         });
 
       } catch (error) {
         results.errors.push({
           name: candidate.name,
           email: candidate.email,
-          error: error.message
+          error: `Row ${rowNumber}: ${error.message}`
         });
       }
     }
@@ -151,30 +198,56 @@ export const bulkUploadCandidates = async (req, res) => {
 };
 
 const processResumeForCandidate = async (candidate) => {
+    const withStatus = {
+        ...candidate,
+        status: candidate.application_status || candidate.status,
+    };
+
     try {
-        if (candidate.resume_url) {
+        if (withStatus.resume_url) {
             // If the resume_url is a full URL, return as is
-            if (candidate.resume_url.startsWith('http')) {
+            if (withStatus.resume_url.startsWith('http')) {
                 return {
-                    ...candidate,
-                    resume_url: candidate.resume_url
+                    ...withStatus,
+                    resume_url: withStatus.resume_url
                 };
             }
 
-            // If it's just a key, generate a signed URL from S3
-            const s3 = new AWS.S3();
+            // Local uploads are stored as /uploads/... — serve as-is via static route
+            if (
+              withStatus.resume_url.startsWith('/uploads/') ||
+              withStatus.resume_url.startsWith('uploads/')
+            ) {
+              const key = withStatus.resume_url.replace(/^\//, '');
+              return {
+                ...withStatus,
+                resume_url: `${process.env.APP_PUBLIC_URL || `http://localhost:${process.env.APP_PORT || 3002}`}/${key}`,
+              };
+            }
+
+            // If it's just a key, generate a signed URL from S3 when configured
+            const bucket = process.env.AWS_BUCKET_NAME || process.env.AWS_S3_BUCKET;
+            if (!bucket || !process.env.AWS_ACCESS_KEY_ID) {
+              return withStatus;
+            }
+
+            const s3 = new AWS.S3({
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+              region: process.env.AWS_REGION || 'ap-south-1',
+            });
             const signedUrl = await s3.getSignedUrlPromise('getObject', {
-                Bucket: process.env.AWS_S3_BUCKET,
-                Key: candidate.resume_url,
+                Bucket: bucket,
+                Key: withStatus.resume_url,
                 Expires: 3600 // URL expires in 1 hour
             });
 
             return {
-                ...candidate,
+                ...withStatus,
                 resume_url: signedUrl
             };
         }
-        return candidate;
+        return withStatus;
     } catch (error) {
         console.error('Error processing resume URL:', error);
         // Return the candidate with original resume_url if there's an error
@@ -213,7 +286,7 @@ export const getCandidates = async (req, res) => {
                 'id', 'uuid', 'name', 'email', 'phone', 
                 'experience', 'current_company', 'current_ctc', 
                 'expected_ctc', 'notice_period', 'current_location', 
-                'preferred_location', 'resume_url', 'status', 'application_status',
+                'preferred_location', 'resume_url', 'application_status',
                 'notes', 'source', 'referred_by',
                 'created_by', 'created_by_id',
                 'createdAt', 'updatedAt',
@@ -247,7 +320,7 @@ export const getCandidates = async (req, res) => {
                         ? JSON.parse(plainCandidate.rejection_details)
                         : plainCandidate.rejection_details;
 
-                    if (plainCandidate.status === 'rejected') {
+                    if (plainCandidate.application_status === 'rejected') {
                         plainCandidate.rejection_information = {
                             reason: plainCandidate.rejection_reason,
                             ...rejectionDetails
@@ -306,7 +379,7 @@ const candidateAttributesConfig = [
     'id', 'uuid', 'name', 'email', 'phone',
     'experience', 'current_company', 'current_ctc',
     'expected_ctc', 'notice_period', 'current_location',
-    'preferred_location', 'resume_url', 'status', 'application_status',
+    'preferred_location', 'resume_url', 'application_status',
     'notes', 'source', 'referred_by',
     'created_by', 'created_by_id',
     'createdAt', 'updatedAt',
@@ -330,7 +403,7 @@ const enrichCandidateData = async (candidate) => {
                 ? JSON.parse(plainCandidate.rejection_details)
                 : plainCandidate.rejection_details;
 
-            if (plainCandidate.status === 'rejected') {
+            if (plainCandidate.application_status === 'rejected') {
                 plainCandidate.rejection_information = {
                     reason: plainCandidate.rejection_reason,
                     ...rejectionDetails
@@ -345,7 +418,10 @@ const enrichCandidateData = async (candidate) => {
             }));
         }
 
-        return await processResumeForCandidate(plainCandidate);
+        return await processResumeForCandidate({
+            ...plainCandidate,
+            status: plainCandidate.application_status,
+        });
     } catch (error) {
         console.error(`Error enriching candidate ${plainCandidate.id}:`, error);
         return plainCandidate;
@@ -429,9 +505,7 @@ const buildCandidateWhereClause = (query = {}) => {
 
 export const getCandidatesPaginated = async (req, res) => {
     try {
-        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
-        const limit = Math.max(parseInt(req.query.limit || '50', 10), 1);
-        const offset = (page - 1) * limit;
+        const { page, limit, offset } = parsePagination(req.query);
 
         const where = buildCandidateWhereClause(req.query);
 
@@ -451,12 +525,7 @@ export const getCandidatesPaginated = async (req, res) => {
 
         return res.json({
             data: processedCandidates,
-            pagination: {
-                page,
-                limit,
-                totalRecords: count,
-                totalPages: Math.ceil(count / limit)
-            }
+            pagination: paginationMeta(page, limit, count)
         });
     } catch (error) {
         console.error('Error fetching paginated candidates:', error);
@@ -470,9 +539,7 @@ export const getCandidatesPaginated = async (req, res) => {
 export const searchCandidates = async (req, res) => {
     try {
         const where = buildCandidateWhereClause(req.query);
-        const page = Math.max(parseInt(req.query.page || '1', 10), 1);
-        const limit = Math.max(parseInt(req.query.limit || '50', 10), 1);
-        const offset = (page - 1) * limit;
+        const { page, limit, offset } = parsePagination(req.query);
 
         const { rows, count } = await Candidate.findAndCountAll({
             where,
@@ -491,12 +558,7 @@ export const searchCandidates = async (req, res) => {
         return res.json({
             data: processedCandidates,
             count: processedCandidates.length,
-            pagination: {
-                page,
-                limit,
-                totalRecords: count,
-                totalPages: Math.ceil(count / limit)
-            }
+            pagination: paginationMeta(page, limit, count)
         });
     } catch (error) {
         console.error('Error searching candidates:', error);
@@ -525,11 +587,11 @@ export const getCandidateById = async (req, res) => {
             ],
             attributes: [
                 // Basic Information
-                'id', 'uuid', 'name', 'email', 'phone', 
-                'experience', 'current_company', 'current_ctc', 
-                'expected_ctc', 'notice_period', 'current_location', 
-                'preferred_location', 'resume_url', 'status', 
-                'notes', 'source', 'referred_by',
+                'id', 'uuid', 'name', 'email', 'phone',
+                'experience', 'current_company', 'current_ctc',
+                'expected_ctc', 'notice_period', 'current_location',
+                'preferred_location', 'resume_url', 'application_status',
+                'notes', 'source', 'referred_by', 'job_id',
                 'created_by', 'created_by_id',
 
                 // Job Questions & Answers
@@ -564,7 +626,7 @@ export const getCandidateById = async (req, res) => {
         }
 
         // Process rejection details if candidate is rejected
-        if (plainCandidate.status === 'rejected') {
+        if (plainCandidate.application_status === 'rejected') {
             try {
                 const rejectionDetails = typeof plainCandidate.rejection_details === 'string'
                     ? JSON.parse(plainCandidate.rejection_details)
@@ -749,6 +811,57 @@ export const createCandidate = async (req, res) => {
         res.status(500).json({ 
             msg: error.message,
             error: error instanceof multer.MulterError ? 'File upload error' : 'Server error'
+        });
+    }
+};
+
+/**
+ * Upload resume or image for an existing candidate.
+ * Expects multipart field named `resume` or `image` (matches frontend FormData).
+ * Route: POST /api/candidates/:id/upload/:type  where type is resume|image
+ */
+export const uploadCandidateAttachment = async (req, res) => {
+    try {
+        const { id, type } = req.params;
+        const allowed = ['resume', 'image'];
+        if (!allowed.includes(type)) {
+            return res.status(400).json({
+                msg: 'Invalid upload type. Use resume or image.',
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                msg: `No ${type} file uploaded. Expected field name "${type}".`,
+            });
+        }
+
+        const candidate = await Candidate.findOne({ where: { uuid: id } });
+        if (!candidate) {
+            return res.status(404).json({ msg: 'Candidate not found' });
+        }
+
+        const folder = type === 'resume' ? 'resumes' : 'photos';
+        const url = await uploadToS3(req.file, folder);
+
+        if (type === 'resume') {
+            await candidate.update({ resume_url: url });
+        }
+
+        return res.status(200).json({
+            success: true,
+            url,
+            msg: `${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`,
+            candidate: {
+                uuid: candidate.uuid,
+                resume_url: type === 'resume' ? url : candidate.resume_url,
+            },
+        });
+    } catch (error) {
+        console.error('Error uploading candidate attachment:', error);
+        return res.status(500).json({
+            msg: `Failed to upload ${req.params?.type || 'file'}`,
+            error: error.message,
         });
     }
 };
@@ -955,7 +1068,7 @@ export const getCandidatesByJobId = async (req, res) => {
                 'id', 'uuid', 'name', 'email', 'phone', 
                 'experience', 'current_company', 'current_ctc',
                 'expected_ctc', 'notice_period', 'current_location',
-                'preferred_location', 'status', 'source', 'referred_by',
+                'preferred_location', 'application_status', 'source', 'referred_by',
                 'resume_url', 'created_by', 'created_by_id',
                 'rejection_reason', 'rejection_details', 'current_round',
                 'application_status', 'job_answers', 'createdAt', 'updatedAt'
@@ -969,7 +1082,7 @@ export const getCandidatesByJobId = async (req, res) => {
                 {
                     model: User,
                     as: 'creator',
-                    attributes: ['id', 'username', 'email'],
+                    attributes: ['user_id', 'username', 'email'],
                     required: false
                 }
             ],
@@ -1160,7 +1273,7 @@ export const getEmployeeCandidates = async (req, res) => {
                 'id', 'uuid', 'name', 'email', 'phone', 
                 'experience', 'current_company', 'current_ctc', 
                 'expected_ctc', 'notice_period', 'current_location', 
-                'preferred_location', 'resume_url', 'status', 
+                'preferred_location', 'resume_url', 'application_status', 
                 'notes', 'source', 'referred_by',
                 'created_by', 'created_by_id',
                 'createdAt', 'updatedAt',
@@ -1189,7 +1302,7 @@ export const getEmployeeCandidates = async (req, res) => {
                         ? JSON.parse(plainCandidate.rejection_details)
                         : plainCandidate.rejection_details;
 
-                    if (plainCandidate.status === 'rejected') {
+                    if (plainCandidate.application_status === 'rejected') {
                         plainCandidate.rejection_information = {
                             reason: plainCandidate.rejection_reason,
                             ...rejectionDetails

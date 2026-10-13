@@ -25,7 +25,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     // If user's role is not in the allowed roles, redirect to their dashboard
     if (!allowedRoles.includes(userRole)) {
         console.log('Unauthorized access, redirecting to appropriate dashboard');
-        const redirectPath = userRole === 'user' ? '/pegawai/dashboard' : '/';
+        const redirectPath = userRole === 'user' ? '/employee/dashboard' : '/';
         return <Navigate to={redirectPath} replace state={{ from: location }} />;
     }
 

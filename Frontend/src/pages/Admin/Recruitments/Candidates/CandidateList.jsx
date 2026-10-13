@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEdit, FaTrash, FaUserPlus, FaFilter, FaSearch, FaEllipsisV, FaRegEdit, FaPlus, FaHistory, FaFileExcel, FaSort, FaSortUp, FaSortDown, FaDownload, FaUserCircle, FaUser } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaUserPlus, FaFilter, FaSearch, FaEllipsisV, FaRegEdit, FaPlus, FaHistory, FaFileExcel, FaSort, FaSortUp, FaSortDown, FaDownload, FaUserCircle, FaUser, FaUpload } from 'react-icons/fa';
 import { BsTrash3, BsThreeDotsVertical } from 'react-icons/bs';
 import { BiSearch, BiSortAlt2 } from 'react-icons/bi';
 import toast from 'react-hot-toast';
 import DefaultLayoutAdmin from '../../../../layout/DefaultLayoutAdmin';
-import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree } from '../../../../components';
+import { BreadcrumbAdmin, ButtonOne, ButtonTwo, ButtonThree, Pagination } from '../../../../components';
+import { PAGE_SIZE } from '../../../../constants/pagination';
 import { useAuth } from '../../../../context/AuthContext';
 import { deleteCandidate } from '../../../../context/actions/candidateActions';
 import DataTable from '../../../../components/molecules/DataTable/DataTable';
@@ -18,7 +19,7 @@ import { checkUserPermission } from '../../../../utils/permissions';
 import * as XLSX from 'xlsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-const ITEMS_PER_PAGE = 50;
+const ITEMS_PER_PAGE = PAGE_SIZE;
 
 const CandidateList = () => {
   const { dispatch, state: authState } = useAuth();
@@ -154,9 +155,10 @@ const CandidateList = () => {
 
       return response.json();
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
@@ -595,71 +597,8 @@ const CandidateList = () => {
     }
   ];
 
-  const startIndex = candidates.length > 0 ? ((currentPage - 1) * ITEMS_PER_PAGE) + 1 : 0;
-  const endIndex = ((currentPage - 1) * ITEMS_PER_PAGE) + candidates.length;
-
-  // Update the Pagination component with this simplified version
-  const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-    const getPageNumbers = () => {
-      if (totalPages <= 3) {
-        // If there are 3 or fewer pages, show all of them
-        return Array.from({ length: totalPages }, (_, i) => i + 1);
-      }
-
-      if (currentPage === 1) {
-        // If on first page, show 1, 2, ...
-        return [1, 2, '...'];
-      }
-
-      if (currentPage === totalPages) {
-        // If on last page, show ..., lastPage-1, lastPage
-        return ['...', totalPages - 1, totalPages];
-      }
-
-      // In middle, show currentPage-1, currentPage, currentPage+1
-      return [currentPage - 1, currentPage, currentPage + 1];
-    };
-
-    return (
-      <div className='flex gap-2'>
-        <button
-          disabled={currentPage === 1}
-          onClick={() => onPageChange(currentPage - 1)}
-          className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary'
-        >
-          Previous
-        </button>
-
-        {getPageNumbers().map((pageNum, idx) => (
-          <button
-            key={idx}
-            onClick={() => typeof pageNum === 'number' ? onPageChange(pageNum) : null}
-            disabled={pageNum === '...'}
-            className={`py-2 px-4 rounded-lg border transition-colors
-              ${pageNum === currentPage
-                ? 'bg-primary text-white border-primary'
-                : pageNum === '...'
-                  ? 'border-gray-200 text-gray-400 cursor-default'
-                  : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary'
-              }`}
-          >
-            {pageNum}
-          </button>
-        ))}
-
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
-          className='py-2 px-4 rounded-lg border border-primary text-primary font-medium hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-primary'
-        >
-          Next
-        </button>
-      </div>
-    );
-  };
-
   // Add permission check for bulk actions if you have any
-  const canAddCandidate = authState?.user?.role === 'admin' || authState?.user?.permissions?.includes('create_candidate');
+  const canAddCandidate = authState?.user?.role?.toLowerCase() === 'admin' || authState?.user?.permissions?.includes('create_candidate');
 
   // Add this function for Excel download
   const handleDownloadExcel = async () => {
@@ -737,12 +676,19 @@ const CandidateList = () => {
           <div className="p-4 md:p-6 xl:p-7.5">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
               {/* Left side - Add Candidate Button */}
-              <div className="w-full sm:w-auto flex-shrink-0">
+              <div className="w-full sm:w-auto flex-shrink-0 flex flex-wrap items-center gap-3">
                 <Link to="/admin/recruitments/candidates/add">
                   <ButtonOne className="w-full sm:w-auto">
                     <span className="mr-2">Add Candidate</span>
                     <FaPlus />
                   </ButtonOne>
+                </Link>
+                <Link
+                  to="/admin/recruitments/candidates/bulk-upload"
+                  className="btn-navy"
+                >
+                  <FaUpload />
+                  Bulk Upload
                 </Link>
               </div>
 
@@ -851,20 +797,15 @@ const CandidateList = () => {
                 )}
               </div>
 
-              {/* Pagination with improved spacing */}
-              <div className="p-4 md:p-6 border-t border-stroke dark:border-strokedark">
-                <div className='flex justify-between items-center flex-col md:flex-row gap-4'>
-                  <div className='text-sm text-gray-500 dark:text-gray-400'>
-                    Showing {totalRecords === 0 ? '0-0' : `${startIndex}-${endIndex}`} of {totalRecords} Candidates
-                  </div>
-                  {totalRecords > 0 && (
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={(page) => setCurrentPage(page)}
-                    />
-                  )}
-                </div>
+              <div className="px-4 pb-4 md:px-6 md:pb-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={totalRecords}
+                  totalPages={totalPages}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  showingText="Showing"
+                />
               </div>
             </div>
           </div>
@@ -874,7 +815,13 @@ const CandidateList = () => {
         <FilterModal
           isOpen={showFilterModal}
           onClose={() => setShowFilterModal(false)}
-          onApply={() => handleApplyFilters(false)}
+          onApply={(applied) => {
+            const next = applied || tempFilters;
+            setTempFilters(next);
+            setFilters(next);
+            setCurrentPage(1);
+            setShowFilterModal(false);
+          }}
           onReset={handleResetFilters}
           filters={tempFilters}
           setFilters={setTempFilters}

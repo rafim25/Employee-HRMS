@@ -4,11 +4,16 @@ import Job from './Job.js';
 import Candidate from './Candidate.js';
 import CandidateStatusHistory from "./CandidateStatusHistory.js";
 import User from "./User.js";
+import State from "./State.js";
+import City from "./City.js";
+import * as HrModels from "./hr/index.js";
 
 // Remove any existing associations first
 Job.associations = {};
 Candidate.associations = {};
 CandidateStatusHistory.associations = {};
+State.associations = {};
+City.associations = {};
 
 // Define associations
 Job.belongsTo(User, {
@@ -58,10 +63,23 @@ CandidateStatusHistory.belongsTo(Candidate, {
     as: 'candidate'
 });
 
+State.hasMany(City, {
+    foreignKey: 'state_id',
+    as: 'cities',
+    onDelete: 'CASCADE',
+});
+
+City.belongsTo(State, {
+    foreignKey: 'state_id',
+    as: 'state',
+});
+
 // Create sync function
+// Avoid alter:true on every boot — MySQL maxes out at 64 indexes/table and
+// Sequelize repeatedly recreates UNIQUE constraints (uuid_N, email_N, ...).
 const syncModels = async () => {
     try {
-        await db.sync({ alter: true });
+        await db.sync();
         console.log("✅ All tables synchronized");
     } catch (error) {
         console.error("❌ Error synchronizing tables:", error);
@@ -74,5 +92,8 @@ export {
     Candidate,
     CandidateStatusHistory,
     syncModels,
-    User
+    User,
+    State,
+    City,
+    HrModels,
 };

@@ -2,7 +2,6 @@ import { api } from "../../services/api";
 import { SET_DASHBOARD_STATS, SET_ERROR, SET_RECRUITMENT_DASHBOARD } from "../types";
 
 const RECRUITMENT_DASHBOARD_CACHE_KEY = "recruitment_dashboard_cache_v1";
-const DASHBOARD_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
 
 const readCache = (key) => {
   try {
@@ -71,16 +70,15 @@ export const fetchDashboardData = async (dispatch) => {
 };
 
 export const fetchRecruitmentDashboardData = async (dispatch) => {
-  try {
-    const cached = readCache(RECRUITMENT_DASHBOARD_CACHE_KEY);
-    if (cached?.timestamp && Date.now() - cached.timestamp < DASHBOARD_CACHE_TTL_MS && cached.data) {
-      dispatch({
-        type: SET_RECRUITMENT_DASHBOARD,
-        payload: cached.data,
-      });
-      return;
-    }
+  const cached = readCache(RECRUITMENT_DASHBOARD_CACHE_KEY);
+  if (cached?.data) {
+    dispatch({
+      type: SET_RECRUITMENT_DASHBOARD,
+      payload: cached.data,
+    });
+  }
 
+  try {
     const response = await api.get("/api/dashboard/recruitment");
     const {
       activeJobs,
@@ -93,13 +91,13 @@ export const fetchRecruitmentDashboardData = async (dispatch) => {
     } = response.data;
 
     const payload = {
-      activeJobs,
-      totalCandidates,
-      selectedCandidates,
-      rejectedCandidates,
-      candidateStatusData,
-      sourceDistribution,
-      recentActivities,
+      activeJobs: Number(activeJobs) || 0,
+      totalCandidates: Number(totalCandidates) || 0,
+      selectedCandidates: Number(selectedCandidates) || 0,
+      rejectedCandidates: Number(rejectedCandidates) || 0,
+      candidateStatusData: Array.isArray(candidateStatusData) ? candidateStatusData : [],
+      sourceDistribution: Array.isArray(sourceDistribution) ? sourceDistribution : [],
+      recentActivities: Array.isArray(recentActivities) ? recentActivities : [],
     };
 
     dispatch({
@@ -108,11 +106,13 @@ export const fetchRecruitmentDashboardData = async (dispatch) => {
     });
 
     writeCache(RECRUITMENT_DASHBOARD_CACHE_KEY, { timestamp: Date.now(), data: payload });
+    return payload;
   } catch (error) {
     console.error("Error fetching recruitment dashboard stats:", error);
     dispatch({
       type: SET_ERROR,
-      payload: "Failed to fetch recruitment dashboard statistics",
+      payload: error.response?.data?.message || error.response?.data?.msg || "Failed to fetch recruitment dashboard statistics",
     });
+    throw error;
   }
 };

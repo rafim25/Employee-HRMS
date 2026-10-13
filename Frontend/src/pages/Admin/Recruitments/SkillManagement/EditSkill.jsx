@@ -20,7 +20,6 @@ const EditSkill = () => {
         const fetchSkill = async () => {
             try {
                 setLoading(true);
-                const loadingToast = toast.loading('Fetching skill details...');
                 const response = await axios.get(`http://localhost:3002/api/skills/${id}`, {
                     withCredentials: true
                 });
@@ -30,9 +29,8 @@ const EditSkill = () => {
                     description: response.data.description || '',
                     status: response.data.status || 'active'
                 });
-                toast.success('Skill details loaded', { id: loadingToast });
             } catch (error) {
-                toast.error('Failed to fetch skill details');
+                toast.error('Failed to fetch skill details', { id: 'skill-edit-load-error' });
                 console.error('Error fetching skill:', error);
             } finally {
                 setLoading(false);

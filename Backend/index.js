@@ -29,6 +29,7 @@ import UploadRoute from './routes/UploadRoute.js';
 import EmployeeJobRoutes from "./routes/EmployeeJobRoutes.js";
 import EmployeeCandidateRoutes from "./routes/EmployeeCandidateRoutes.js";
 import locationRoutes from './routes/LocationRoute.js';
+import hrRoutes from './routes/hr/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -164,6 +165,7 @@ app.use((req, res, next) => {
 
 // Static files
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Mount routes
 app.use("/api", EmailRoute);
@@ -184,6 +186,7 @@ app.use(candidateRoutes);
 app.use(EmployeeJobRoutes);
 app.use(EmployeeCandidateRoutes);
 app.use(locationRoutes);
+app.use('/api/hr', hrRoutes);
 
 // Add session debugging middleware
 app.use((req, res, next) => {
@@ -246,6 +249,7 @@ const startServer = async () => {
   try {
     // Test database connection
     await testConnection();
+    await syncModels();
     
     // Start the server
     const PORT = process.env.APP_PORT || 3002;

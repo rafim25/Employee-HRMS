@@ -14,6 +14,15 @@ export const initialState = {
   transactions: [],
   users: [], // regular users
   admins: [], // admin users
+  recruitmentDashboard: {
+    activeJobs: 0,
+    totalCandidates: 0,
+    selectedCandidates: 0,
+    rejectedCandidates: 0,
+    candidateStatusData: [],
+    sourceDistribution: [],
+    recentActivities: [],
+  },
   loans: [],
   lendingDetails: {},
   loans: {

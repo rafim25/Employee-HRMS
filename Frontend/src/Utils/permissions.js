@@ -5,7 +5,7 @@ export const checkUserPermission = (item, currentUser) => {
     const isCreator = item.created_by_id === currentUser.user_id;
     
     // Check if user is admin
-    const isAdmin = currentUser.role === 'admin';
+    const isAdmin = currentUser.role?.toLowerCase() === 'admin';
     
     // Check if user is in the editable_by array
     const isEditor = item.editable_by && item.editable_by.includes(currentUser.user_id);

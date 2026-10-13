@@ -19,6 +19,7 @@ export const USER_ENDPOINTS = {
   UPDATE: (id) => `/api/users/${id}`,
   DELETE: (id) => `/api/users/${id}`,
   FILTER_BY_ROLE: (role) => `/api/users/filter?role=${role}`,
+  BULK_UPLOAD: "/api/users/bulk-upload",
 };
 
 // Dashboard endpoints
@@ -51,6 +52,7 @@ export const JOB_ENDPOINTS = {
   UPDATE: (id) => `/api/jobs/${id}`,
   DELETE: (id) => `/api/jobs/${id}`,
   GET: (id) => `/api/jobs/${id}`,
+  BULK_UPLOAD: '/api/jobs/bulk-upload',
 };
 
 export const SKILL_ENDPOINTS = {
@@ -59,4 +61,10 @@ export const SKILL_ENDPOINTS = {
   UPDATE: (id) => `/api/skills/${id}`,
   DELETE: (id) => `/api/skills/${id}`,
   GET: (id) => `/api/skills/${id}`,
+  BULK_UPLOAD: '/api/skills/bulk-upload',
+};
+
+export const CANDIDATE_ENDPOINTS = {
+  LIST: '/api/candidates',
+  BULK_UPLOAD: '/api/candidates/bulk-upload',
 };

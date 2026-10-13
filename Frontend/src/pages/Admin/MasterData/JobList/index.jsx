@@ -11,7 +11,7 @@ import { fetchJobs, deleteJob } from '../../../../context/actions/jobActions';
 import { toast } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 const JobList = () => {
     const { state, dispatch } = useAuth();
@@ -25,8 +25,7 @@ const JobList = () => {
         try {
             await fetchJobs(dispatch);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Failed to fetch jobs';
-            toast.error(errorMessage);
+            // Error toast handled in fetchJobs
         }
     }, [dispatch]);
 
@@ -51,11 +50,9 @@ const JobList = () => {
     const confirmDelete = async () => {
         try {
             await deleteJob(dispatch, jobToDelete);
-            toast.success('Job deleted successfully');
             loadJobs();
         } catch (error) {
-            const errorMessage = error.response?.data?.msg || 'Failed to delete job';
-            toast.error(errorMessage);
+            // Error toast handled in deleteJob
         } finally {
             setShowDeleteModal(false);
             setJobToDelete(null);

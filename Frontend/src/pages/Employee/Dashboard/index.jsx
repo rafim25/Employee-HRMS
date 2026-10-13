@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DefaultLayoutEmployee from '../../../layout/DefaultLayoutPegawai';
+import { BreadcrumbPegawai } from '../../../components';
 import { api } from '../../../services/api';
 import {
   FaBriefcase,
@@ -7,7 +8,10 @@ import {
   FaUserPlus,
   FaChartLine,
   FaRegClock,
-  FaBuilding
+  FaBuilding,
+  FaSignInAlt,
+  FaPlaneDeparture,
+  FaFilePdf
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
@@ -66,8 +70,22 @@ const EmployeeDashboard = () => {
     fetchDashboardStats();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) {
+    return (
+      <DefaultLayoutEmployee>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold"></div>
+        </div>
+      </DefaultLayoutEmployee>
+    );
+  }
+  if (error) {
+    return (
+      <DefaultLayoutEmployee>
+        <p className="text-danger">{error}</p>
+      </DefaultLayoutEmployee>
+    );
+  }
 
   const { user, stats, recentActivities, openPositions, candidateStats } = dashboardData;
 
@@ -78,9 +96,17 @@ const EmployeeDashboard = () => {
 
   return (
     <DefaultLayoutEmployee>
-      <div className="p-4">
-        {/* User Profile Summary */}
-        <div className="mb-6 bg-white rounded-lg shadow-md p-6 border border-stroke dark:border-strokedark dark:bg-boxdark">
+      <BreadcrumbPegawai pageName="My Dashboard" backButton={false} />
+      <div>
+        <div className="mb-6 app-card p-4">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#d4af37]">My HR</p>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/employee/hr/check-in" className="btn-gold !px-3 !py-2 text-sm flex items-center gap-2"><FaSignInAlt /> Check In / Out</Link>
+            <Link to="/employee/hr/leave" className="btn-outline !px-3 !py-2 text-sm flex items-center gap-2"><FaPlaneDeparture /> Leave</Link>
+            <Link to="/employee/hr/salary-slips" className="btn-outline !px-3 !py-2 text-sm flex items-center gap-2"><FaFilePdf /> Salary Slips</Link>
+          </div>
+        </div>
+        <div className="mb-6 app-card p-6">
           <div className="flex items-center gap-4">
             <img
               src={user.photo || '/default-avatar.png'}
@@ -96,7 +122,7 @@ const EmployeeDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-md p-6 border border-stroke dark:border-strokedark dark:bg-boxdark">
+          <div className="app-card p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Open Positions</p>
@@ -104,13 +130,13 @@ const EmployeeDashboard = () => {
                   {stats.totalOpenPositions}
                 </h3>
               </div>
-              <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <FaBriefcase className="text-primary text-2xl" />
+              <div className="h-12 w-12 bg-[#d4af37] rounded-full flex items-center justify-center">
+                <FaBriefcase className="text-primary text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border border-stroke dark:border-strokedark dark:bg-boxdark">
+          <div className="app-card p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Your Jobs</p>
@@ -118,13 +144,13 @@ const EmployeeDashboard = () => {
                   {stats.totalJobs}
                 </h3>
               </div>
-              <div className="h-12 w-12 bg-success/10 rounded-full flex items-center justify-center">
-                <FaUsers className="text-success text-2xl" />
+              <div className="h-12 w-12 bg-[#d4af37] rounded-full flex items-center justify-center">
+                <FaUsers className="text-primary text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border border-stroke dark:border-strokedark dark:bg-boxdark">
+          <div className="app-card p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Total Candidates</p>
@@ -132,13 +158,13 @@ const EmployeeDashboard = () => {
                   {stats.totalCandidates}
                 </h3>
               </div>
-              <div className="h-12 w-12 bg-warning/10 rounded-full flex items-center justify-center">
-                <FaUserPlus className="text-warning text-2xl" />
+              <div className="h-12 w-12 bg-[#d4af37] rounded-full flex items-center justify-center">
+                <FaUserPlus className="text-primary text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border border-stroke dark:border-strokedark dark:bg-boxdark">
+          <div className="app-card p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Success Rate</p>
@@ -146,8 +172,8 @@ const EmployeeDashboard = () => {
                   {successRate}%
                 </h3>
               </div>
-              <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <FaChartLine className="text-primary text-2xl" />
+              <div className="h-12 w-12 bg-[#d4af37] rounded-full flex items-center justify-center">
+                <FaChartLine className="text-primary text-xl" />
               </div>
             </div>
           </div>
@@ -156,7 +182,7 @@ const EmployeeDashboard = () => {
         {/* Recent Jobs and Activities */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Open Jobs */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-stroke dark:border-strokedark dark:bg-boxdark">
+          <div className="app-card p-6">
             <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Open Positions</h2>
             <div className="space-y-4">
               {openPositions && openPositions.length > 0 ? (
@@ -175,7 +201,7 @@ const EmployeeDashboard = () => {
                     </div>
                     <Link
                       to={`/employee/recruitments/job-management/details/${job.id}`}
-                      className="px-3 py-1 text-xs bg-primary/10 text-primary rounded-full hover:bg-primary/20"
+                      className="px-3 py-1 text-xs font-semibold bg-[#d4af37] text-primary rounded-full hover:bg-[#e3c356]"
                     >
                       View
                     </Link>
@@ -188,7 +214,7 @@ const EmployeeDashboard = () => {
           </div>
 
           {/* Recent Activities */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-stroke dark:border-strokedark dark:bg-boxdark">
+          <div className="app-card p-6">
             <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Recent Activities</h2>
             <div className="space-y-4">
               {recentActivities && recentActivities.length > 0 ? (

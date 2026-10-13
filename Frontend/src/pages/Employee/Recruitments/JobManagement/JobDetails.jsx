@@ -26,7 +26,7 @@ import { checkUserPermission } from '../../../../utils/permissions';
 
 
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -348,6 +348,88 @@ const JobDetails = () => {
     return !checkUserPermission(candidate, authState?.user);
   };
 
+  const handleShareClick = () => {
+    const shortlistedCount = candidates.filter(
+      (c) => c.application_status === 'shortlisted'
+    ).length;
+    if (shortlistedCount === 0) {
+      toast.error('No shortlisted candidates to share');
+      return;
+    }
+    if (!job?.clientEmail) {
+      toast.error('Client email is missing on this job');
+      return;
+    }
+    setShowShareConfirmation(true);
+  };
+
+  const handleShareWithClient = async () => {
+    const shortlistedCandidates = candidates.filter(
+      (c) => c.application_status === 'shortlisted'
+    );
+
+    if (shortlistedCandidates.length === 0) {
+      toast.error('No shortlisted candidates to share');
+      return;
+    }
+
+    if (!job?.clientEmail) {
+      toast.error('Client email is missing on this job');
+      return;
+    }
+
+    const loadingToast = toast.loading('Sharing shortlisted candidates...', {
+      id: 'share-shortlisted',
+    });
+
+    try {
+      const response = await fetch('/api/candidates/share', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: id,
+          clientEmail: job.clientEmail,
+          clientName: job.clientName,
+          jobTitle: job.title,
+          candidates: shortlistedCandidates,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const detail = data?.details?.error || data?.details?.suggestion;
+        throw new Error(
+          detail
+            ? `${data.message || 'Failed to share candidates'}: ${detail}`
+            : data.message || 'Failed to share candidates'
+        );
+      }
+
+      toast.success(
+        `Successfully shared ${shortlistedCandidates.length} shortlisted candidates`,
+        { id: loadingToast, duration: 4000 }
+      );
+
+      setCandidates((prev) =>
+        prev.map((candidate) =>
+          candidate.application_status === 'shortlisted'
+            ? { ...candidate, shared_with_client: true, shared_at: new Date() }
+            : candidate
+        )
+      );
+
+      setShowShareConfirmation(false);
+    } catch (error) {
+      toast.error(error.message || 'Failed to share candidates', {
+        id: loadingToast,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <DefaultLayoutEmployee>
@@ -574,6 +656,19 @@ const JobDetails = () => {
                 <FaFilter />
                 Filters
               </button>
+
+              {getFilteredCandidates().some(
+                (c) => c.application_status === 'shortlisted'
+              ) && (
+                <button
+                  type="button"
+                  onClick={handleShareClick}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-opacity-90"
+                >
+                  <FaShare />
+                  Share Shortlisted
+                </button>
+              )}
             </div>
           </div>
 
@@ -636,6 +731,16 @@ const JobDetails = () => {
       <FilterModal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
+        onApply={() => setShowFilterModal(false)}
+        onReset={() =>
+          setFilters({
+            status: '',
+            source: '',
+            experience: { min: '', max: '' },
+            location: '',
+            dateRange: { start: '', end: '' },
+          })
+        }
         filters={filters}
         setFilters={setFilters}
         config={filterConfig}
@@ -649,6 +754,20 @@ const JobDetails = () => {
         }}
         onConfirm={handleRejectionConfirm}
         currentStage={selectedCandidate?.current_round}
+      />
+
+      <ConfirmationModal
+        isOpen={showShareConfirmation}
+        onClose={() => setShowShareConfirmation(false)}
+        onConfirm={handleShareWithClient}
+        title="Share Shortlisted Candidates"
+        message={`Are you sure you want to share ${
+          candidates.filter((c) => c.application_status === 'shortlisted').length
+        } shortlisted candidate(s) with ${job?.clientName || 'the client'}? An email will be sent with the candidates' details and resumes.`}
+        confirmText="Share Candidates"
+        cancelText="Cancel"
+        confirmButtonClass="bg-primary"
+        icon={<FaExclamationTriangle className="text-2xl text-warning" />}
       />
     </DefaultLayoutEmployee>
   );

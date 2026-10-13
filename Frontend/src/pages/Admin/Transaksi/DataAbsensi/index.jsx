@@ -9,7 +9,7 @@ import { BiSearch } from 'react-icons/bi'
 import { MdOutlineKeyboardArrowDown } from 'react-icons/md'
 import { TfiEye } from 'react-icons/tfi'
 
-const ITEMS_PER_PAGE = 4;
+const ITEMS_PER_PAGE = 10;
 
 const DataAbsensi = () => {
     const [currentPage, setCurrentPage] = useState(1);

@@ -12,7 +12,7 @@ export const Login = async (req, res) => {
     });
 
     if (!pegawai)
-      return res.status(404).json({ msg: "Data Pegawai tidak ditemukan" });
+      return res.status(404).json({ msg: "Employee not found" });
 
     console.log(
       "Database Password:",
@@ -37,7 +37,7 @@ export const Login = async (req, res) => {
 
 export const Me = async (req, res) => {
   if (!req.session.userId) {
-    return res.status(401).json({ msg: "Mohon login ke akun Anda!" });
+    return res.status(401).json({ msg: "Please log in to your account!" });
   }
   const pegawai = await DataPegawai.findOne({
     attributes: ["id", "nama_pegawai", "username", "hak_akses"],
@@ -45,13 +45,13 @@ export const Me = async (req, res) => {
       id_pegawai: req.session.userId,
     },
   });
-  if (!pegawai) return res.status(404).json({ msg: "User tidak ditemukan" });
+  if (!pegawai) return res.status(404).json({ msg: "User not found" });
   res.status(200).json(pegawai);
 };
 
 export const LogOut = (req, res) => {
   req.session.destroy((err) => {
-    if (err) return res.status(400).json({ msg: "Tidak dapat logout" });
-    res.status(200).json({ msg: "Anda telah logout" });
+    if (err) return res.status(400).json({ msg: "Unable to logout" });
+    res.status(200).json({ msg: "You have been logged out" });
   });
 };

@@ -19,19 +19,18 @@ const Modal = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+      <div className="fixed inset-0 bg-[#0b1d36]/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}></div>
 
       <div className="flex items-center justify-center min-h-screen p-4">
-        <div className={`relative bg-white dark:bg-boxdark rounded-xl shadow-lg w-full ${sizeClasses[size]} transform transition-all`}>
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-stroke dark:border-strokedark">
-            <h3 className="text-xl font-semibold text-black dark:text-white">
+        <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} transform transition-all border border-[rgba(212,175,55,0.35)]`}>
+          <div className="flex items-center justify-between p-4 border-b border-[rgba(11,29,54,0.08)] bg-[#0b1d36] rounded-t-2xl">
+            <h3 className="text-xl font-semibold text-white">
               {title}
             </h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-[#d4af37] hover:text-[#0b1d36]"
             >
               <FaTimes className="text-xl" />
             </button>
