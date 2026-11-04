@@ -10,7 +10,7 @@ import { FaRegEdit, FaPlus } from 'react-icons/fa';
 import { BsTrash3 } from 'react-icons/bs';
 import { BiSearch } from 'react-icons/bi';
 import toast from 'react-hot-toast';
-import { formatCurrency } from '../../../utils/formatCurrency';
+import { formatCurrency } from '../../../utils/formatCurrency.js'
 
 const ExpenseList = () => {
   const [expenses, setExpenses] = useState([]);
