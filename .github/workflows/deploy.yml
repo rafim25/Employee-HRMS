@@ -1,5 +1,5 @@
 
-name: HRMS Automatic Production Deployment
+name: HRMS Deployment
 
 on:
   push:
@@ -12,6 +12,9 @@ jobs:
   deploy:
     name: Build and Deploy
     runs-on: ubuntu-24.04
+
+    # IMPORTANT: This enables access to environment secrets
+    environment: "Preview – employee-hrms"
 
     steps:
       - name: Connect and deploy to Ubuntu
@@ -46,3 +49,4 @@ jobs:
             pm2 status
 
             echo "HRMS deployment completed"
+
