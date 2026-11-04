@@ -11,7 +11,7 @@ on:
 jobs:
   deploy:
     name: Build and Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Connect and deploy to Ubuntu
