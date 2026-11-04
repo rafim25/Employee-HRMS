@@ -6,11 +6,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js",
+    "dev": "nodemon index.js",
+    "start": "NODE_ENV=production node index.js",
     "migrate": "node migrations/runMigrations.js",
     "seed:hr": "node scripts/seedHrDefaults.js",
     "db:setup": "node scripts/setupProductionDb.js",
-    "db:export-schema": "node scripts/exportSchemaSql.js"
+    "db:export-schema": "node scripts/exportSchemaSql.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:restart": "pm2 restart hrms-backend --update-env",
+    "pm2:logs": "pm2 logs hrms-backend --lines 100"
   },
   "keywords": [],
   "author": "",
