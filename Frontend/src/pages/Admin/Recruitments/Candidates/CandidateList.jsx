@@ -15,7 +15,7 @@ import FilterModal from '../../../../components/molecules/FilterModal/FilterModa
 import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
 import { MdSource } from 'react-icons/md';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
-import { checkUserPermission } from '../../../../utils/permissions';
+import { checkUserPermission } from '../../../../Utils/permissions';
 import * as XLSX from 'xlsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 

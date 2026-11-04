@@ -14,7 +14,7 @@ import FilterModal from '../../../../components/molecules/FilterModal/FilterModa
 import Pagination from '../../../../components/molecules/Pagination/Pagination';
 import DeleteConfirmationModal from '../../../../components/DeleteConfirmationModal';
 import api from '../../../../services/api';
-import { checkUserPermission } from '../../../../utils/permissions';
+import { checkUserPermission } from '../../../../Utils/permissions';
 
 import { PAGE_SIZE } from '../../../../constants/pagination';
 const ITEMS_PER_PAGE = PAGE_SIZE;

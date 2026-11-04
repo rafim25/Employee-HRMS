@@ -16,7 +16,7 @@ import axios from 'axios';
 import { Tab } from '@headlessui/react';
 import BulkExcelUploadPanel from '../../../../components/molecules/BulkExcelUploadPanel';
 import { JOB_ENDPOINTS } from '../../../../constants/apiEndpoints';
-import { numberToWords, formatIndianCurrency } from '../../../../utils/numberToWords';
+import { numberToWords, formatIndianCurrency } from "../../../../Utils/numberToWords.js";
 
 const JobForm = () => {
     const navigate = useNavigate();

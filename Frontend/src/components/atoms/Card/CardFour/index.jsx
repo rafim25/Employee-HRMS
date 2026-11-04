@@ -1,7 +1,7 @@
 import React from 'react';
 import { BiRupee } from 'react-icons/bi'
 import { useAuth } from '../../../../context/AuthContext';
-import { formatCurrency } from '../../../../utils/formatCurrency';
+import { formatCurrency } from '../../../../Utils/formatCurrency';
 
 const CardFour = () => {
   const { state } = useAuth();

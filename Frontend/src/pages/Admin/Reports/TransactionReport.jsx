@@ -4,7 +4,7 @@ import { BreadcrumbAdmin } from '../../../components';
 import { FaFileExcel, FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { formatCurrency } from '../../../utils/formatCurrency';
+import { formatCurrency } from '../../../Utils/formatCurrency';
 
 const ITEMS_PER_PAGE = 10;
 

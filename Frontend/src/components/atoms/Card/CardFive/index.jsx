@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaMoneyBillWave } from 'react-icons/fa'
 import { useAuth } from '../../../../context/AuthContext';
-import { formatCurrency } from '../../../../utils/formatCurrency';
+import { formatCurrency } from '../../../../Utils/formatCurrency';
 
 const CardFive = () => {
   const { state } = useAuth();

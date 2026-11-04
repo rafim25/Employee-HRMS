@@ -12,7 +12,7 @@ import DataTable from '../../../../components/molecules/DataTable/DataTable';
 import FilterModal from '../../../../components/molecules/FilterModal/FilterModal';
 import { MdSource } from 'react-icons/md';
 import RejectionModal from '../../../../components/molecules/RejectionModal/RejectionModal';
-import { checkUserPermission } from '../../../../utils/permissions';
+import { checkUserPermission } from '../../../../Utils/permissions';
 import { fetchCandidates, updateCandidateStatus } from '../../../../context/actions/candidateActions';
 import * as XLSX from 'xlsx';
 

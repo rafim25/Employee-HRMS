@@ -35,7 +35,7 @@ import {
 } from 'react-icons/fa';
 import { BiSearch } from 'react-icons/bi';
 import { BsTrash3 } from 'react-icons/bs';
-import { checkUserPermission } from '../../../../utils/permissions';
+import { checkUserPermission } from '../../../../Utils/permissions';
 
 const JobDetails = () => {
   const { id } = useParams();

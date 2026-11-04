@@ -22,7 +22,7 @@ import RejectionModal from '../../../../components/molecules/RejectionModal/Reje
 import InterviewProcessMilestone from '../../../../components/molecules/Milestones/InterviewProcessMilestones';
 import { useAuth } from '../../../../context/AuthContext';
 import { fetchJobById } from '../../../../context/actions/jobActions';
-import { checkUserPermission } from '../../../../utils/permissions';
+import { checkUserPermission } from '../../../../Utils/permissions';
 
 
 

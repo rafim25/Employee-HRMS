@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { useAuth } from '../../../../context/AuthContext';
-import { formatCurrency } from '../../../../utils/formatCurrency';
+import { formatCurrency } from '../../../../Utils/formatCurrency';
 
 const ChartTwo = () => {
   const { state } = useAuth();
