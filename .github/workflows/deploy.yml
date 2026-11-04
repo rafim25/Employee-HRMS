@@ -1,0 +1,48 @@
+
+name: HRMS Automatic Production Deployment
+
+on:
+  push:
+    branches:
+      - vinod-hrms-version-3
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Connect and deploy to Ubuntu
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+
+            echo "Starting HRMS deployment"
+
+            cd /home/ubuntu/Employee-HRMS
+
+            git pull --ff-only origin vinod-hrms-version-3
+
+            echo "Installing backend dependencies"
+            cd Backend
+            npm ci
+
+            echo "Building frontend"
+            cd ../Frontend
+            npm ci
+            npm run build
+
+            echo "Restarting backend"
+            cd ../Backend
+            pm2 restart hrms-backend --update-env
+
+            echo "Checking application"
+            pm2 status
+
+            echo "HRMS deployment completed"
