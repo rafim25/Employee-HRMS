@@ -59,7 +59,9 @@ const allowedOrigins = [
   'http://13.60.189.178',
   'http://13.60.189.178:3002',
   'http://13.60.189.178:5173',
-  'https://sevenwingstechnologies.in/api'
+  'https://sevenwingstechnologies.in/api',
+  'https://13.60.197.31',
+  'https://13.60.197.31:3002'
 ];
 
 // CORS middleware
