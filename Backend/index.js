@@ -37,7 +37,8 @@ const __dirname = path.dirname(__filename);
 // Load environment variables BEFORE importing other modules
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
 dotenv.config({ 
-  path: path.join(__dirname, envFile)
+  path: path.join(__dirname, envFile),
+  override: true
 });
 
 // Verify environment variables are loaded
