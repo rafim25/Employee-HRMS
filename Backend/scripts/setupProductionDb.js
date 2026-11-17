@@ -229,6 +229,10 @@ async function main() {
   await seedAdmin(User);
   await seedHrDefaults(HrModels);
 
+  console.log("📍 Seeding locations...");
+  const { seedIndiaLocations } = await import("./seedLocations.js");
+  await seedIndiaLocations({ close: false });
+
   const [tables] = await db.query(
     `SELECT COUNT(*) AS table_count
      FROM information_schema.tables
@@ -245,6 +249,7 @@ async function main() {
   console.log("     2. Start API (PM2) and point Nginx at Frontend/dist");
   console.log("     3. GET /api/health → database: connected");
   console.log("     4. Optional: npm run db:export-schema");
+  console.log("     5. Re-seed locations anytime: npm run seed:locations");
 
   await db.close();
 }
