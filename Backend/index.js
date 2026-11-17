@@ -100,12 +100,9 @@ app.use(cors({
 app.use(express.json());
 
 // Health Check Endpoint
-app.get(' ', async (req, res) => {
+app.get('/api/health', async (req, res) => {
   try {
-    // Check database connection
     await db.authenticate();
-    
-    // Return health status
     res.json({
       status: 'healthy',
       timestamp: new Date(),
@@ -137,7 +134,11 @@ const store = new sessionStore({
 // Ensure the session table exists
 await store.sync();
 
-// Session configuration
+// Session cookies: keep secure=false by default so login works behind Nginx
+// TLS termination even if X-Forwarded-Proto is missing. Opt-in with COOKIE_SECURE=true
+// only after Nginx sends: proxy_set_header X-Forwarded-Proto $scheme;
+const cookieSecure = process.env.COOKIE_SECURE === 'true';
+
 const sessionConfig = {
   secret: process.env.SESS_SECRET || 'your-secret-key',
   resave: true,
@@ -147,8 +148,7 @@ const sessionConfig = {
   proxy: true,
   cookie: {
     httpOnly: true,
-    // HTTPS site behind Nginx — set true in production
-    secure: process.env.NODE_ENV === 'production',
+    secure: cookieSecure,
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000,
     path: '/'

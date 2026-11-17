@@ -32,11 +32,14 @@ export const LoginV2 = async (req, res) => {
       return res.status(400).json({ msg: "Wrong password" });
     }
 
-    // Set session
+    // Set session and wait until it is persisted (avoids 401 right after login)
     req.session.userId = user.user_id;
 
-    // Return user data without sensitive information
     const { user_id, username, email, role, permissions } = user;
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => (err ? reject(err) : resolve()));
+    });
+
     res.status(200).json({
       user_id,
       username,
