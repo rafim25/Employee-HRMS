@@ -16,7 +16,7 @@ const PublicLayout = ({ children }) => {
         <div className="min-h-screen bg-white flex flex-col">
             <TopNavigation onLoginClick={openLoginModal} overlay={overlay} />
             <LoginModalWrapper />
-            <div className={`flex-grow ${overlay ? '' : 'pt-20'}`}>
+            <div className="flex-grow">
                 {children}
             </div>
             <Footer />

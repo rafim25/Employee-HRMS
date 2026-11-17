@@ -13,19 +13,19 @@ const TopNavigation = ({ onLoginClick, overlay = false }) => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        className={`relative z-40 w-full transition-all duration-300 ${
           overlay
             ? 'bg-gradient-to-b from-black/55 to-transparent'
             : 'bg-[#0b1d36]/95 backdrop-blur-md shadow-lg'
         }`}
       >
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between h-[72px] lg:h-20">
+          <div className="flex items-center justify-between h-[88px] lg:h-28">
             <Link to="/" className="flex items-center shrink-0">
               <img
                 src={sevenWingsLogo}
                 alt="Seven Wings Technologies"
-                className="h-12 lg:h-14 w-auto object-contain rounded-sm bg-white"
+                className="h-16 sm:h-20 lg:h-24 w-auto object-contain rounded-sm bg-white p-1"
               />
             </Link>
             <button
