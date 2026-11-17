@@ -1,17 +1,19 @@
 /**
  * PM2 process file for AWS (local MariaDB on same host).
  *
- * First-time setup on the server:
- *   1. sudo mysql < scripts/createMariaDbUser.sql   (edit password first)
- *   2. cp .env.production.example .env.production && nano .env.production
- *   3. npm ci
- *   4. NODE_ENV=production npm run db:setup
- *   5. pm2 start ecosystem.config.cjs   # name: hrms-backend
- *      OR if already running: pm2 restart hrms-backend --update-env
- *   6. pm2 save && pm2 startup
+ * Start / reload:
+ *   pm2 start ecosystem.config.cjs --env production
+ *   pm2 reload ecosystem.config.cjs --env production --update-env
+ *
+ * First-time DB:
+ *   cp .env.production.example .env.production && nano .env.production
+ *   sudo mysql < scripts/createMariaDbUser.sql
+ *   NODE_ENV=production npm run db:setup
  *
  * After git pull:
- *   git pull && npm ci && pm2 restart hrms-backend --update-env
+ *   git pull && npm ci && pm2 reload ecosystem.config.cjs --env production --update-env
+ *
+ * App loads secrets from Backend/.env.production when NODE_ENV=production.
  */
 module.exports = {
   apps: [
@@ -23,8 +25,15 @@ module.exports = {
       exec_mode: "fork",
       watch: false,
       max_memory_restart: "512M",
+      // default (pm2 start without --env)
       env: {
         NODE_ENV: "production",
+        APP_PORT: 3002,
+      },
+      // used by: pm2 start ecosystem.config.cjs --env production
+      env_production: {
+        NODE_ENV: "production",
+        APP_PORT: 3002,
       },
       error_file: "logs/pm2-error.log",
       out_file: "logs/pm2-out.log",

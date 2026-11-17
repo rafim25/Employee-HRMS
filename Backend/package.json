@@ -12,7 +12,8 @@
     "seed:hr": "node scripts/seedHrDefaults.js",
     "db:setup": "node scripts/setupProductionDb.js",
     "db:export-schema": "node scripts/exportSchemaSql.js",
-    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:start": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:reload": "pm2 reload ecosystem.config.cjs --env production --update-env",
     "pm2:restart": "pm2 restart hrms-backend --update-env",
     "pm2:logs": "pm2 logs hrms-backend --lines 100"
   },

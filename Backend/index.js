@@ -52,17 +52,22 @@ console.log(`DB_NAME: ${process.env.DB_NAME}`);
 
 const app = express();
 
-// Define allowed origins
+// Define allowed origins (CORS). Add EXTRA_CORS_ORIGINS=comma,separated in .env.production if needed.
 const allowedOrigins = [
   'https://sevenwingstechnologies.in',
   'https://sevenwingstechnologies.in/',
+  'https://www.sevenwingstechnologies.in',
   'http://localhost:5173',
   'http://13.60.189.178',
   'http://13.60.189.178:3002',
   'http://13.60.189.178:5173',
-  'https://sevenwingstechnologies.in/api',
+  'http://13.60.197.31',
+  'http://13.60.197.31:3002',
   'https://13.60.197.31',
-  'https://13.60.197.31:3002'
+  'https://sevenwingstechnologies.in/api',
+  ...(process.env.EXTRA_CORS_ORIGINS
+    ? process.env.EXTRA_CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+    : []),
 ];
 
 // CORS middleware
@@ -92,7 +97,7 @@ app.use(cors({
 app.use(express.json());
 
 // Health Check Endpoint
-app.get('/api/health', async (req, res) => {
+app.get(' ', async (req, res) => {
   try {
     // Check database connection
     await db.authenticate();
