@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
 dotenv.config({
   path: path.join(__dirname, '..', envFile),
+  override: true,
 });
 
 // Database configuration (MySQL / MariaDB — same dialect)
