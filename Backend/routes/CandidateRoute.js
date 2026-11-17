@@ -18,6 +18,10 @@ import {
   checkDuplicate,
   uploadCandidateAttachment,
 } from "../controllers/CandidateController.js";
+import {
+  previewBulkImport,
+  commitBulkImport,
+} from "../controllers/bulkImportController.js";
 import { sendCandidatesToClient } from "../controllers/EmailController.js";
 import {
   verify_User as verifyUser,
@@ -30,6 +34,12 @@ const router = express.Router();
 const uploadMemory = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
+// Larger limit for Excel + ZIP bulk import (100MB per file)
+const bulkImportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
 // Accept whichever field name the client sends (resume | image | file)
@@ -82,8 +92,28 @@ router.patch('/api/candidates/:id/status', verifyUser,adminOnly, updateCandidate
 // Any authenticated user (admin or employee) can share shortlisted candidates
 router.post('/api/candidates/share', verifyUser, sendCandidatesToClient);
 
-// Add the bulk upload route
+// Add the bulk upload route (legacy JSON body)
 router.post('/api/candidates/bulk-upload', verifyUser, bulkUploadCandidates);
+
+// Server-side Excel + ZIP import (preview → commit)
+router.post(
+  '/api/candidates/bulk-import/preview',
+  verifyUser,
+  bulkImportUpload.fields([
+    { name: 'excel', maxCount: 1 },
+    { name: 'zip', maxCount: 1 },
+  ]),
+  previewBulkImport
+);
+router.post(
+  '/api/candidates/bulk-import/commit',
+  verifyUser,
+  bulkImportUpload.fields([
+    { name: 'excel', maxCount: 1 },
+    { name: 'zip', maxCount: 1 },
+  ]),
+  commitBulkImport
+);
 
 // Add the check duplicate route
 router.post("/api/candidates/check-duplicate", checkDuplicate);

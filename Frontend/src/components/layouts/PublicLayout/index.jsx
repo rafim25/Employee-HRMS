@@ -8,20 +8,20 @@ import Footer from '../../molecules/Footer';
 const overlayPaths = ['/', '/admin/login'];
 
 const PublicLayout = ({ children }) => {
-    const { openLoginModal } = useLoginModal();
-    const location = useLocation();
-    const overlay = overlayPaths.includes(location.pathname);
+  const { openLoginModal } = useLoginModal();
+  const location = useLocation();
+  const overlay = overlayPaths.includes(location.pathname);
 
-    return (
-        <div className="min-h-screen bg-white flex flex-col">
-            <TopNavigation onLoginClick={openLoginModal} overlay={overlay} />
-            <LoginModalWrapper />
-            <div className="flex-grow">
-                {children}
-            </div>
-            <Footer />
-        </div>
-    );
+  return (
+    <div className={`min-h-screen bg-white flex flex-col ${overlay ? 'relative' : ''}`}>
+      <TopNavigation onLoginClick={openLoginModal} overlay={overlay} />
+      <LoginModalWrapper />
+      <div className={`flex-grow ${overlay ? '' : ''}`}>
+        {children}
+      </div>
+      <Footer />
+    </div>
+  );
 };
 
 export default PublicLayout;

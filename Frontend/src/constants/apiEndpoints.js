@@ -67,4 +67,6 @@ export const SKILL_ENDPOINTS = {
 export const CANDIDATE_ENDPOINTS = {
   LIST: '/api/candidates',
   BULK_UPLOAD: '/api/candidates/bulk-upload',
+  BULK_IMPORT_PREVIEW: '/api/candidates/bulk-import/preview',
+  BULK_IMPORT_COMMIT: '/api/candidates/bulk-import/commit',
 };

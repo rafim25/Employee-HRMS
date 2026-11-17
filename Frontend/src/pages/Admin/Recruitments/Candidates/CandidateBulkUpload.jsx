@@ -15,38 +15,30 @@ import { BreadcrumbAdmin } from '../../../../components';
 import { useAuth } from '../../../../context/AuthContext';
 import { downloadBulkTemplate } from '../../../../Utils/excelTemplates';
 import {
+  OPTIONAL_HINTS,
   REQUIRED_CANDIDATE_FIELDS,
-  analyzeZipArchive,
-  buildResumeMatchReport,
-  convertExcelToJson,
-  findMatchingResumeInZip,
-  mapExcelRowToCandidate,
-  uploadResumeAndAttach,
-  validateCandidateRows,
-  validateResumeMatches,
+  commitBulkImport,
+  downloadErrorCsv,
+  previewBulkImport,
 } from '../../../../Utils/candidateBulkUpload';
-import { CANDIDATE_ENDPOINTS } from '../../../../constants/apiEndpoints';
-import { api } from '../../../../services/api';
-
-const emptyResults = { success: [], duplicates: [], errors: [] };
 
 const Indicator = ({ type }) => {
   if (type === 'success') {
     return (
-      <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700" title="Success">
+      <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700">
         <span className="text-base leading-none">🟢</span> Success
       </span>
     );
   }
   if (type === 'warning') {
     return (
-      <span className="inline-flex items-center gap-1.5 font-medium text-amber-700" title="Warning">
+      <span className="inline-flex items-center gap-1.5 font-medium text-amber-700">
         <span className="text-base leading-none">🟡</span> Warning
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 font-medium text-rose-700" title="Error">
+    <span className="inline-flex items-center gap-1.5 font-medium text-rose-700">
       <span className="text-base leading-none">🔴</span> Error
     </span>
   );
@@ -72,7 +64,6 @@ const CandidateBulkUpload = ({
   Layout = DefaultLayoutAdmin,
   Breadcrumb = BreadcrumbAdmin,
   listPath = '/admin/recruitments/candidates',
-  resumeUpdatePath,
 }) => {
   const { state } = useAuth();
   const queryClient = useQueryClient();
@@ -81,58 +72,24 @@ const CandidateBulkUpload = ({
 
   const [excelFile, setExcelFile] = useState(null);
   const [zipFile, setZipFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [phase, setPhase] = useState('idle');
-  const [summaryMessage, setSummaryMessage] = useState('');
-  const [results, setResults] = useState(emptyResults);
-  const [resumeStatus, setResumeStatus] = useState([]);
-  const [resumeCounts, setResumeCounts] = useState({
-    total: 0,
-    success: 0,
-    notFound: 0,
-    failed: 0,
-  });
-  const [missingResumes, setMissingResumes] = useState([]);
-  const [matchReport, setMatchReport] = useState([]);
-  const [zipAnalysis, setZipAnalysis] = useState(null);
-  const [zipWarnings, setZipWarnings] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState('idle'); // idle | preview | importing | complete | failed
+  const [preview, setPreview] = useState(null);
+  const [commitResult, setCommitResult] = useState(null);
 
-  const canUpload = Boolean(excelFile && zipFile) && !uploading;
+  const canPreview = Boolean(excelFile && zipFile) && !busy;
+  const summary = preview?.summary;
+  const rows = preview?.rows || [];
+  const warnings = preview?.warnings || [];
 
-  const counts = useMemo(
-    () => ({
-      success: results.success.length,
-      duplicates: results.duplicates.length,
-      errors: results.errors.length,
-      total: results.success.length + results.duplicates.length + results.errors.length,
-    }),
-    [results]
-  );
+  const importableCount = useMemo(() => {
+    if (!summary) return 0;
+    return summary.matched + summary.ambiguous;
+  }, [summary]);
 
-  const matchStats = useMemo(() => {
-    const success = matchReport.filter((r) => r.indicator === 'success').length;
-    const warning = matchReport.filter((r) => r.indicator === 'warning').length;
-    const error = matchReport.filter((r) => r.indicator === 'error').length;
-    return { success, warning, error, total: matchReport.length };
-  }, [matchReport]);
-
-  const hasOutcome =
-    phase !== 'idle' &&
-    (counts.total > 0 ||
-      resumeStatus.length > 0 ||
-      matchReport.length > 0 ||
-      zipAnalysis ||
-      summaryMessage);
-
-  const resetOutcome = () => {
-    setResults(emptyResults);
-    setResumeStatus([]);
-    setResumeCounts({ total: 0, success: 0, notFound: 0, failed: 0 });
-    setMissingResumes([]);
-    setMatchReport([]);
-    setZipAnalysis(null);
-    setZipWarnings([]);
-    setSummaryMessage('');
+  const resetAll = () => {
+    setPreview(null);
+    setCommitResult(null);
     setPhase('idle');
   };
 
@@ -144,7 +101,7 @@ const CandidateBulkUpload = ({
       }
       await downloadBulkTemplate('candidates', state.user);
       toast.success(`Template downloaded with Creator ID ${state.user.user_id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to download template');
     }
   };
@@ -154,7 +111,7 @@ const CandidateBulkUpload = ({
     if (!file) return;
     if (file.type.includes('spreadsheet') || file.type.includes('excel') || file.name.match(/\.(xlsx|xls)$/i)) {
       setExcelFile(file);
-      resetOutcome();
+      resetAll();
     } else {
       toast.error('Please choose an Excel file (.xlsx or .xls)');
       event.target.value = '';
@@ -171,7 +128,7 @@ const CandidateBulkUpload = ({
       file.name.match(/\.zip$/i)
     ) {
       setZipFile(file);
-      resetOutcome();
+      resetAll();
     } else {
       toast.error('Please choose a ZIP file of resumes');
       event.target.value = '';
@@ -179,282 +136,102 @@ const CandidateBulkUpload = ({
     }
   };
 
-  const processResumes = async (createdCandidates, zipBlob) => {
-    const JSZip = (await import('jszip')).default;
-    const zip = await JSZip.loadAsync(zipBlob);
-    const analysis = analyzeZipArchive(zip);
-    const missing = [];
-
-    setResumeCounts({ total: createdCandidates.length, success: 0, notFound: 0, failed: 0 });
-    setResumeStatus(
-      createdCandidates.map((candidate) => ({
-        name: candidate.name,
-        email: candidate.email,
-        status: 'pending',
-        indicator: 'pending',
-        file: null,
-        folder: null,
-        message: 'Waiting to match resume...',
-      }))
-    );
-
-    for (const candidate of createdCandidates) {
-      setResumeStatus((prev) =>
-        prev.map((row) =>
-          row.name === candidate.name
-            ? { ...row, status: 'processing', message: 'Scanning ZIP (including nested folders)...' }
-            : row
-        )
-      );
-
-      const matchingFile = findMatchingResumeInZip(zip, candidate.name);
-      if (!matchingFile) {
-        missing.push({
-          candidateName: candidate.name,
-          expectedPattern: 'firstname.pdf or full_name.pdf',
-          availableFiles: analysis.resumeFiles.map((f) => f.path),
-        });
-        setResumeStatus((prev) =>
-          prev.map((row) =>
-            row.name === candidate.name
-              ? {
-                  ...row,
-                  status: 'not-found',
-                  indicator: 'error',
-                  file: 'Not found',
-                  message: 'No matching resume found in ZIP (checked nested folders too)',
-                }
-              : row
-          )
-        );
-        setResumeCounts((prev) => ({ ...prev, notFound: prev.notFound + 1 }));
-        continue;
-      }
-
-      const nested = matchingFile.includes('/');
-      const folder = matchingFile.split('/').slice(0, -1).join('/') || '(ZIP root)';
-      const shortName = matchingFile.split('/').pop();
-
-      try {
-        setResumeStatus((prev) =>
-          prev.map((row) =>
-            row.name === candidate.name
-              ? {
-                  ...row,
-                  status: 'uploading',
-                  indicator: nested ? 'warning' : 'success',
-                  file: shortName,
-                  folder,
-                  message: nested
-                    ? `Uploading from nested folder "${folder}"...`
-                    : 'Uploading resume...',
-                }
-              : row
-          )
-        );
-        const fileName = await uploadResumeAndAttach(
-          candidate,
-          zip.files[matchingFile],
-          resumeUpdatePath ? resumeUpdatePath(candidate.id) : undefined
-        );
-        setResumeStatus((prev) =>
-          prev.map((row) =>
-            row.name === candidate.name
-              ? {
-                  ...row,
-                  status: 'success',
-                  indicator: nested ? 'warning' : 'success',
-                  file: fileName,
-                  folder,
-                  message: nested
-                    ? `Resume uploaded from nested folder "${folder}"`
-                    : 'Resume uploaded successfully',
-                }
-              : row
-          )
-        );
-        setResumeCounts((prev) => ({ ...prev, success: prev.success + 1 }));
-      } catch (error) {
-        setResumeStatus((prev) =>
-          prev.map((row) =>
-            row.name === candidate.name
-              ? {
-                  ...row,
-                  status: 'failed',
-                  indicator: 'error',
-                  file: shortName,
-                  folder,
-                  message: error.message || 'Error uploading resume',
-                }
-              : row
-          )
-        );
-        setResumeCounts((prev) => ({ ...prev, failed: prev.failed + 1 }));
-      }
-    }
-
-    setMissingResumes(missing);
-  };
-
-  const handleUpload = async (event) => {
-    event.preventDefault();
+  const handlePreview = async () => {
     if (!excelFile || !zipFile) {
       toast.error('Please upload both the Excel template and the resume ZIP');
       return;
     }
     if (!state?.user?.user_id) {
-      toast.error('Please sign in so Creator ID can be set on each row.');
+      toast.error('Please sign in to preview the import.');
       return;
     }
 
-    resetOutcome();
-    setUploading(true);
-    setPhase('validating');
-    const loadingToast = toast.loading('Checking Excel + ZIP (including nested folders)...');
+    setBusy(true);
+    setCommitResult(null);
+    const loadingToast = toast.loading('Scanning Excel + ZIP on server...');
 
     try {
-      const excelData = await convertExcelToJson(excelFile);
-      if (!excelData.length) {
-        setPhase('blocked');
-        setResults({
-          success: [],
-          duplicates: [],
-          errors: [{ name: '-', email: '', error: 'The Excel file has no candidate rows to upload.' }],
-        });
-        setSummaryMessage('Upload did not start. The template has no data rows.');
-        toast.error('The Excel file has no candidate rows to upload.', { id: loadingToast });
-        return;
+      const data = await previewBulkImport(excelFile, zipFile);
+      if (!data?.success) {
+        throw new Error(data?.message || 'Preview failed');
       }
+      setPreview(data);
+      setPhase('preview');
+      toast.success(data.message || 'Preview ready', { id: loadingToast });
+    } catch (error) {
+      setPhase('failed');
+      toast.error(
+        error.response?.data?.message || error.message || 'Preview failed',
+        { id: loadingToast }
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
 
-      const candidates = excelData.map((row) => mapExcelRowToCandidate(row, state?.user || {}));
-      const rowErrors = validateCandidateRows(candidates);
+  const handleCommit = async (mode) => {
+    if (!excelFile || !zipFile) return;
+    if (!importableCount && mode === 'matched_only') {
+      toast.error('No matched rows to import. Fix missing resumes or use include-ambiguous.');
+      return;
+    }
 
-      const JSZip = (await import('jszip')).default;
-      const zip = await JSZip.loadAsync(zipFile);
-      const analysis = analyzeZipArchive(zip);
-      setZipAnalysis(analysis);
+    setBusy(true);
+    setPhase('importing');
+    const loadingToast = toast.loading(
+      mode === 'include_ambiguous'
+        ? 'Importing matched + ambiguous rows...'
+        : 'Importing matched candidates...'
+    );
 
-      const { rows: reportRows } = buildResumeMatchReport(candidates, zip);
-      setMatchReport(reportRows);
-
-      const warnings = [];
-      if (analysis.hasNestedStructure) {
-        warnings.push(
-          `Nested folders detected (max depth ${analysis.maxDepth}). Resumes inside subfolders are scanned automatically.`
-        );
+    try {
+      const data = await commitBulkImport(excelFile, zipFile, mode);
+      if (!data?.success) {
+        throw new Error(data?.message || 'Import failed');
       }
-      if (analysis.nestedFolderCount > 0) {
-        warnings.push(
-          `${analysis.nestedFolderCount} folder(s) found in the archive${
-            analysis.topLevelFolders.length
-              ? `: ${analysis.topLevelFolders.slice(0, 5).join(', ')}${analysis.topLevelFolders.length > 5 ? '…' : ''}`
-              : ''
-          }.`
-        );
-      }
-      if (analysis.skippedJunk > 0) {
-        warnings.push(`Skipped ${analysis.skippedJunk} system/junk file(s) (e.g. __MACOSX).`);
-      }
-      if (analysis.otherFiles.length > 0) {
-        warnings.push(
-          `${analysis.otherFiles.length} non-resume file(s) ignored (only PDF/DOC/DOCX/RTF/TXT are used).`
-        );
-      }
-      setZipWarnings(warnings);
-
-      const resumeErrors = validateResumeMatches(candidates, zip);
-      const blockingErrors = [...rowErrors, ...resumeErrors];
-
-      if (blockingErrors.length) {
-        setPhase('blocked');
-        setResults({ success: [], duplicates: [], errors: blockingErrors });
-        setSummaryMessage(
-          `Upload did not start. Fix ${blockingErrors.length} issue${blockingErrors.length === 1 ? '' : 's'} and try again.`
-        );
-        toast.error('Required details or resumes are missing. Nothing was uploaded.', {
-          id: loadingToast,
-        });
-        return;
-      }
-
-      setPhase('uploading');
-      toast.loading('Saving candidates...', { id: loadingToast });
-
-      const response = await api.post(CANDIDATE_ENDPOINTS.BULK_UPLOAD, {
-        candidates,
-        created_by: state?.user?.username,
-        created_by_id: state?.user?.user_id,
-      });
-
-      if (!response.data?.success) {
-        toast.error(response.data?.message || 'Failed to upload candidates', { id: loadingToast });
-        setPhase('failed');
-        return;
-      }
-
-      const nextResults = response.data.results || emptyResults;
-      setResults(nextResults);
-      setSummaryMessage(response.data.message || 'Upload processed');
-
-      if (nextResults.success.length > 0) {
-        setPhase('resumes');
-        toast.loading('Uploading matched resumes from ZIP...', { id: loadingToast });
-        await processResumes(nextResults.success, zipFile);
-      }
-
-      toast.success(response.data.message || 'Bulk upload completed', { id: loadingToast });
+      setCommitResult(data);
       setPhase('complete');
+      toast.success(data.message || 'Import complete', { id: loadingToast });
       queryClient.invalidateQueries({ queryKey: ['candidates'] });
     } catch (error) {
       setPhase('failed');
-      toast.error(error.response?.data?.message || error.response?.data?.msg || 'Upload failed', {
-        id: loadingToast,
-      });
+      toast.error(
+        error.response?.data?.message || error.message || 'Import failed',
+        { id: loadingToast }
+      );
     } finally {
-      setUploading(false);
+      setBusy(false);
     }
   };
 
   const statusLabel = {
     idle: 'Ready',
-    validating: 'Checking Excel + ZIP',
-    blocked: 'Stopped — fix issues below',
-    uploading: 'Saving candidates',
-    resumes: 'Uploading resumes',
-    complete: 'Completed',
+    preview: 'Preview ready — review then import',
+    importing: 'Importing on server...',
+    complete: 'Import completed',
     failed: 'Failed',
   }[phase];
-
-  const statusClass = (status) => {
-    if (status === 'success') return 'bg-emerald-50 text-emerald-700';
-    if (status === 'failed') return 'bg-rose-50 text-rose-700';
-    if (status === 'not-found') return 'bg-rose-50 text-rose-700';
-    if (status === 'processing' || status === 'uploading') return 'bg-sky-50 text-sky-700';
-    return 'bg-[#0b1d36]/5 text-[#0b1d36]/70';
-  };
 
   return (
     <Layout>
       <Breadcrumb pageName="Bulk Upload" backUrl={listPath} />
 
       <div className="app-card mb-6 p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#d4af37]">Candidates</p>
-        <h3 className="mt-1 text-xl font-semibold text-[#0b1d36]">Excel template + resume ZIP</h3>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#d4af37]">
+          Candidates
+        </p>
+        <h3 className="mt-1 text-xl font-semibold text-[#0b1d36]">
+          Automated Excel + ZIP import
+        </h3>
         <p className="mt-2 text-sm text-[#0b1d36]/70">
-          Upload both files. Nested ZIP folders are supported (ZIP → folder → resume). Name resume
-          files with the candidate first name or full_name (jane.pdf / jane_doe.pdf). Supported:
-          PDF, DOC, DOCX, RTF, TXT.
+          Upload your spreadsheet and resume archive as-is. The server scans nested ZIP folders,
+          matches resumes by email / phone / name / folder, detects duplicates, and only asks you
+          to review ambiguous or missing rows.
         </p>
 
         <div className="mt-5">
-          <p className="mb-2 text-sm font-semibold text-[#0b1d36]">Required</p>
+          <p className="mb-2 text-sm font-semibold text-[#0b1d36]">Required columns</p>
           <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-[#d4af37]/20 px-3 py-1 text-sm font-medium text-[#0b1d36]">
-              Excel file
-            </span>
-            <span className="rounded-full bg-[#d4af37]/20 px-3 py-1 text-sm font-medium text-[#0b1d36]">
-              Resume ZIP
-            </span>
             {REQUIRED_CANDIDATE_FIELDS.map((field) => (
               <span
                 key={field.key}
@@ -464,10 +241,20 @@ const CandidateBulkUpload = ({
               </span>
             ))}
           </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {OPTIONAL_HINTS.map((hint) => (
+              <span
+                key={hint}
+                className="rounded-full bg-[#0b1d36]/5 px-3 py-1 text-xs font-medium text-[#0b1d36]/70"
+              >
+                {hint}
+              </span>
+            ))}
+          </div>
           <div className="mt-3 flex flex-wrap gap-3 text-sm text-[#0b1d36]/70">
-            <span>🟢 Matched resume</span>
-            <span>🟡 Nested folder / caution</span>
-            <span>🔴 Missing or failed</span>
+            <span>🟢 Matched</span>
+            <span>🟡 Ambiguous / nested / duplicate</span>
+            <span>🔴 Missing / invalid</span>
           </div>
         </div>
 
@@ -506,126 +293,171 @@ const CandidateBulkUpload = ({
           </button>
           <button
             type="button"
-            onClick={handleUpload}
-            disabled={!canUpload}
-            className={`btn-gold ${!canUpload ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={handlePreview}
+            disabled={!canPreview}
+            className={`btn-gold ${!canPreview ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <FaUpload />
-            {uploading ? 'Uploading...' : 'Upload'}
+            {busy && phase !== 'importing' ? 'Scanning...' : 'Preview match'}
           </button>
         </div>
       </div>
 
-      {hasOutcome && (
+      {(preview || commitResult) && (
         <>
-          <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">
+          <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-8">
             <SummaryTile label="Status" value={statusLabel} />
             <SummaryTile
               icon={FaFolderOpen}
               label="ZIP resumes"
-              value={zipAnalysis?.resumeFiles?.length ?? 0}
-              tone="navy"
+              value={summary?.zipResumes ?? 0}
             />
             <SummaryTile
               icon={FaExclamationTriangle}
               label="Nested folders"
-              value={zipAnalysis?.nestedFolderCount ?? 0}
+              value={summary?.nestedFolders ?? 0}
               tone="warning"
             />
             <SummaryTile
               icon={FaCheckCircle}
               label="Matched"
-              value={matchStats.success + matchStats.warning}
-              tone="success"
-            />
-            <SummaryTile
-              icon={FaCheckCircle}
-              label="Uploaded"
-              value={counts.success}
+              value={summary?.matched ?? 0}
               tone="success"
             />
             <SummaryTile
               icon={FaExclamationCircle}
-              label="Duplicates"
-              value={counts.duplicates}
+              label="Ambiguous"
+              value={summary?.ambiguous ?? 0}
               tone="warning"
             />
             <SummaryTile
               icon={FaTimesCircle}
-              label={phase === 'blocked' ? 'Blocked' : 'Failed'}
-              value={counts.errors || matchStats.error}
+              label="Missing"
+              value={summary?.missingResume ?? 0}
+              tone="danger"
+            />
+            <SummaryTile
+              icon={FaExclamationCircle}
+              label="Duplicates"
+              value={summary?.duplicates ?? 0}
+              tone="warning"
+            />
+            <SummaryTile
+              icon={FaTimesCircle}
+              label="Invalid"
+              value={summary?.invalid ?? 0}
               tone="danger"
             />
           </div>
 
-          {resumeStatus.length > 0 && (
-            <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-              <SummaryTile label="Resume total" value={resumeCounts.total} />
-              <SummaryTile label="Resumes OK" value={resumeCounts.success} tone="success" />
-              <SummaryTile label="Missing resumes" value={resumeCounts.notFound} tone="danger" />
-              <SummaryTile label="Upload failed" value={resumeCounts.failed} tone="danger" />
-            </div>
-          )}
-
-          {summaryMessage && (
-            <div
-              className={`app-card mb-6 p-4 text-sm font-medium ${
-                phase === 'blocked'
-                  ? 'border-rose-300 text-rose-700'
-                  : 'border-[rgba(212,175,55,0.35)] text-[#0b1d36]'
-              }`}
-            >
-              {summaryMessage}
-            </div>
-          )}
-
-          {zipWarnings.length > 0 && (
+          {warnings.length > 0 && (
             <div className="app-card mb-6 border-amber-300 bg-amber-50/60 p-4">
               <h4 className="mb-2 flex items-center gap-2 text-base font-semibold text-amber-800">
-                <span>🟡</span> Archive structure
+                <span>🟡</span> Archive notes
               </h4>
               <ul className="list-disc space-y-1 pl-5 text-sm text-amber-900">
-                {zipWarnings.map((w, i) => (
-                  <li key={`zw-${i}`}>{w}</li>
+                {warnings.map((w, i) => (
+                  <li key={`w-${i}`}>{w}</li>
                 ))}
               </ul>
-              {zipAnalysis?.structurePreview?.length > 0 && (
-                <div className="mt-3 rounded-xl bg-white/70 p-3 text-xs text-[#0b1d36]/80">
-                  {zipAnalysis.structurePreview.map((line, i) => (
-                    <p key={`sp-${i}`}>{line}</p>
-                  ))}
-                </div>
-              )}
+            </div>
+          )}
+
+          {phase === 'preview' && (
+            <div className="app-card mb-6 flex flex-wrap items-center gap-3 p-4">
+              <p className="mr-auto text-sm text-[#0b1d36]/80">
+                <strong>{summary?.matched || 0}</strong> ready to import.
+                {summary?.ambiguous
+                  ? ` ${summary.ambiguous} ambiguous (optional).`
+                  : ''}{' '}
+                Missing / invalid rows will be skipped.
+              </p>
+              <button
+                type="button"
+                disabled={busy || !summary?.matched}
+                onClick={() => handleCommit('matched_only')}
+                className="btn-gold disabled:opacity-50"
+              >
+                Import matched only
+              </button>
+              <button
+                type="button"
+                disabled={busy || importableCount === 0}
+                onClick={() => handleCommit('include_ambiguous')}
+                className="btn-navy disabled:opacity-50"
+              >
+                Import matched + ambiguous
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadErrorCsv(rows)}
+                className="rounded-xl border border-[rgba(11,29,54,0.15)] px-4 py-2 text-sm font-medium text-[#0b1d36] hover:bg-[#0b1d36]/5"
+              >
+                Download report CSV
+              </button>
+            </div>
+          )}
+
+          {commitResult && (
+            <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+              <SummaryTile
+                label="Created"
+                value={commitResult.results?.success?.length || 0}
+                tone="success"
+              />
+              <SummaryTile
+                label="Duplicates"
+                value={commitResult.results?.duplicates?.length || 0}
+                tone="warning"
+              />
+              <SummaryTile
+                label="Skipped"
+                value={commitResult.results?.skipped?.length || 0}
+                tone="warning"
+              />
+              <SummaryTile
+                label="Errors"
+                value={commitResult.results?.errors?.length || 0}
+                tone="danger"
+              />
+            </div>
+          )}
+
+          {commitResult?.message && (
+            <div className="app-card mb-6 border-[rgba(212,175,55,0.35)] p-4 text-sm font-medium text-[#0b1d36]">
+              {commitResult.message}
             </div>
           )}
         </>
       )}
 
-      {matchReport.length > 0 && (
+      {rows.length > 0 && (
         <div className="app-card mb-6 overflow-hidden">
           <h4 className="px-5 py-4 text-lg font-semibold text-[#0b1d36]">
-            Resume match results
+            Match preview ({rows.length} rows)
           </h4>
           <div className="overflow-x-auto">
             <table className="w-full table-auto">
               <thead>
                 <tr>
                   <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Row</th>
                   <th className="px-4 py-3 text-left">Candidate</th>
                   <th className="px-4 py-3 text-left">Email</th>
-                  <th className="px-4 py-3 text-left">Matched file</th>
+                  <th className="px-4 py-3 text-left">Resume</th>
                   <th className="px-4 py-3 text-left">Folder</th>
                   <th className="px-4 py-3 text-left">Message</th>
                 </tr>
               </thead>
               <tbody>
-                {matchReport.map((row, index) => (
-                  <tr key={`match-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
+                {rows.map((row, index) => (
+                  <tr key={`row-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
                     <td className="px-4 py-3">
-                      <Indicator type={row.indicator} />
+                      <Indicator type={row.indicator || 'error'} />
                     </td>
+                    <td className="px-4 py-3">{row.rowNumber}</td>
                     <td className="px-4 py-3 font-medium text-[#0b1d36]">{row.name}</td>
-                    <td className="px-4 py-3">{row.email || '-'}</td>
+                    <td className="px-4 py-3">{row.email || '—'}</td>
                     <td className="px-4 py-3">{row.matchedFile || '—'}</td>
                     <td className="px-4 py-3 text-sm text-[#0b1d36]/70">
                       {row.folder || '—'}
@@ -640,10 +472,38 @@ const CandidateBulkUpload = ({
         </div>
       )}
 
-      {results.success.length > 0 && (
+      {preview?.unusedResumes?.length > 0 && (
         <div className="app-card mb-6 overflow-hidden">
           <h4 className="px-5 py-4 text-lg font-semibold text-[#0b1d36]">
-            🟢 Successfully uploaded candidates
+            Unused resumes in ZIP ({preview.unusedResumes.length})
+          </h4>
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left">File</th>
+                  <th className="px-4 py-3 text-left">Folder</th>
+                  <th className="px-4 py-3 text-left">Path</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preview.unusedResumes.map((file, index) => (
+                  <tr key={`unused-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
+                    <td className="px-4 py-3">{file.fileName}</td>
+                    <td className="px-4 py-3">{file.folder}</td>
+                    <td className="px-4 py-3 text-sm text-[#0b1d36]/70">{file.path}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {commitResult?.results?.success?.length > 0 && (
+        <div className="app-card mb-6 overflow-hidden">
+          <h4 className="px-5 py-4 text-lg font-semibold text-[#0b1d36]">
+            🟢 Created candidates
           </h4>
           <div className="overflow-x-auto">
             <table className="w-full table-auto">
@@ -657,167 +517,13 @@ const CandidateBulkUpload = ({
                 </tr>
               </thead>
               <tbody>
-                {results.success.map((row, index) => {
-                  const resumeRow = resumeStatus.find((r) => r.name === row.name);
-                  return (
-                    <tr key={`ok-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
-                      <td className="px-4 py-3">{row.name}</td>
-                      <td className="px-4 py-3">{row.email}</td>
-                      <td className="px-4 py-3">{row.id}</td>
-                      <td className="px-4 py-3">
-                        {resumeRow ? (
-                          <Indicator
-                            type={
-                              resumeRow.indicator === 'warning'
-                                ? 'warning'
-                                : resumeRow.status === 'success'
-                                  ? 'success'
-                                  : 'error'
-                            }
-                          />
-                        ) : (
-                          '—'
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-emerald-700">
-                        {resumeRow?.message || row.message || 'Created successfully'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {results.duplicates.length > 0 && (
-        <div className="app-card mb-6 overflow-hidden">
-          <h4 className="px-5 py-4 text-lg font-semibold text-[#0b1d36]">🟡 Duplicates</h4>
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left">Name</th>
-                  <th className="px-4 py-3 text-left">Email</th>
-                  <th className="px-4 py-3 text-left">Error</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.duplicates.map((row, index) => (
-                  <tr key={`dup-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
+                {commitResult.results.success.map((row, index) => (
+                  <tr key={`ok-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
                     <td className="px-4 py-3">{row.name}</td>
                     <td className="px-4 py-3">{row.email}</td>
-                    <td className="px-4 py-3 text-amber-700">{row.error}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {results.errors.length > 0 && (
-        <div className="app-card mb-6 overflow-hidden">
-          <h4 className="px-5 py-4 text-lg font-semibold text-[#0b1d36]">
-            🔴 {phase === 'blocked' ? 'Blocked — fix these issues' : 'Failed records'}
-          </h4>
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Name</th>
-                  <th className="px-4 py-3 text-left">Email</th>
-                  <th className="px-4 py-3 text-left">Message</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.errors.map((row, index) => (
-                  <tr key={`err-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
-                    <td className="px-4 py-3">
-                      <Indicator type="error" />
-                    </td>
-                    <td className="px-4 py-3">{row.name || '-'}</td>
-                    <td className="px-4 py-3">{row.email || '-'}</td>
-                    <td className="px-4 py-3 text-rose-700">{row.error}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {resumeStatus.length > 0 && (
-        <div className="app-card mb-6 overflow-hidden">
-          <h4 className="px-5 py-4 text-lg font-semibold text-[#0b1d36]">Resume processing</h4>
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Candidate</th>
-                  <th className="px-4 py-3 text-left">File</th>
-                  <th className="px-4 py-3 text-left">Folder</th>
-                  <th className="px-4 py-3 text-left">Message</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resumeStatus.map((row, index) => (
-                  <tr key={`resume-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
-                    <td className="px-4 py-3">
-                      <Indicator
-                        type={
-                          row.indicator === 'warning'
-                            ? 'warning'
-                            : row.status === 'success'
-                              ? 'success'
-                              : row.status === 'pending' ||
-                                  row.status === 'processing' ||
-                                  row.status === 'uploading'
-                                ? 'warning'
-                                : 'error'
-                        }
-                      />
-                    </td>
-                    <td className="px-4 py-3">{row.name}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${statusClass(row.status)}`}>
-                        {row.file || row.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-[#0b1d36]/70">{row.folder || '—'}</td>
-                    <td className="px-4 py-3">{row.message}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {missingResumes.length > 0 && (
-        <div className="app-card mb-6 overflow-hidden">
-          <h4 className="px-5 py-4 text-lg font-semibold text-[#0b1d36]">🔴 Missing resumes</h4>
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left">Candidate</th>
-                  <th className="px-4 py-3 text-left">Expected filename</th>
-                  <th className="px-4 py-3 text-left">Files found in ZIP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {missingResumes.map((row, index) => (
-                  <tr key={`missing-${index}`} className="border-t border-[rgba(11,29,54,0.08)]">
-                    <td className="px-4 py-3">{row.candidateName}</td>
-                    <td className="px-4 py-3 text-rose-700">{row.expectedPattern}</td>
-                    <td className="px-4 py-3 text-sm text-[#0b1d36]/70">
-                      {row.availableFiles.slice(0, 12).join(', ') || 'None'}
-                      {row.availableFiles.length > 12 ? '…' : ''}
-                    </td>
+                    <td className="px-4 py-3">{row.id}</td>
+                    <td className="px-4 py-3">{row.resume || '—'}</td>
+                    <td className="px-4 py-3 text-emerald-700">{row.message}</td>
                   </tr>
                 ))}
               </tbody>

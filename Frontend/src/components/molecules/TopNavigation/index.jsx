@@ -13,25 +13,25 @@ const TopNavigation = ({ onLoginClick, overlay = false }) => {
   return (
     <>
       <header
-        className={`relative z-40 w-full transition-all duration-300 ${
+        className={`${
           overlay
-            ? 'bg-gradient-to-b from-black/55 to-transparent'
-            : 'bg-[#0b1d36]/95 backdrop-blur-md shadow-lg'
-        }`}
+            ? 'absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/50 via-black/20 to-transparent'
+            : 'relative z-40 w-full bg-[#0b1d36]/95 backdrop-blur-md shadow-lg'
+        } transition-all duration-300`}
       >
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between h-[88px] lg:h-28">
+          <div className="flex items-center justify-between h-[96px] lg:h-[112px]">
             <Link to="/" className="flex items-center shrink-0">
               <img
                 src={sevenWingsLogo}
                 alt="Seven Wings Technologies"
-                className="h-16 sm:h-20 lg:h-24 w-auto object-contain rounded-sm bg-white p-1"
+                className="h-16 sm:h-[4.5rem] lg:h-20 w-auto object-contain rounded-md bg-white/95 shadow-lg shadow-black/25 ring-1 ring-white/40"
               />
             </Link>
             <button
               type="button"
               onClick={onLoginClick}
-              className="px-5 lg:px-6 py-2 text-sm font-semibold tracking-wide text-[#0b1d36] bg-[#d4af37] hover:bg-[#e3c356] rounded-full transition-all duration-300 shadow-lg shadow-black/20"
+              className="px-5 lg:px-6 py-2.5 text-sm font-semibold tracking-wide text-[#0b1d36] bg-[#d4af37] hover:bg-[#e3c356] rounded-full transition-all duration-300 shadow-lg shadow-black/25"
             >
               Login
             </button>
