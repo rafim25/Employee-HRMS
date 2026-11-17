@@ -52,6 +52,9 @@ console.log(`DB_NAME: ${process.env.DB_NAME}`);
 
 const app = express();
 
+// Required behind Nginx TLS termination so secure cookies / client IP work
+app.set("trust proxy", 1);
+
 // Define allowed origins (CORS). Add EXTRA_CORS_ORIGINS=comma,separated in .env.production if needed.
 const allowedOrigins = [
   'https://sevenwingstechnologies.in',
@@ -144,7 +147,8 @@ const sessionConfig = {
   proxy: true,
   cookie: {
     httpOnly: true,
-    secure: false,
+    // HTTPS site behind Nginx — set true in production
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000,
     path: '/'

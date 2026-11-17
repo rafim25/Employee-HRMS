@@ -174,7 +174,7 @@ const JobList = () => {
 
     const loadJobs = useCallback(async () => {
         try {
-            await fetchJobs(dispatch);
+            await fetchJobs(dispatch, { force: true });
         } catch (error) {
             console.error('Error loading jobs:', error);
             // Error toast handled in fetchJobs (deduped id)
